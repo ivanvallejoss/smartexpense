@@ -1,0 +1,44 @@
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+known_django = "django"
+known_first_party = ["apps", "config"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--cov=backend --cov-report=html --cov-report=term-missing"
+testpaths = ["backend/tests"]
+
+[tool.coverage.run]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+    "*/__pycache__/*",
+    "*/manage.py",
+    "*/wsgi.py",
+    "*/asgi.py",
+]
