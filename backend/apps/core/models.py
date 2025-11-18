@@ -28,9 +28,7 @@ class User(AbstractUser):
         blank=True,
         help_text="Username de Telegram (sin @)",
     )
-    notifications_enabled = models.BooleanField(
-        default=True, help_text="Si el usuario quiere recibir notificaciones del bot"
-    )
+    notifications_enabled = models.BooleanField(default=True, help_text="Si el usuario quiere recibir notificaciones del bot")
 
     class Meta:
         db_table = "users"
@@ -64,9 +62,7 @@ class Category(models.Model):
         blank=True,
         help_text="Lista de palabras clave para auto-categorización (ej: ['uber', 'taxi'])",
     )
-    is_default = models.BooleanField(
-        default=False, help_text="Si es una categoría global disponible para todos"
-    )
+    is_default = models.BooleanField(default=False, help_text="Si es una categoría global disponible para todos")
     color = models.CharField(
         max_length=7,
         blank=True,
@@ -113,9 +109,7 @@ class Expense(models.Model):
         validators=[MinValueValidator(0.01)],
         help_text="Monto del gasto (debe ser mayor a 0)",
     )
-    description = models.TextField(
-        max_length=500, help_text="Descripción del gasto (máx 500 caracteres)"
-    )
+    description = models.TextField(max_length=500, help_text="Descripción del gasto (máx 500 caracteres)")
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -171,9 +165,7 @@ class DeletedObject(models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
 
     # Snapshot completo del objeto
-    object_data = models.JSONField(
-        help_text="Snapshot completo del objeto al momento de eliminarlo"
-    )
+    object_data = models.JSONField(help_text="Snapshot completo del objeto al momento de eliminarlo")
 
     # Metadata de eliminación
     deleted_by = models.ForeignKey(

@@ -4,8 +4,8 @@ repos:
     rev: 23.12.1
     hooks:
       - id: black
-        language_version: python3.11
-        args: ['--line-length=100']
+        language_version: python3.12.3
+        args: ['--line-length=255']
 
   # isort - ordenar imports
   - repo: https://github.com/PyCQA/isort
@@ -19,7 +19,7 @@ repos:
     rev: 7.0.0
     hooks:
       - id: flake8
-        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
+        args: ['--max-line-length=255', '--extend-ignore=E203,W503']
 
   # Trailing whitespace y end of file
   - repo: https://github.com/pre-commit/pre-commit-hooks

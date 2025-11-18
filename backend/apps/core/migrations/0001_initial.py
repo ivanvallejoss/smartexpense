@@ -23,9 +23,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("password", models.CharField(max_length=128, verbose_name="password")),
                 (
@@ -81,9 +79,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "date_joined",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, verbose_name="date joined"
-                    ),
+                    models.DateTimeField(default=django.utils.timezone.now, verbose_name="date joined"),
                 ),
                 (
                     "telegram_id",
@@ -148,9 +144,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("name", models.CharField(help_text="Nombre de la categoría", max_length=100)),
                 (
@@ -163,9 +157,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "is_default",
-                    models.BooleanField(
-                        default=False, help_text="Si es una categoría global disponible para todos"
-                    ),
+                    models.BooleanField(default=False, help_text="Si es una categoría global disponible para todos"),
                 ),
                 (
                     "color",
@@ -202,28 +194,20 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("object_id", models.PositiveIntegerField(help_text="ID del objeto original")),
                 (
                     "object_data",
-                    models.JSONField(
-                        help_text="Snapshot completo del objeto al momento de eliminarlo"
-                    ),
+                    models.JSONField(help_text="Snapshot completo del objeto al momento de eliminarlo"),
                 ),
                 (
                     "deleted_at",
-                    models.DateTimeField(
-                        auto_now_add=True, help_text="Cuándo se eliminó el objeto"
-                    ),
+                    models.DateTimeField(auto_now_add=True, help_text="Cuándo se eliminó el objeto"),
                 ),
                 (
                     "reason",
-                    models.CharField(
-                        blank=True, help_text="Razón de eliminación (opcional)", max_length=255
-                    ),
+                    models.CharField(blank=True, help_text="Razón de eliminación (opcional)", max_length=255),
                 ),
                 (
                     "content_type",
@@ -256,9 +240,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 (
                     "amount",
@@ -271,9 +253,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "description",
-                    models.TextField(
-                        help_text="Descripción del gasto (máx 500 caracteres)", max_length=500
-                    ),
+                    models.TextField(help_text="Descripción del gasto (máx 500 caracteres)", max_length=500),
                 ),
                 (
                     "date",

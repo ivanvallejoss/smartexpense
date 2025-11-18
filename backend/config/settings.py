@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     # Third party apps
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     "django_extensions",
     # Local apps
     "apps.core",
@@ -148,10 +149,21 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
+    # Swagger/OpenAPI
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-# JWT Configuration
+# drf-spectacular configuration
+SPECTACULAR_SETTINGS = {
+    "TITLE": "SmartExpense API",
+    "DESCRIPTION": "API REST para SmartExpense - Expense tracker inteligente con bot de telegram.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+}
 
+
+# JWT Configuration
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
