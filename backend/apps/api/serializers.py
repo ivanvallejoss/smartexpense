@@ -171,6 +171,8 @@ class ExpenseCreateUpdateSerializer(serializers.ModelSerializer):
     No incluye campos nested para evitar complejidad en writes.
     """
 
+    date = serializers.DateTimeField(required=False, allow_null=True)
+
     class Meta:
         model = Expense
         fields = [
