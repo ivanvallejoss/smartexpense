@@ -44,7 +44,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             extra={
                 "user_id": user.id,
                 "telegram_id": user.telegram_id,
-                "created": created,
+                "is_new_user": created,
                 "username": telegram_user.username,
             },
         )
