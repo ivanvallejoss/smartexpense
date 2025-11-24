@@ -1,0 +1,38 @@
+"""
+Configuración compartida para tests del bot.
+"""
+import pytest
+import asyncio
+from django.db import connections
+from django.test.utils import setup_test_environment, teardown_test_environment
+
+
+@pytest.fixture(scope='session')
+def event_loop():
+    """
+    Crear un event loop para toda la sesión de tests.
+    Esto evita problemas con tests async.
+    """
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope='function', autouse=True)
+def close_db_connections():
+    """
+    Cierra todas las conexiones de DB después de cada test.
+    Esto previene el error de "database is being accessed by other users".
+    """
+    yield
+    # Cerrar todas las conexiones después del test
+    for conn in connections.all():
+        conn.close()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def django_test_environment():
+    """Setup Django test environment."""
+    setup_test_environment()
+    yield
+    teardown_test_environment()
