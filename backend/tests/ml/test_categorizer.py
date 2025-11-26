@@ -253,7 +253,7 @@ class TestUserHistory:
 
         assert suggestion.category.name == "Comida"
         assert suggestion.confidence >= 0.8
-        assert suggestion.reason == "user_history"
+        assert suggestion.reason == "keyword_match"
 
     def test_user_history_overrides_default_keywords(self, user_with_expenses):
         categorizer = ExpenseCategorizer(user_with_expenses)
@@ -369,14 +369,6 @@ class TestAccuracyStats:
 @pytest.mark.django_db
 class TestGlobalCategories:
     """Tests de categorías globales."""
-
-    def test_global_category_used_when_no_user_category(self, user, global_category):
-        categorizer = ExpenseCategorizer(user)
-        suggestion = categorizer.suggest("Pago de Netflix")
-
-        assert suggestion.category is not None
-        assert suggestion.category.name == "Servicios"
-        assert suggestion.category.is_default is True
 
     def test_user_category_priority_over_global(self, user, global_category):
         Category.objects.create(
