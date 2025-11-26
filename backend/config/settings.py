@@ -2,6 +2,7 @@
 Django settings for SmartExpense project.
 """
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -83,7 +84,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -174,15 +174,27 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-
-# Celery Configuration (para después)
+#
+# CELERY CONFIGURATION
+#
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
+# Serializacion
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+# Timezone
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+# Task Tracking
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # CALCULANDO EN MINUTOS (30 MINUTOS MAX)
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Warning a los 25 minutos
 
+# PARA TESTING
+if "test" in sys.argv:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
