@@ -34,12 +34,13 @@ def format_amount(amount: Decimal) -> str:
     return f"${integer_with_sep}"
 
 
-def format_expense_confirmation(expense) -> str:
+def format_expense_confirmation(expense, auto_categorized=False) -> str:
     """
     Genera mensaje de confirmación para un expense guardado.
 
     Args:
         expense: Instancia de Expense model
+        auto_categorized: Si fue auto-categorizado por el sistema
 
     Returns:
         Mensaje formateado para enviar al usuario
@@ -57,14 +58,23 @@ def format_expense_confirmation(expense) -> str:
         "default": "📂",
     }
 
-    category_name = expense.category.name if expense.category else "Sin categorizar"
-    category_color = expense.category.color if expense.category else "default"
-    category_emoji = color_to_emoji.get(category_color, "📂")
+    if expense.category:
+        category_name = expense.category.name
+        category_color = expense.category.color if expense.category else "default"
+        category_emoji = color_to_emoji.get(category_color, "📂")
+
+        # Si fue auto-categorizado, agregar indicador
+        if auto_categorized:
+            category_display = f"{category_emoji} {category_name} (auto)"
+        else:
+            category_display = f"{category_emoji} {category_name}"
+    else:
+        category_display = "📂 Sin categorizar"
 
     # Formatear fecha en español
     date_str = expense.date.strftime("%d %b %Y, %H:%M")
 
-    message = "✅ Guardado correctamente\n\n" f"💵 Monto: {format_amount(expense.amount)}\n" f"📝 Descripción: {expense.description}\n" f"{category_emoji} Categoría: {category_name}\n" f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
+    message = "✅ Guardado correctamente\n\n" f"💵 Monto: {format_amount(expense.amount)}\n" f"📝 Descripción: {expense.description}\n" f"📂 Categoría: {category_display}\n" f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
 
     return message
 

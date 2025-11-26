@@ -149,6 +149,53 @@ class Expense(models.Model):
             raise ValidationError({"date": "La fecha del gasto no puede ser futura."})
 
 
+class CategorySuggestionFeedback(models.Model):
+    """
+    Guarda feedback cuando usuario acepta/rechaza sugerencia de categoría.
+    Permite aprender de los patrones del usuario para mejorar futuras sugerencias.
+
+    Usamos ForeignKey (no OneToOne) para mantener historial si el usuario
+    re-categoriza el expense múltiples veces.
+    """
+
+    expense = models.ForeignKey(
+        Expense,
+        on_delete=models.CASCADE,
+        related_name="category_feedbacks",
+        help_text="Expense para el cual se hizo la sugerencia",
+    )
+    suggested_category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="suggestions_made",
+        help_text="Categoría que sugirió el sistema",
+    )
+    was_accepted = models.BooleanField(help_text="Si el usuario aceptó la sugerencia")
+    final_category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="suggestions_accepted",
+        help_text="Categoría final elegida por el usuario",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "category_suggestion_feedbacks"
+        verbose_name = "Feedback de Sugerencia"
+        verbose_name_plural = "Feedbacks de Sugerencias"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["suggested_category", "was_accepted"], name="idx_suggestion_accepted"),
+            models.Index(fields=["expense", "created_at"], name="idx_expense_feedback"),
+        ]
+
+    def __str__(self):
+        status = "✓" if self.was_accepted else "✗"
+        return f"{status} {self.expense} → {self.final_category or 'Sin categoría'}"
+
+
 class DeletedObject(models.Model):
     """
     Papelera de reciclaje - almacena objetos eliminados por 30 días.

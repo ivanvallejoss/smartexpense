@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from apps.core.models import Category, Expense, User
+from apps.ml.categorizer import TextNormalizer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -53,8 +54,10 @@ class CategorySerializer(serializers.ModelSerializer):
         """Validar que keywords sea una lista."""
         if not isinstance(value, list):
             raise serializers.ValidationError("Keywords debe ser una lista.")
-        # Normalizar keywords a lowercase
-        return [str(kw).lower().strip() for kw in value if kw]
+
+        # Normalizamos cada keyword (a minuscula y sin acentos)
+        normalizer = TextNormalizer()
+        return [normalizer.normalize(str(kw)) for kw in value if kw]
 
     def validate_color(self, value):
         """Validar formato de color HEX."""

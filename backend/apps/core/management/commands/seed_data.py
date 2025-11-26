@@ -14,7 +14,7 @@ from faker import Faker
 from apps.core.models import Category, Expense
 
 User = get_user_model()
-fake = Faker("es_AR")  # Español Argentina
+fake = Faker("es_AR")
 
 
 class Command(BaseCommand):
@@ -44,12 +44,19 @@ class Command(BaseCommand):
         expenses_per_user = options["expenses_per_user"]
         clear = options["clear"]
 
+        check_delete = ""
+
         if clear:
-            self.stdout.write(self.style.WARNING("Eliminando datos existentes..."))
-            Expense.objects.all().delete()
-            Category.objects.filter(is_default=False).delete()
-            User.objects.filter(is_superuser=False).delete()
-            self.stdout.write(self.style.SUCCESS("Datos eliminados"))
+            self.stdout.write(self.style.WARNING("Se eliminaran todos los datos existentes en la base de datos."))
+            while check_delete != "y":
+                check_delete = input("Esta seguro que desea eliminar todo? (y/n) ")
+
+            if check_delete.lower() == "y":
+                Expense.objects.all().delete()
+                Category.objects.all().delete()
+                User.objects.all().delete()
+                self.stdout.write(self.style.SUCCESS("Datos eliminados"))
+                return
 
         self.stdout.write(self.style.MIGRATE_HEADING("\n=== Creando datos de prueba ===\n"))
         # 1. Crear categorías globales (si no existen)

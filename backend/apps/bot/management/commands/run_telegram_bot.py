@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.request import HTTPXRequest
 
 from apps.bot.handlers import error_handler, handle_message, help_command, start_command, stats_command
 
@@ -28,8 +29,15 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Starting Telegram bot..."))
 
-        # Crear application
-        application = Application.builder().token(token).build()
+        request = HTTPXRequest(
+            connection_pool_size=8,
+            connect_timeout=60.0,  # Aumentado por alta latencia
+            read_timeout=60.0,
+            write_timeout=60.0,
+        )
+
+        # Crear application con request customizado
+        application = Application.builder().token(token).request(request).build()
 
         # Registrar command handlers
         application.add_handler(CommandHandler("start", start_command))
