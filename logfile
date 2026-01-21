@@ -1,0 +1,25 @@
+2026-01-06 15:47:50.464 -03 [7903] LOG:  starting PostgreSQL 17.0 on arm-unknown-linux-androideabi, compiled by Android (13624864, +pgo, +bolt, +lto, +mlgo, based on r530567e) clang version 19.0.1 (https://android.googlesource.com/toolchain/llvm-project 97a699bf4812a18fb657c2779f5296a4ab2694d2), 32-bit
+2026-01-06 15:47:50.466 -03 [7903] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-01-06 15:47:50.469 -03 [7903] LOG:  listening on Unix socket "/data/data/com.termux/files/usr/tmp/.s.PGSQL.5432"
+2026-01-06 15:47:50.487 -03 [7908] LOG:  database system was shut down at 2026-01-06 15:47:37 -03
+2026-01-06 15:47:50.517 -03 [7903] LOG:  database system is ready to accept connections
+2026-01-06 15:48:31.348 -03 [7914] FATAL:  role "postgres" does not exist
+2026-01-06 15:48:42.853 -03 [7916] FATAL:  database "ivanvallejos" does not exist
+2026-01-06 15:48:47.412 -03 [7918] FATAL:  role "ivan" does not exist
+2026-01-06 15:48:50.826 -03 [7921] FATAL:  database "u0_a107" does not exist
+2026-01-06 15:49:10.672 -03 [7923] FATAL:  role "smartexpense" does not exist
+2026-01-06 15:49:14.791 -03 [7925] FATAL:  role "ivan" does not exist
+2026-01-06 15:49:19.691 -03 [7927] FATAL:  role "postgres" does not exist
+2026-01-06 15:49:23.758 -03 [7931] FATAL:  role "ivanvalljeoss" does not exist
+2026-01-06 15:49:28.185 -03 [7933] FATAL:  role "ivanvallejoss" does not exist
+2026-01-06 15:52:50.531 -03 [7906] LOG:  checkpoint starting: time
+2026-01-06 15:52:50.559 -03 [7906] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.004 s, total=0.028 s; sync files=2, longest=0.002 s, average=0.002 s; distance=0 kB, estimate=0 kB; lsn=0/19347E8, redo lsn=0/1934790
+2026-01-06 15:57:50.643 -03 [7906] LOG:  checkpoint starting: time
+2026-01-06 15:58:06.542 -03 [7906] LOG:  checkpoint complete: wrote 157 buffers (1.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=15.764 s, sync=0.112 s, total=15.899 s; sync files=144, longest=0.003 s, average=0.001 s; distance=773 kB, estimate=773 kB; lsn=0/19F5EF8, redo lsn=0/19F5E68
+2026-01-06 16:12:50.791 -03 [7906] LOG:  checkpoint starting: time
+2026-01-06 16:12:51.501 -03 [7906] LOG:  checkpoint complete: wrote 6 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.657 s, sync=0.009 s, total=0.722 s; sync files=3, longest=0.005 s, average=0.003 s; distance=8 kB, estimate=697 kB; lsn=0/19F7F40, redo lsn=0/19F7EE8
+2026-01-08 20:42:18.992 -03 [7903] LOG:  received smart shutdown request
+2026-01-08 20:42:19.018 -03 [7903] LOG:  background worker "logical replication launcher" (PID 7911) exited with exit code 1
+2026-01-08 20:42:19.034 -03 [7906] LOG:  shutting down
+2026-01-08 20:42:19.038 -03 [7906] LOG:  checkpoint starting: shutdown immediate
+2026-01-08 20:42:19.109 -03 [7906] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.022 s, sync=0.001 s, total=0.075 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=627 kB; lsn=0/19F7FF0, redo lsn=0/19F7FF0

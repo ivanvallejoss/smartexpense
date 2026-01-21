@@ -228,3 +228,8 @@ LOGGING = {
         },
     },
 }
+
+# Forzar a Celery a funcionar en termux
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# Forzar ejecucion sin multiprocesamiento complejo
+CELERY_WORKER_POOL = 'solo'
