@@ -3,6 +3,7 @@ Django settings for SmartExpense project.
 """
 import os
 import sys
+import dj_database_url
 from datetime import timedelta
 from pathlib import Path
 
@@ -17,15 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Inicializar django-environ
 env = environ.Env(DEBUG=(bool, False))
 
-# Leer .env file
+# Leemos .env file
 environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
 
-# SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-change-this-in-production-#$%^&*")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
-
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 
