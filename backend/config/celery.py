@@ -8,7 +8,7 @@ from celery import Celery
 # Set default Django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-app = Celery("smartexpense")
+app = Celery('config')
 
 # Load config from Django settings (usa el prefijo CELERY_)
 app.config_from_object("django.conf:settings", namespace="CELERY")

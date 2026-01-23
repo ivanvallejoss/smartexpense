@@ -1,2 +1,2 @@
-web: cd backend && gunicorn config.wsgi --log-file -
-worker cd backend && celery -A config worker --log-level=info
+web: PYTHONPATH=backend gunicorn config.wsgi --log-file -
+worker: PYTHONPATH=backend celery -A config worker --log-level=info
