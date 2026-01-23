@@ -1,6 +1,7 @@
 """
 Django settings for SmartExpense project.
 """
+import dj_database_url
 import os
 import sys
 import dj_database_url
@@ -52,7 +53,6 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = "core.User"
 
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -82,11 +82,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {"default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3")}
 
 
 # Password validation
@@ -172,24 +167,46 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-#
-# CELERY CONFIGURATION
-#
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
-# Serializacion
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-# Timezone
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ENABLE_UTC = True
-# Task Tracking
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # CALCULANDO EN MINUTOS (30 MINUTOS MAX)
-CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Warning a los 25 minutos
 
-# PARA TESTING
+#
+#  RAILWAY CONFIGURATION
+#
+
+IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") is not None
+
+# DB configuration for Railway
+if IS_PRODUCTION:
+    DATABASES = {
+        "default": dj_database_url.config(conn_max_age=600, ssl_require=True)
+    }
+else:
+    # Local database configuration
+    DATABASES = {"default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3")}
+
+
+# CELERY Configuration for Railway
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+if IS_PRODUCTION:
+    CELERY_WORKER_POOL = 'prefork'
+else:
+    # CELERY Configuration for local development
+    CELERY_WORKER_POOL = 'solo'
+    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+    CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
+    # Serializacion
+    CELERY_ACCEPT_CONTENT = ["json"]
+    CELERY_TASK_SERIALIZER = "json"
+    CELERY_RESULT_SERIALIZER = "json"
+    # Timezone
+    CELERY_TIMEZONE = TIME_ZONE
+    CELERY_ENABLE_UTC = True
+    # Task Tracking
+    CELERY_TASK_TRACK_STARTED = True
+    CELERY_TASK_TIME_LIMIT = 30 * 60  # CALCULANDO EN MINUTOS (30 MINUTOS MAX)
+    CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Warning a los 25 minutos
+
+# CELERY PARA TESTING
 if "test" in sys.argv:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
