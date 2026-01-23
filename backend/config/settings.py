@@ -1,7 +1,6 @@
 """
 Django settings for SmartExpense project.
 """
-import dj_database_url
 import os
 import sys
 import dj_database_url
@@ -172,12 +171,18 @@ SIMPLE_JWT = {
 #  RAILWAY CONFIGURATION
 #
 
-IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") is not None
+DATABASE_URL = os.getenv('DATABASE_URL'
+
+IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT_NAME') is not None
 
 # DB configuration for Railway
-if IS_PRODUCTION:
+if DATABASE_URL:
     DATABASES = {
-        "default": dj_database_url.config(conn_max_age=600, ssl_require=True)
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True)
     }
 else:
     # Local database configuration
@@ -244,7 +249,3 @@ LOGGING = {
     },
 }
 
-# Forzar a Celery a funcionar en termux
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-# Forzar ejecucion sin multiprocesamiento complejo
-CELERY_WORKER_POOL = 'solo'
