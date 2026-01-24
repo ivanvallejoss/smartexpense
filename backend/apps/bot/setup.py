@@ -1,23 +1,31 @@
 from config import settings
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
-from .handlers import start_command, handle_message, help_command 
 
-token = settings.TELEGRAM_TOKEN
+_ptb_application = None
 
-# 1. Construir la app (Igual que hacías antes, pero sin run_polling)
-# NOTA: Asegúrate de usar el mismo TOKEN
-ptb_application = ApplicationBuilder().token(token).build()
+def get_ptb_application():
+    """
+    Singleton Lazy.
+    """
+    global _ptb_application
 
-# 2. Registrar tus handlers (Exactamente como ya lo tenías)
-ptb_application.add_handler(CommandHandler("start", start_command))
-ptb_application.add_handler(CommandHandler("help", help_command)) # Si lo tienes
-#ptb_application.add_handler(CommandHandler("stats", stats_command)) # Si lo tienes
+    if _ptb_application is not None:
+        return _ptb_application
+    
+    from .handlers import start_command, handle_message, help_command
 
-# Tu handler de texto (mensajes normales)
-ptb_application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    token = settings.TELEGRAM_TOKEN
+    if not token:
+        raise ValueError("TELEGRAM_TOKEN is not set in the environment variables")
 
-# IMPORTANTE: Inicializar la app (necesario en versiones nuevas de PTB v20+)
-async def setup_ptb():
-    await ptb_application.initialize()
-    await ptb_application.start()
-    # No llamamos a run_polling() ni a stop() aquí
+    # Building app
+    app_builder = ApplicationBuilder().token(token)
+    application = app_builder.build()
+
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    _ptb_application = application
+
+    return _ptb_application 
