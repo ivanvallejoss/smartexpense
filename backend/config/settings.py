@@ -24,7 +24,6 @@ environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
 
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-change-this-in-production-#$%^&*")
 DEBUG = env("DEBUG")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 
 # Application definition
@@ -174,6 +173,11 @@ SIMPLE_JWT = {
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT_NAME') is not None
+
+if IS_PRODUCTION:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 # DB configuration for Railway
 if DATABASE_URL:
