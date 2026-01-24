@@ -12,17 +12,20 @@ async def webhook(request):
         # Initialize the bot application for the first time
         ptb_app = get_ptb_application()
 
+        if not ptb_app._initialized:
+            await ptb_app.initialize()
+
         try:
             json_str = request.body.decode('UTF-8')
             update = json.loads(json_str)
             
-            # python-telegram-bot manage the update on an async way
-            await ptb_app.update_queue.put(
-                ptb_app.update_processor.parse_json(update)
-            )
+            update = Update.de_json(data, ptb_app.bot)
+
+            await ptb_app.process_update(update)
             return HttpResponse("OK")
+
         except Exception as e:
             print(f"Error en webhook: {e}")
-            return HttpResponse("Error en webhook", status=500)
+            return HttpResponse("Error procesado", status=200)
     
     return HttpResponse(status=405)

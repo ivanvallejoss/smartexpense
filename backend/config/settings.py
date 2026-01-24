@@ -197,10 +197,12 @@ else:
 
 
 # CELERY Configuration for Railway
-CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+REDIS_URL = os.getenv('REDIS_URL')
 
-if IS_PRODUCTION:
+if REDIS_URL:
     CELERY_WORKER_POOL = 'prefork'
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
 else:
     # CELERY Configuration for local development
     CELERY_WORKER_POOL = 'solo'
