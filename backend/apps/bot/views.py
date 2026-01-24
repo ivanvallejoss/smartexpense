@@ -17,7 +17,7 @@ async def webhook(request):
 
         try:
             json_str = request.body.decode('UTF-8')
-            update = json.loads(json_str)
+            data = json.loads(json_str)
             
             update = Update.de_json(data, ptb_app.bot)
 
