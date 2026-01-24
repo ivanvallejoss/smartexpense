@@ -1,8 +1,8 @@
+from config import settings
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
-from .handlers import start_command, handle_message, help_command # Tus handlers actuales
-from django.conf import settings
+from .handlers import start_command, handle_message, help_command 
 
-token = settings.TELEGRAM_BOT_TOKEN
+token = settings.TELEGRAM_TOKEN
 
 # 1. Construir la app (Igual que hacías antes, pero sin run_polling)
 # NOTA: Asegúrate de usar el mismo TOKEN

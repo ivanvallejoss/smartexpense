@@ -22,8 +22,11 @@ env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
 
 
-SECRET_KEY = env("SECRET_KEY", default="django-insecure-change-this-in-production-#$%^&*")
+SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = env("DEBUG")
+
+# Import Telegram Token depending on environment
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
 # Application definition
@@ -219,9 +222,6 @@ else:
 if "test" in sys.argv:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
-
-# Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 
 
 # Logging
