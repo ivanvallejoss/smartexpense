@@ -27,5 +27,10 @@ async def webhook(request):
         except Exception as e:
             print(f"Error en webhook: {e}")
             return HttpResponse("Error procesado", status=200)
+        
+        finally:
+            # Shutdown the bot application
+            if ptb_app._initialized:
+                await ptb_app.shutdown()
     
     return HttpResponse(status=405)
