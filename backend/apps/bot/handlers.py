@@ -90,24 +90,90 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 # Helper async para queries de DB
 @sync_to_async
 def get_month_stats(user):
-    """Helper sincrónico para obtener stats del mes."""
-    now = timezone.now()
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    """Helper async to get month stats."""
+    from zoneinfo import ZoneInfo
 
-    expenses = Expense.objects.filter(user=user, date__gte=month_start, date__lte=now)
+    user_tz = ZoneInfo("America/Argentina/Buenos_Aires")
+    now = timezone.now()
+    # We convert the timezone to Buenos Aires to get the correct month start for the User
+    local_now = now.astimezone(user_tz)
+    local_month_start = local_now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # We dont need to get the exact timezone of the user for this query
+    # So, we use the timezone of the server for accuracy
+    expenses = Expense.objects.filter(
+        user=user, 
+        date__gte=local_month_start, 
+        date__lte=now
+        )
 
     total_amount = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
     total_count = expenses.count()
 
-    by_category = list(expenses.values("category__name", "category__color").annotate(total=Sum("amount"), count=Count("id")).order_by("-total"))
+    by_category = list(
+        expenses.values("category__name", "category__color")
+        .annotate(total=Sum("amount"), count=Count("id"))
+        .order_by("-total")
+        )
+    
+    # We use the local month name
+    local_month_name = local_now.strftime("%B %Y")
 
-    return {"total_amount": total_amount, "total_count": total_count, "by_category": by_category, "month_name": now.strftime("%B %Y")}
+    return {
+        "total_amount": total_amount, 
+        "total_count": total_count, 
+        "by_category": by_category, 
+        "month_name": local_month_name}
+
+
+# Still needs to figured it out how to implement this
+# Not sure how to handle yet
+@sync_to_async
+def get_week_stats(user):
+    """
+    Helper async to get week stats.
+    We calculate the week start for the user timezone and get the expenses for that week.
+    """
+    from datetime import timedelta
+    from zoneinfo import ZoneInfo
+    
+    now = timezone.now()
+    user_tz = ZoneInfo("America/Argentina/Buenos_Aires")
+    local_now = now.astimezone(user_tz)
+
+    # We calculate the day of the week the user is rn
+    days_to_calculate = local_now.weekday()
+    # and with timedelt we can calculate to get the monday
+    week_start = local_now - timedelta(days=days_to_calculate)
+
+    # So the query gets the expenses from the monday of this week to now
+    expenses = Expense.objects.filter(
+        user=user, 
+        date__gte=week_start, 
+        date__lte=now
+        )
+
+    total_amount = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
+    total_count = expenses.count()
+
+    by_category = list(expenses
+    .values("category__name", "category__color")
+    .annotate(total=Sum("amount"), count=Count("id"))
+    .order_by("-total"))
+
+    return {
+        "total_amount": total_amount, 
+        "total_count": total_count, 
+        "by_category": by_category, 
+        # Not sure if we need a name for the week
+        # "week_name": week_start.strftime("%B %Y")
+        }
 
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handler para /stats.
-    Muestra estadísticas del mes actual del usuario.
+    It shows the stats of the current week.
     """
     telegram_user = update.effective_user
 
@@ -146,7 +212,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 @sync_to_async
-def create_expense(user, amount, description, category, raw_message):
+def create_expense(user, amount, description, category, raw_message, date):
     """Helper sincrónico para crear expense con categoría."""
     with transaction.atomic():
         expense = Expense.objects.create(
@@ -154,7 +220,7 @@ def create_expense(user, amount, description, category, raw_message):
             amount=amount,
             description=description,
             category=category,
-            date=timezone.now(),
+            date=date,
             raw_message=raw_message,
         )
     return expense
@@ -216,12 +282,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             )
 
         # Guardar expense en DB con categoría sugerida
+        now = timezone.now()
         expense = await create_expense(
             user=user,
             amount=result["amount"],
             description=result["description"],
             category=category,
             raw_message=message_text,
+            date=now,
         )
 
         # Guardar feedback si se auto-categorizó

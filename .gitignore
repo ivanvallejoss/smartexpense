@@ -36,6 +36,7 @@ db.sqlite3-journal
 /media
 /staticfiles
 /static
+logfile
 
 # Environment variables
 .env
@@ -61,9 +62,6 @@ htmlcov/
 # Celery
 celerybeat-schedule
 celerybeat.pid
-
-# Docker
-*.log
 
 ### Frontend ###
 

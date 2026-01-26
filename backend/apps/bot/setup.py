@@ -12,7 +12,7 @@ def get_ptb_application():
     if _ptb_application is not None:
         return _ptb_application
     
-    from .handlers import start_command, handle_message, help_command
+    from .handlers import start_command, handle_message, help_command, stats_command
 
     token = settings.TELEGRAM_TOKEN
     if not token:
@@ -24,6 +24,7 @@ def get_ptb_application():
 
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     _ptb_application = application

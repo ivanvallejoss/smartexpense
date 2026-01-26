@@ -6,13 +6,12 @@ from decimal import Decimal
 from typing import Tuple
 
 from telegram import User as TelegramUser
-
 from apps.core.models import User
 
 
 def format_amount(amount: Decimal) -> str:
     """
-    Formatea un monto en notación argentina.
+    Formatea un monto en notación arg.
 
     Examples:
         >>> format_amount(Decimal('1500'))
@@ -46,6 +45,8 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
         Mensaje formateado para enviar al usuario
     """
     # Mapeo de colores a emojis
+    from zoneinfo import ZoneInfo
+
     color_to_emoji = {
         "red": "🔴",
         "blue": "🔵",
@@ -71,8 +72,8 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
     else:
         category_display = "📂 Sin categorizar"
 
-    # Formatear fecha en español
-    date_str = expense.date.strftime("%d %b %Y, %H:%M")
+    # Show the date in local timezone
+    date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime("%d %b %Y, %H:%M")
 
     message = "✅ Guardado correctamente\n\n" f"💵 Monto: {format_amount(expense.amount)}\n" f"📝 Descripción: {expense.description}\n" f"📂 Categoría: {category_display}\n" f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
 

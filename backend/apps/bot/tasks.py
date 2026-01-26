@@ -1,6 +1,6 @@
 from celery import shared_task
 from django.conf import settings
-import requests  # <--- Usaremos esto en lugar de telegram.Bot
+import requests
 
 @shared_task
 def process_message(chat_id, text):
