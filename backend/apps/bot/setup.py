@@ -6,27 +6,32 @@ _ptb_application = None
 def get_ptb_application():
     """
     Singleton Lazy.
+    Made it to be lazy because it is not needed to be initialized at startup.
     """
     global _ptb_application
 
+    # If instance is already created, return it
     if _ptb_application is not None:
         return _ptb_application
     
     from .handlers import start_command, handle_message, help_command, stats_command
 
+    # Get token from settings
     token = settings.TELEGRAM_TOKEN
     if not token:
         raise ValueError("TELEGRAM_TOKEN is not set in the environment variables")
 
-    # Building app
+    # Building App
     app_builder = ApplicationBuilder().token(token)
     application = app_builder.build()
 
+    # Add handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+    # Set application
     _ptb_application = application
 
     return _ptb_application 

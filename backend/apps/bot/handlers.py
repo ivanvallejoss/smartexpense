@@ -1,6 +1,6 @@
 """
 Telegram bot handlers.
-Maneja comandos (/start, /help, /stats) y mensajes de expenses.
+Works with the bot application to handle updates. (/start, /help, /stats and expenses)
 """
 import logging
 from decimal import Decimal
@@ -31,13 +31,13 @@ def async_get_or_create_user(telegram_user):
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Handler para /start.
-    Crea o recupera el usuario y envía mensaje de bienvenida.
+    /start handler.
+    get or create the user and send an Welcome message.
     """
     telegram_user = update.effective_user
 
     try:
-        # Usar versión decorada
+        # get or create user
         user, created = await async_get_or_create_user(telegram_user)
 
         logger.info(
