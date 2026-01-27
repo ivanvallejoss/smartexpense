@@ -143,7 +143,7 @@ def get_week_stats(user):
 
     # We calculate the day of the week the user is rn
     days_to_calculate = local_now.weekday()
-    # and with timedelt we can calculate to get the monday
+    # Calculating the start of the week from the current day
     week_start = local_now - timedelta(days=days_to_calculate)
 
     # So the query gets the expenses from the monday of this week to now
@@ -165,8 +165,8 @@ def get_week_stats(user):
         "total_amount": total_amount, 
         "total_count": total_count, 
         "by_category": by_category, 
-        # Not sure if we need a name for the week
-        # "week_name": week_start.strftime("%B %Y")
+        # Returned the start of the week for the user
+        "start_date": week_start.strftime("%d/%m")
         }
 
 
