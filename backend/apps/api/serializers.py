@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from apps.core.models import Category, Expense, User
-from apps.ml.categorizer import TextNormalizer
+from services.ml.categorizer import TextNormalizer
 
 
 class UserSerializer(serializers.ModelSerializer):

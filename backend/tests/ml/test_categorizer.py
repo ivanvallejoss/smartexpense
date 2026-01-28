@@ -8,8 +8,8 @@ from django.utils import timezone
 
 import pytest
 
-from apps.core.models import Category, CategorySuggestionFeedback, Expense, User
-from apps.ml.categorizer import ExpenseCategorizer, TextNormalizer
+from services.core.models import Category, CategorySuggestionFeedback, Expense, User
+from services.ml.categorizer import ExpenseCategorizer, TextNormalizer
 
 # ============================================
 # FIXTURES
