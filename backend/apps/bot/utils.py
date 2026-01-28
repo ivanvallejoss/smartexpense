@@ -102,7 +102,7 @@ def _get_or_create_user_sync(telegram_user: TelegramUser) -> Tuple[User, bool]:
             user.username = telegram_user.username
             updated = True
 
-        if user.first_name != telegram_user.first_nameme:
+        if user.first_name != telegram_user.first_name:
             user.first_name = telegram_user.first_name
             user.last_name = telegram_user.last_name
             updated = True
