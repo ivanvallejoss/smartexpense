@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.api",
     "apps.bot",
-    "apps.parsers",
-    "apps.ml",
 ]
 
 AUTH_USER_MODEL = "core.User"
