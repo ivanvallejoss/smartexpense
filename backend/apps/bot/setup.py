@@ -1,21 +1,11 @@
 from config import settings
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from .handlers import start_command, handle_message, help_command, stats_command
 
-_ptb_application = None
-
-def get_ptb_application():
+def build_ptb_application():
     """
-    Singleton Lazy.
-    Made it to be lazy because it is not needed to be initialized at startup.
+    App Builder
     """
-    global _ptb_application
-
-    # If instance is already created, return it
-    if _ptb_application is not None:
-        return _ptb_application
-    
-    from .handlers import start_command, handle_message, help_command, stats_command
-
     # Get token from settings
     token = settings.TELEGRAM_TOKEN
     if not token:
@@ -31,7 +21,4 @@ def get_ptb_application():
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Set application
-    _ptb_application = application
-
-    return _ptb_application 
+    return application 

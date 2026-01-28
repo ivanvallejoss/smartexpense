@@ -4,14 +4,17 @@ from django.views.decorators.csrf import csrf_exempt
 from telegram import Update
 
 # Imported the created mechanism to get the bot application
-from .setup import get_ptb_application
+from .setup import build_ptb_application
 
 @csrf_exempt
 async def webhook(request):
     if request.method == 'POST':
 
         # Get or create the bot application
-        ptb_app = get_ptb_application()
+        ptb_app = build_ptb_application()
+
+        # We need to initialize the application
+        await ptb_app.initialize()
 
         try:
             # Decoded the request body and parsed it as JSON
@@ -29,7 +32,6 @@ async def webhook(request):
         
         finally:
             # Shutdown the bot application
-            if ptb_app._initialized:
-                await ptb_app.shutdown()
+            await ptb_app.shutdown()
     
     return HttpResponse(status=405)
