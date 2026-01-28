@@ -5,6 +5,7 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 ## 📋 Casos Soportados
 
 ### ✅ Formatos básicos
+
 ```
 "Pizza 2000"           → amount: 2000, description: "Pizza"
 "2000 pizza"           → amount: 2000, description: "pizza"
@@ -13,6 +14,7 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 ```
 
 ### ✅ Decimales (múltiples formatos)
+
 ```
 "Café 15,50"           → amount: 15.50  (coma decimal - formato argentino)
 "Café 15.50"           → amount: 15.50  (punto decimal - internacional)
@@ -20,12 +22,14 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 ```
 
 ### ✅ Separadores de miles
+
 ```
 "$5.000 cena"          → amount: 5000 (punto como separador de miles)
 "1.500.000 auto"       → amount: 1500000 (múltiples separadores)
 ```
 
 ### ✅ Casos complejos
+
 ```
 "Compré 3 pizzas 2000" → amount: 2000 (elige el número más grande)
 "15 empanadas 1500"    → amount: 1500 (elige el número más grande)
@@ -40,23 +44,27 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 Cuando hay múltiples números, el parser usa esta **prioridad**:
 
 ### 1. Presencia de símbolo `$` (máxima confianza)
+
 ```python
 "$500 o 1000"  → Elige 500 (tiene $)
 ```
 
 ### 2. Formato de dinero (decimales)
+
 ```python
 "100 o 15,50"  → Elige 100 (el mayor, pero 15,50 tiene decimales)
 # Si ambos tienen decimales, elige el mayor
 ```
 
 ### 3. Magnitud (el más grande)
+
 ```python
 "20 empanadas 1500"  → Elige 1500 (mayor)
 "3 pizzas 2000"      → Elige 2000 (mayor)
 ```
 
 ### 4. Números pequeños (<20) probablemente son cantidades
+
 ```python
 "15 empanadas 1500"  → 15 es cantidad, 1500 es monto
 ```
@@ -157,9 +165,9 @@ pytest backend/apps/parsers/tests/ --cov=backend/apps/parsers --cov-report=term-
 - Tests exhaustivos: `backend/apps/parsers/tests/test_expense_parser.py`
 - Script manual: `backend/apps/parsers/manual_test.py`
 - Documentación regex: Python `re` module
-READMEEOF
-cat /tmp/parsers_README.md
-Salida
+  READMEEOF
+  cat /tmp/parsers_README.md
+  Salida
 
 # Expense Parser
 
@@ -168,6 +176,7 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 ## 📋 Casos Soportados
 
 ### ✅ Formatos básicos
+
 ```
 "Pizza 2000"           → amount: 2000, description: "Pizza"
 "2000 pizza"           → amount: 2000, description: "pizza"
@@ -176,6 +185,7 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 ```
 
 ### ✅ Decimales (múltiples formatos)
+
 ```
 "Café 15,50"           → amount: 15.50  (coma decimal - formato argentino)
 "Café 15.50"           → amount: 15.50  (punto decimal - internacional)
@@ -183,12 +193,14 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 ```
 
 ### ✅ Separadores de miles
+
 ```
 "$5.000 cena"          → amount: 5000 (punto como separador de miles)
 "1.500.000 auto"       → amount: 1500000 (múltiples separadores)
 ```
 
 ### ✅ Casos complejos
+
 ```
 "Compré 3 pizzas 2000" → amount: 2000 (elige el número más grande)
 "15 empanadas 1500"    → amount: 1500 (elige el número más grande)
@@ -203,23 +215,27 @@ Parser robusto para extraer monto y descripción de mensajes en lenguaje natural
 Cuando hay múltiples números, el parser usa esta **prioridad**:
 
 ### 1. Presencia de símbolo `$` (máxima confianza)
+
 ```python
 "$500 o 1000"  → Elige 500 (tiene $)
 ```
 
 ### 2. Formato de dinero (decimales)
+
 ```python
 "100 o 15,50"  → Elige 100 (el mayor, pero 15,50 tiene decimales)
 # Si ambos tienen decimales, elige el mayor
 ```
 
 ### 3. Magnitud (el más grande)
+
 ```python
 "20 empanadas 1500"  → Elige 1500 (mayor)
 "3 pizzas 2000"      → Elige 2000 (mayor)
 ```
 
 ### 4. Números pequeños (<20) probablemente son cantidades
+
 ```python
 "15 empanadas 1500"  → 15 es cantidad, 1500 es monto
 ```

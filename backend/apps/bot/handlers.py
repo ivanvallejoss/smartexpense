@@ -14,8 +14,8 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from apps.core.models import Expense
-from apps.ml.categorizer import ExpenseCategorizer
-from apps.parsers.expense_parser import ExpenseParser
+from services.ml.categorizer import ExpenseCategorizer
+from services.parser.expense_parser import ExpenseParser
 
 from .utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram
 
