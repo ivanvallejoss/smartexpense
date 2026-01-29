@@ -132,9 +132,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     Handler para mensajes normales (no comandos).
     Parsea el mensaje con auto-categorización como expense, lo guarda y envía confirmación.
     """
-    from backend.services.ml.helper import is_autocategorized, get_category_suggestion
-    from backend.services.expenses import create_expense
-    from backend.apps.bot.errors import error_parsing_expenses
+    from services.ml.helper import is_autocategorized, get_category_suggestion
+    from services.expenses import create_expense
+    from apps.bot.errors import error_parsing_expenses
 
     telegram_user = update.effective_user
     message_text = update.message.text

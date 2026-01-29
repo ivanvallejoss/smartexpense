@@ -6,8 +6,8 @@ from asgiref.sync import sync_to_async
 
 logger = logging.getLogger(__name__)
 
-@sync_to_async
-def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Log the error and send a telegram message to notify the developer.
     """
@@ -37,8 +37,8 @@ def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Send a text to the developer
     # dev_text = tb_str
 
-@sync_to_async
-def error_parsing_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+async def error_parsing_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Log the error and send a telegram message to the user.
     """
