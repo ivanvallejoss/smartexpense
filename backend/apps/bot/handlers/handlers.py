@@ -5,7 +5,7 @@ Works with the bot application to handle updates. (/start, /help, /stats and exp
 import logging
 
 from asgiref.sync import sync_to_async
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import ContextTypes
 
 from apps.core.models import Expense
@@ -134,6 +134,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     from services.ml.helper import is_autocategorized, get_category_suggestion
     from services.expenses import create_expense
     from apps.bot.errors import error_parsing_expenses
+    from .helpers import get_keyboard_markup
 
     telegram_user = update.effective_user
     message_text = update.message.text
@@ -155,7 +156,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         suggestion = await get_category_suggestion(user, message_parsed["description"])
         auto_categorized = await is_autocategorized(suggestion, user)
 
-        # Save expense in DB with suggested category
         expense = await create_expense(
             user=user,
             amount=message_parsed["amount"],
@@ -167,10 +167,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # Format confirmation message
         confirmation = format_expense_confirmation(expense, auto_categorized=auto_categorized)
         
-        keyboard = [
-            [InlineKeyboardButton("Eliminar", callback_data=f"del:{expense.id}"),]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        # Get the MarkUps for the inline buttons
+        reply_markup = get_keyboard_markup(expense_id=expense.id)
         
         await update.message.reply_text(confirmation, reply_markup=reply_markup)
 

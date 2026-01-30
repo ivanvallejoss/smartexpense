@@ -8,9 +8,12 @@ from django.utils import timezone
 from asgiref.sync import sync_to_async
 from apps.core.models import Expense
 from zoneinfo import ZoneInfo
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+# ---------------------------------------
+#               STATS
+# ---------------------------------------
 
-# Helper async para queries de DB
 @sync_to_async
 def get_month_stats(user):
     """Helper async to get month stats."""
@@ -89,3 +92,20 @@ def get_week_stats(user):
         # Returned the start of the week for the user
         "start_date": week_start.strftime("%d/%m")
         }
+
+
+# ---------------------------------------
+#            KEYBOARD MARK UP
+# ---------------------------------------
+
+def get_keyboard_markup(expense_id):
+    """
+    Helper to orchestrate the inline buttons for messages
+    """
+    
+    keyboard = [
+            [InlineKeyboardButton("Eliminar", callback_data=f"del:{expense_id}"),]
+        ]
+    markup = InLineKeyboardMarkUp(keyboard) 
+    
+    return markup

@@ -9,6 +9,13 @@ from services.expenses import delete_expense
 import logging
 logger = logging.getLogger(__name__)
 
+# ------------------------- Routes ---------------------------------------------------
+# It gives the central_callback_handler the route to the specific function for the event
+CALLBACK_ROUTES = {
+    "del": on_delete_click,
+    # "edit": on_edit_click,  <-- Future feature
+}
+
 async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, payload: str):
     """
     Gets the expense_id and user_id of the last expense
@@ -29,14 +36,6 @@ async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
         await query.answer("⚠️ Error", show_alert=True)
         await query.edit_message_text("⚠️ No se pudo borrar el gasto (quizás ya no existe).")
 
-
-
-# --------- Routes ------------
-# It gives the central_callback_handler the route to the specific function for the event
-CALLBACK_ROUTES = {
-    "del": on_delete_click,
-    # "edit": on_edit_click,  <-- Future feature
-}
 
 # Central logic, like a router
 async def central_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
