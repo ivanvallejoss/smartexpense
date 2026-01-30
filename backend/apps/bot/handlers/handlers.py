@@ -145,23 +145,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         # Parsear mensaje con ExpenseParser (sync operation)
         parser = ExpenseParser()
-        result = parser.parse(message_text)
+        message_parsed = parser.parse(message_text)
 
         # Throw Error if parsing fails 
-        if not result["success"]:
+        if not message_parsed["success"]:
             await error_parsing_expenses(update, context)
             return
 
         # ML => Category Suggestion related 
-        suggestion = await get_category_suggestion(user, result["description"])
+        suggestion = await get_category_suggestion(user, message_parsed["description"])
         auto_categorized = await is_autocategorized(suggestion)
 
         # Save expense in DB with suggested category
         now = timezone.now()
         expense = await create_expense(
             user=user,
-            amount=result["amount"],
-            description=result["description"],
+            amount=message_parsed["amount"],
+            description=message_parsed["description"],
             category=suggestion.category,
             raw_message=message_text,
             date=now,

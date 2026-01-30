@@ -1,5 +1,6 @@
 """
 Helpers for handlers
+En este momento solo estan los helpers del handler /stats pero planeo tener una separacion mas clara a medida que crezcan los handlers
 """
 from decimal import Decimal
 from django.db.models import Count, Sum
