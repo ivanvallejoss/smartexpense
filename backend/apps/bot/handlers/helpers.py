@@ -106,6 +106,6 @@ def get_keyboard_markup(expense_id):
     keyboard = [
             [InlineKeyboardButton("Eliminar", callback_data=f"del:{expense_id}"),]
         ]
-    markup = InLineKeyboardMarkUp(keyboard) 
+    markup = InlineKeyboardMarkup(keyboard) 
     
     return markup

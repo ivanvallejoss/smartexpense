@@ -38,3 +38,15 @@ def delete_expense(expense_id, user_telegram_id):
         return True
     except Expense.DoesNotExist:
         return False
+
+
+@sync_to_async
+def get_last_expenses(user, limit=5):
+    """
+    Gets the last n expenses for a user.
+    """
+    expenses = Expense.objects.filter(user=user).order_by('-date')[:limit]
+    
+    # We need to return a list so we force Django to evaluate the queryset
+    # Otherwise we can get an error for SychronousOnlyOperation
+    return list(expenses)

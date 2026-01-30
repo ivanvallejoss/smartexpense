@@ -8,6 +8,8 @@ from typing import Tuple
 from telegram import User as TelegramUser
 from apps.core.models import User
 
+from zoneinfo import ZoneInfo
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,6 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
         Mensaje formateado para enviar al usuario
     """
     # Mapeo de colores a emojis
-    from zoneinfo import ZoneInfo
 
     color_to_emoji = {
         "red": "🔴",
@@ -145,6 +146,7 @@ def get_or_create_user_from_telegram(telegram_user: TelegramUser) -> Tuple[User,
     return _get_or_create_user_sync(telegram_user)
 
 
+
 def format_stats_message(month_name: str, total_amount: Decimal, total_count: int, by_category: list) -> str:
     """
     Formatea mensaje de estadísticas del mes.
@@ -189,3 +191,39 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
             message += f"{cat_emoji} {cat_name}: {format_amount(cat_total)} " f"({cat_percentage:.0f}%)\n"
 
     return message
+
+
+
+def format_expense_list(expenses):
+    """
+    Format expenses list to show in the bot
+    """
+    if not expenses:
+        return "📭 No tienes gastos registrados todavía."
+
+    lines = ["📊 <b>Últimos movimientos:</b>\n"]
+    
+    # Defined the timezone for the user. 
+    # Ideally, this should come from the user settings
+    tz_ar = ZoneInfo("America/Argentina/Buenos_Aires")
+
+    for exp in expenses:
+        # Convert UTC -> Argentina
+        local_date = exp.date.astimezone(tz_ar)
+        
+        # Format date: "30/01 20:45"
+        date_str = local_date.strftime("%d/%m %H:%M")
+        
+        # Emoji for category
+        icon = "💸" 
+        
+        # Build the line: "📅 30/01 20:45 · 💸 Supermercado: $1500"
+        line = f"<code>{date_str}</code> · {icon} {exp.category}: <b>${exp.amount:,.2f}</b>"
+        
+        # Add description if exists
+        if exp.description:
+            line += f"\n   ↳ <i>{exp.description}</i>"
+            
+        lines.append(line)
+
+    return "\n".join(lines)

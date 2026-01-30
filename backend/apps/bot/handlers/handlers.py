@@ -5,14 +5,20 @@ Works with the bot application to handle updates. (/start, /help, /stats and exp
 import logging
 
 from asgiref.sync import sync_to_async
+
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from apps.core.models import Expense
+from services.ml.helper import is_autocategorized, get_category_suggestion, get_month_stats
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
+from services.expenses import create_expense
 
+from apps.bot.errors import error_parsing_expenses
+from apps.core.models import Expense
 from apps.bot.utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram
+
+from .helpers import get_keyboard_markup
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +93,6 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     Handler para /stats.
     It shows the stats of the current week.
     """
-    from .helpers import get_month_stats
-
     telegram_user = update.effective_user
 
     try:
@@ -131,10 +135,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     Handler para mensajes normales (no comandos).
     Parsea el mensaje con auto-categorización como expense, lo guarda y envía confirmación.
     """
-    from services.ml.helper import is_autocategorized, get_category_suggestion
-    from services.expenses import create_expense
-    from apps.bot.errors import error_parsing_expenses
-    from .helpers import get_keyboard_markup
 
     telegram_user = update.effective_user
     message_text = update.message.text
