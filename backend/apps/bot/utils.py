@@ -8,6 +8,9 @@ from typing import Tuple
 from telegram import User as TelegramUser
 from apps.core.models import User
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def format_amount(amount: Decimal) -> str:
     """
