@@ -9,7 +9,7 @@ from asgiref.sync import sync_to_async
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from services.ml.helper import is_autocategorized, get_category_suggestion, get_month_stats
+from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
@@ -18,7 +18,7 @@ from apps.bot.errors import error_parsing_expenses
 from apps.core.models import Expense
 from apps.bot.utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram
 
-from .helpers import get_keyboard_markup
+from .helpers import get_keyboard_markup, get_month_stats
 
 logger = logging.getLogger(__name__)
 
