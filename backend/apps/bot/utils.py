@@ -76,7 +76,20 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
     date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime("%d %b %Y, %H:%M")
 
     message = "✅ Guardado correctamente\n\n" f"💵 Monto: {format_amount(expense.amount)}\n" f"📝 Descripción: {expense.description}\n" f"📂 Categoría: {category_display}\n" f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
-
+    
+    logger.info(
+            "Expense created successfully",
+            extra={
+                "user_id": expense.user.id,
+                "telegram_id": expense.user.telegram_id,
+                "expense_id": expense.id,
+                "amount": str(expense.amount),
+                "description": expense.description,
+                "category": expense.category.name if expense.category else None,
+                "auto_categorized": auto_categorized,
+            },
+        )
+    
     return message
 
 

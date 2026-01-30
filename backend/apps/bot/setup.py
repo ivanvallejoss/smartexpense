@@ -1,6 +1,7 @@
 from config import settings
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from .handlers.handlers import start_command, handle_message, help_command, stats_command
+from .handlers.callbacks import central_callback_handler
 from .errors import error_handler
 
 def build_ptb_application():
@@ -21,6 +22,7 @@ def build_ptb_application():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    application.add_handler(CallbackQueryHandler(central_callback_handler))
     application.add_error_handler(error_handler)
 
     return application 

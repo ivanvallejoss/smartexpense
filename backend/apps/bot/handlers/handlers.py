@@ -3,7 +3,6 @@ Telegram bot handlers.
 Works with the bot application to handle updates. (/start, /help, /stats and expenses)
 """
 import logging
-from django.utils import timezone
 
 from asgiref.sync import sync_to_async
 from telegram import Update
@@ -157,33 +156,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         auto_categorized = await is_autocategorized(suggestion)
 
         # Save expense in DB with suggested category
-        now = timezone.now()
         expense = await create_expense(
             user=user,
             amount=message_parsed["amount"],
             description=message_parsed["description"],
             category=suggestion.category,
             raw_message=message_text,
-            date=now,
         )
 
         # Format confirmation message
         confirmation = format_expense_confirmation(expense, auto_categorized=auto_categorized)
-
-        logger.info(
-            "Expense created successfully",
-            extra={
-                "user_id": user.id,
-                "telegram_id": user.telegram_id,
-                "expense_id": expense.id,
-                "amount": str(expense.amount),
-                "description": expense.description,
-                "category": suggestion.category.name if suggestion.category else None,
-                "auto_categorized": auto_categorized,
-            },
-        )
-
-        await update.message.reply_text(confirmation)
+        
+        keyboard = [
+            [InlineKeyboardButton("Eliminar", callback_data=f"del:{expense.id}"),]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(confirmation, reply_markup=reply_markup)
 
     except Exception as e:
         logger.error(
