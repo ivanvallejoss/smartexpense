@@ -6,6 +6,9 @@ from apps.core.models import Expense
 from .categorizer import ExpenseCategorizer
 from asgiref.sync import sync_to_async
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 @sync_to_async
 def record_categorization_feedback(expense, suggested_category, accepted):
