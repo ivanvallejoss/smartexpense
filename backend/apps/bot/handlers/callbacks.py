@@ -2,7 +2,6 @@
 central_callback_handler is in charge of managing every button event
 """
 
-
 from telegram import Update
 from telegram.ext import ContextTypes
 from services.expenses import delete_expense

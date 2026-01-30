@@ -5,7 +5,7 @@ Works with the bot application to handle updates. (/start, /help, /stats and exp
 import logging
 
 from asgiref.sync import sync_to_async
-from telegram import Update
+from telegram import Update, InlineKeyboardButton
 from telegram.ext import ContextTypes
 
 from apps.core.models import Expense
