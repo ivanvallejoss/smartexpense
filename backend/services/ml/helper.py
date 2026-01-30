@@ -52,7 +52,7 @@ def get_category_suggestion(user, description):
     return suggestion
 
 @sync_to_async
-def is_autocategorized(suggestion):
+def is_autocategorized(suggestion, user):
     # Determinar categoría basándose en confidence
     auto_categorized = False
 
@@ -64,7 +64,6 @@ def is_autocategorized(suggestion):
             "Auto-categorized expense",
             extra={
                 "user_id": user.id,
-                "description": result["description"],
                 "category": category.name,
                 "confidence": suggestion.confidence,
                 "reason": suggestion.reason,

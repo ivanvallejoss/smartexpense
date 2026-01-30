@@ -153,7 +153,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         # ML => Category Suggestion related 
         suggestion = await get_category_suggestion(user, message_parsed["description"])
-        auto_categorized = await is_autocategorized(suggestion)
+        auto_categorized = await is_autocategorized(suggestion, user)
 
         # Save expense in DB with suggested category
         expense = await create_expense(
