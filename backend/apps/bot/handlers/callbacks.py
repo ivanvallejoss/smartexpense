@@ -9,12 +9,6 @@ from services.expenses import delete_expense
 import logging
 logger = logging.getLogger(__name__)
 
-# ------------------------- Routes ---------------------------------------------------
-# It gives the central_callback_handler the route to the specific function for the event
-CALLBACK_ROUTES = {
-    "del": on_delete_click,
-    # "edit": on_edit_click,  <-- Future feature
-}
 
 async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, payload: str):
     """
@@ -63,3 +57,11 @@ async def central_callback_handler(update: Update, context: ContextTypes.DEFAULT
         # exception in case it does not exist.
         logger.warning(f"Recibido callback desconocido: {action_key}")
         await query.answer("⚠️ Acción desconocida")
+
+
+# ------------------------- Routes ---------------------------------------------------
+# It gives the central_callback_handler the route to the specific function for the event
+CALLBACK_ROUTES = {
+    "del": on_delete_click,
+    # "edit": on_edit_click,  <-- Future feature
+}
