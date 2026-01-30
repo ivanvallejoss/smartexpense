@@ -18,7 +18,7 @@ async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
     
     # Call the logic to delete the expense
     user_id = update.effective_user.id
-    was_deleted = await delete_expense_service(expense_id=payload, user_telegram_id=user_id)
+    was_deleted = await delete_expense(expense_id=payload, user_telegram_id=user_id)
     
     if was_deleted:
         # UX: Feedback positive
