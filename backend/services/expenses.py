@@ -41,7 +41,7 @@ def delete_expense(expense_id, user_telegram_id):
 
 
 @sync_to_async
-def get_last_expenses(user, limit=5):
+def get_lasts_expenses(user, limit=5):
     """
     Gets the last n expenses for a user.
     """

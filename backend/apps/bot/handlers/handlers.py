@@ -12,11 +12,12 @@ from telegram.ext import ContextTypes
 from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
-from services.expenses import create_expense
+from services.expenses import create_expense, get_lasts_expenses
+from services.users import get_user_with_telegram_id
 
-from apps.bot.errors import error_parsing_expenses
 from apps.core.models import Expense
-from apps.bot.utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram
+from apps.bot.errors import error_parsing_expenses
+from apps.bot.utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram, format_expense_list
 
 from .helpers import get_keyboard_markup, get_month_stats
 
@@ -183,3 +184,29 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             exc_info=True,
         )
         await update.message.reply_text("Ocurrió un error al guardar tu gasto. " "Por favor, intentá de nuevo.")
+
+
+
+async def history_command(update, context):
+    user = update.effective_user
+    args = context.args # Get everything after the command
+    telegram_id = update.effective_user.id
+
+    limit = 5
+    if args and args[0].isdigit():
+        limit = int(args[0])
+        # Limit to the amount of expenses possible to obtain from the db
+        if limit > 20: 
+            limit = 20
+            await update.message.reply_text("⚠️ Solo muestro los últimos 20 gastos.")
+    
+    db_user = get_user_with_telegram_id(telegram_id)
+    if not db_user:
+        await update.message.reply_text("⚠️ No estas en la base de datos. Lo siento si es un error.")
+    
+    expenses = await get_lasts_expenses(user=db_user, limit=limit)
+    
+    # Get the lists formatted for the user
+    response_text = format_expense_list(expenses)
+    
+    await update.message.reply_text(response_text, parse_mode="HTML")
