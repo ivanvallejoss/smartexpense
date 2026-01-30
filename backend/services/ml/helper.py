@@ -3,7 +3,7 @@ Helper functions for machine learning.
 """
 
 from apps.core.models import Expense
-from apps.ml.expense_categorizer import ExpenseCategorizer
+from .categorizer import ExpenseCategorizer
 from asgiref.sync import sync_to_async
 
 
