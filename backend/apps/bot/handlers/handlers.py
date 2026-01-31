@@ -200,7 +200,7 @@ async def history_command(update, context):
             limit = 20
             await update.message.reply_text("⚠️ Solo muestro los últimos 20 gastos.")
     
-    db_user = get_user_with_telegram_id(telegram_id)
+    db_user = await get_user_with_telegram_id(telegram_id)
     if not db_user:
         await update.message.reply_text("⚠️ No estas en la base de datos. Lo siento si es un error.")
     
