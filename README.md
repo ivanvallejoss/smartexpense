@@ -2,6 +2,7 @@
 
 Expense tracker inteligente con bot de Telegram para parsing automático de gastos. Actualmente trabajando en el proyecto pero sin preparar bien el README.
 Puedes encontrar mas informacion sobre mis avances, la configuracion del bot y como voy preparando todo en mi [blog](https://www.notion.so/ideavallejos/SmartExpense-2e027bfa15f580768e56ecae126c8836?source=copy_link)
+Tambien puedes probar el bot y sus avances en telegram como: @your_smartexpense_bot[bot](https://web.telegram.org/a/#8478720243)
 
 ## Stack Tecnológico
 
@@ -26,9 +27,7 @@ smartexpense/
 │   ├── apps/
 │   │   ├── core/            # Modelos principales
 │   │   ├── api/             # API REST endpoints
-│   │   ├── bot/             # Telegram bot
-│   │   ├── parsers/         # Parseo de expenses
-│   │   └── ml/              # Categorización ML
+│   │   └── bot/             # Telegram bot
 │   ├── tests/               # Tests de integración
 │   └── manage.py
 ├── docker-compose.yml       # Servicios Docker
