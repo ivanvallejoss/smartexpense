@@ -188,25 +188,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def history_command(update, context):
-    user = update.effective_user
-    args = context.args # Get everything after the command
+    
     telegram_id = update.effective_user.id
+    args = context.args # Get everything after the command
 
-    limit = 5
     if args and args[0].isdigit():
-        limit = int(args[0])
-        # Limit to the amount of expenses possible to obtain from the db
-        if limit > 20: 
-            limit = 20
-            await update.message.reply_text("⚠️ Solo muestro los últimos 20 gastos.")
+        limit = min(int(context.args[0]), 22) # setting a max-value to 22 expenses to show
     
-    db_user = await get_user_with_telegram_id(telegram_id)
-    if not db_user:
-        await update.message.reply_text("⚠️ No estas en la base de datos. Lo siento si es un error.")
-    
-    expenses = await get_lasts_expenses(user=db_user, limit=limit)
-    
+    expenses = await get_lasts_expenses(telegram_id, limit)
+
+    if not expenses:
+        await update.message.reply_text("No encontramos gastos relacionados con tu usuario")
     # Get the lists formatted for the user
+
     response_text = format_expense_list(expenses)
-    
     await update.message.reply_text(response_text, parse_mode="HTML")
