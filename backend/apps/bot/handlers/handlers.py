@@ -13,7 +13,7 @@ from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense, get_lasts_expenses
-from services.users import get_user_with_telegram_id
+# from services.users import get_user_with_telegram_id
 
 from apps.core.models import Expense
 from apps.bot.errors import error_parsing_expenses
