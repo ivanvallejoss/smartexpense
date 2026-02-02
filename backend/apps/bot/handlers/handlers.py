@@ -192,6 +192,7 @@ async def history_command(update, context):
     telegram_id = update.effective_user.id
     args = context.args # Get everything after the command
 
+    limit = 5
     if args and args[0].isdigit():
         limit = min(int(context.args[0]), 22) # setting a max-value to 22 expenses to show
     
