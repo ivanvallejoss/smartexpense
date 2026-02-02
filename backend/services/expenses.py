@@ -47,7 +47,7 @@ def get_lasts_expenses(telegram_id, limit=5):
     """
     expenses = Expense.objects.filter(
         user__telegram_id=telegram_id
-        ).order_by('-date')[:limit]
+        ).select_related('category').order_by('-date')[:limit]
     
     # We need to return a list so we force Django to evaluate the queryset
     # Otherwise we can get an error for SychronousOnlyOperation
