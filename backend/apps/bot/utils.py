@@ -218,7 +218,13 @@ def format_expense_list(expenses):
         icon = "💸" 
         
         # Build the line: "📅 30/01 20:45 · 💸 Supermercado: $1500"
-        line = f"<code>{date_str}</code> · {icon} {exp.category}: <b>${exp.amount:,.2f}</b>"
+        line = f"<code>{date_str}</code> · {icon}" 
+        
+        # Add category if exists
+        if exp.category:
+            line += f" {exp.category}: <b>${exp.amount:,.2f}</b>"
+        else:
+            line += f" <b>${exp.amount:,.2f}</b>"
         
         # Add description if exists
         if exp.description:
