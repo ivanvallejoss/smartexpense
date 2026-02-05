@@ -222,7 +222,7 @@ def format_expense_list(expenses):
         
         # Add category if exists
         if exp.category:
-            line += f" {exp.category}: <b>${exp.amount:,.2f}</b>"
+            line += f" {exp.category.name}: <b>${exp.amount:,.2f}</b>"
         else:
             line += f" <b>${exp.amount:,.2f}</b>"
         
