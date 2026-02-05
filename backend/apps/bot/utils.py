@@ -224,14 +224,14 @@ def format_expense_list(expenses):
         # Later I do not want to be checking if it has description or not
         # Because It must always have a description.
         if exp.description:
-            line += f" {icon} {exp.description}: <b>${exp.amount:,.2f}</b>"
+            line += f" {icon} {exp.description}: <b>${exp.amount:,.2f} \n</b>"
         else:
             line += f" {icon} <b>${exp.amount:,.2f}</b>"
         
         # Add description if exists
         if exp.category:
-            line += f"\n ↳ <i>{exp.category.name}</i>"
-        
+            line += f" ↳ Categoria:<i>{exp.category.name} \n</i>"
+
         lines.append(line)
 
     return "\n".join(lines)
