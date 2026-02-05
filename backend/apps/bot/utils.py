@@ -218,18 +218,20 @@ def format_expense_list(expenses):
         icon = "💸" 
         
         # Build the line: "📅 30/01 20:45 · 💸 Supermercado: $1500"
-        line = f"<code>{date_str}</code> · {icon}" 
+        line = f"<code>{date_str}</code>\n" 
         
-        # Add category if exists
-        if exp.category:
-            line += f" {exp.category.name}: <b>${exp.amount:,.2f}</b>"
+        # I'll keep like this for now, butttt..
+        # Later I do not want to be checking if it has description or not
+        # Because It must always have a description.
+        if exp.description:
+            line += f" {icon} {exp.description}: <b>${exp.amount:,.2f}</b>"
         else:
-            line += f" <b>${exp.amount:,.2f}</b>"
+            line += f" {icon} <b>${exp.amount:,.2f}</b>"
         
         # Add description if exists
-        if exp.description:
-            line += f"\n   ↳ <i>{exp.description}</i>"
-            
+        if exp.category:
+            line += f"\n ↳ <i>{exp.category.name}</i>"
+        
         lines.append(line)
 
     return "\n".join(lines)
