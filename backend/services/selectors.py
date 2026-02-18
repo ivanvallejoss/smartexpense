@@ -3,7 +3,7 @@ Service Layer
 Logic to show data related to expenses
 """
 
-from apps.core import Expense
+from apps.core.models import Expense
 
 from asgiref import sync_to_async
 
