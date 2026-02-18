@@ -6,6 +6,8 @@ const MOCK_DATA: Transaction[] = [
     {id: 2, merchant: "Uber", amount: 4200, category: "Transporte", date: "Ayer"},
     {id: 3, merchant: "Spotify", amount: 599, category: "Suscripciones", date: "20 Feb"},
     {id: 4, merchant: "Farmacity", amount: 8500, category: "Salud", date: "18 Feb"},
+    {id: 5, merchant: "Netflix", amount: 700, category: "Suscripciones", date: "15 Feb"},
+    {id: 4, merchant: "Sube", amount: 10000, category: "Transporte", date: "14 Feb"},    
 ];
 
 export const TransactionService = {

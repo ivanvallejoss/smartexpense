@@ -1,0 +1,23 @@
+.fab {
+  position: fixed;
+  bottom: 90px; /* 80px del nav + 10px de aire */
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  z-index: 50; /* Por encima de casi todo */
+}
+
+.fab:active {
+  transform: scale(0.95); /* Efecto de "presionar" */
+  background-color: #1d4ed8;
+}

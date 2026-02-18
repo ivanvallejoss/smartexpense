@@ -3,13 +3,16 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import History from './pages/History';
 import MainLayout from './components/layout/MainLayout';
-import { Heading2 } from 'lucide-react';
+import AddTransaction from './pages/AddTransaction';
 
 function App() {
   return (
     <Routes>
       {/* Rutas publicas (sin layout, pantalla completa) */}
       <Route path="/login" element={<Login />} />
+
+      {/* Sin Layout */}
+      <Route path="/add" element={<AddTransaction />} />
 
       {/* Tuas privadas (con BottomNav) */}
       <Route element={< MainLayout />}>

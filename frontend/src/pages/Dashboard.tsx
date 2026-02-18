@@ -1,14 +1,7 @@
 import HeroBalance from "../components/dashboard/HeroBalance";
 import TransactionItem from "../components/dashboard/TransactionItem";
+import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useDashboardData } from "../hooks/useDashboardData";
-
-// Datos de prueba (Luego vendran de la API de Django)
-const MOCK_TRANSACTION = [
-    {id: 1, merchant: "Supermecado Dia", amount: 15400, category: "Comida", date: "Hoy"},
-    {id: 2, merchant: "Uber", amount: 4200, category: "Transporte", date: "Ayer"},
-    {id: 3, merchant: "Spotify", amount: 599, category: "Suscripciones", date: "20 Feb"},
-];
-
 
 export default function Dashboard(){
     // Usamos el hook.
@@ -49,7 +42,7 @@ export default function Dashboard(){
                     />
                 ))}
             </div>
-
+            <FloatingActionButton />
         </div>
     );
 }
