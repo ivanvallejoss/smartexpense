@@ -13,7 +13,6 @@ from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense, get_lasts_expenses
-# from services.users import get_user_with_telegram_id
 
 from apps.core.models import Expense
 from apps.bot.errors import error_parsing_expenses
@@ -53,7 +52,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
 
         welcome_message = (
-            "Bienvenido a SmartExpense!\n\n" "Envíame tus gastos en lenguaje natural:\n" '• "Pizza 2000"\n' '• "$1.500 supermercado"\n' '• "Café con leche 800"\n\n' "Comandos disponibles:\n" "/help - Ver esta ayuda\n" "/stats - Resumen del mes"
+            "Bienvenido a SmartExpense!\n\n" 
+            "Envíame tus gastos en lenguaje natural:\n" 
+            '• "Pizza 2000"\n' 
+            '• "$1.500 supermercado"\n' 
+            '• "Café con leche 800"\n\n' 
+            "Comandos disponibles:\n" 
+            "/help - Ver esta ayuda\n" 
+            "/stats - Resumen del mes\n" 
+            "/historial - Ver ultimos gastos subidos (max. 22)"
         )
 
         await update.message.reply_text(welcome_message)
@@ -188,13 +195,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def history_command(update, context):
-    
+    """
+    Command that show the user the lasts n expenses
+            0 < n <= 22
+    """
     telegram_id = update.effective_user.id
     args = context.args # Get everything after the command
 
     limit = 5
     if args and args[0].isdigit():
-        limit = min(int(context.args[0]), 22) # setting a max-value to 22 expenses to show
+        limit = min(int(context.args[0]), 22) # setting a max-value of 22 expenses to show
     
     expenses = await get_lasts_expenses(telegram_id, limit)
 
