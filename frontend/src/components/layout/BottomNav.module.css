@@ -1,0 +1,33 @@
+.nav{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background-color: white;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    /* Respetando el area segura del iphone */
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.link{
+    display: flex;
+    flex: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-secondary); 
+    font-size: 0.75rem;
+    gap: 4px;
+    transition: color 0.2s  ease;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
+/* React Router agrega la clase 'active' automaticamente,
+pero con CSS modules necesitamos seleccionarla asi o usar logica en JS.
+Para simplificar, voy a usar logica inline en el TSX. */
