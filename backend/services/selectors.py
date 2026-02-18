@@ -5,7 +5,7 @@ Logic to show data related to expenses
 
 from apps.core.models import Expense
 
-from asgiref import sync_to_async
+from asgiref.sync import sync_to_async
 
 from django.utils import timezone
 from django.db.models import Count, Sum
