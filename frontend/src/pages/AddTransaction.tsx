@@ -1,20 +1,35 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import styles from './AddTransaction.module.css';
+import { TransactionService } from '../services/api';
+
 
 export default function AddTransaction() {
   const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Comida');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // AQUÍ LUEGO LLAMAREMOS A LA API
-    console.log("Guardando:", { amount, category });
-    
-    // Volver al dashboard
-    navigate('/');
+
+    // Validacion basica
+    if (!amount || isNaN(Number(amount))) return;
+
+    try{
+      setIsSaving(true); // Bloqueamos el boton
+      // 2. Llamamos al servicio para simular la peticion al backend
+      await TransactionService.create(Number(amount), category);
+
+      // 3. Volvemos al dashboard
+      navigate('/')
+    } catch(error) {
+      console.error("Error al guardar", error);
+      alert("Hubo un error al guardar el gasto");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -24,7 +39,7 @@ export default function AddTransaction() {
         <button 
           type="button" 
           onClick={() => navigate(-1)} 
-          style={{ background: 'none', border: 'none', padding: 0 }}
+          style={{ background: 'none', border: 'none', padding: 0 , cursor: 'pointer'}}
         >
           <ArrowLeft color="var(--text-primary)" />
         </button>
@@ -58,8 +73,18 @@ export default function AddTransaction() {
         </select>
       </div>
 
-      <button type="submit" className={styles.saveButton}>
-        Guardar Gasto
+      <button type="submit" 
+      className={styles.saveButton}
+      disabled={isSaving}
+      style={{ opacity: isSaving ? 0.7: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+      >
+        {isSaving ? (
+          <>
+          <Loader2 className='animate-spin' /> Guardando...
+          </>
+        ) : (
+          'Guardar Gasto'
+        )}
       </button>
     </form>
   );
