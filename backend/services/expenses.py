@@ -1,8 +1,6 @@
 """
-Function to create the expense object.
-ATOMIC: True
-Data: Not sure how to implement this but -for now- if not date is provided, it will use the current time.
-Later I'll do something so it can be uploaded past dates.
+Service Layer
+Logic that creates or deletes expenses
 """
 
 from apps.core.models import Expense
@@ -38,17 +36,3 @@ def delete_expense(expense_id, user_telegram_id):
         return True
     except Expense.DoesNotExist:
         return False
-
-
-@sync_to_async
-def get_lasts_expenses(telegram_id, limit=5):
-    """
-    Gets the last n expenses for a user.
-    """
-    expenses = Expense.objects.filter(
-        user__telegram_id=telegram_id
-        ).select_related('category').order_by('-date')[:limit]
-    
-    # We need to return a list so we force Django to evaluate the queryset
-    # Otherwise we can get an error for SychronousOnlyOperation
-    return list(expenses)

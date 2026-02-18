@@ -21,25 +21,25 @@ async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
     user_id = update.effective_user.id
     was_deleted = await delete_expense(expense_id=payload, user_telegram_id=user_id)
     
-    if was_deleted:
-        # UX: Feedback positive
-        await query.answer("🗑️ Gasto eliminado") # Toast notification
-        await query.edit_message_text(f"🗑️ Gasto eliminado correctamente.")
-    else:
-        # UX: Feedback negative
+    if not was_deleted: 
         await query.answer("⚠️ Error", show_alert=True)
-        await query.edit_message_text("⚠️ No se pudo borrar el gasto (quizás ya no existe).")
+        await query.edit_message_text("⚠️ No se pudo borrar el gasto (quizás ya no existe).")        
+
+    # Expense deleted successfully
+    await query.answer("🗑️ Gasto eliminado")
+    await query.edit_message_text(f"🗑️ Gasto eliminado correctamente.")
 
 
 # Central logic, like a router
 async def central_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Generic Function to receive the event and call the specific function
+    data: `action:id`
     """
     query = update.callback_query
     data = query.data # Ej: "del:55"
     
-    # just in case
+
     if ":" not in data:
         await query.answer("❌ Error: Formato de botón inválido", show_alert=True)
         return
