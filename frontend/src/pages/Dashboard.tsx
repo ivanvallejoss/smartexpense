@@ -1,11 +1,11 @@
 import HeroBalance from "../components/dashboard/HeroBalance";
-import TransactionItem from "../components/dashboard/TransactionItem";
+import ExpenseItem from "../components/dashboard/ExpenseItem";
 import FloatingActionButton from "../components/ui/FloatingActionButton";
 import { useDashboardData } from "../hooks/useDashboardData";
 
 export default function Dashboard(){
     // Usamos el hook.
-    const { transactions, balance, loading, error } = useDashboardData();
+    const { expenses, balance, loading, error } = useDashboardData();
 
     if (loading) {
         return (
@@ -25,17 +25,17 @@ export default function Dashboard(){
                 <h1 style={{ fontSize: '1.2rem', color: 'var(--text-secondary)'}}>Hola, Usuario</h1>
             </header>   
 
-            <HeroBalance total={balance?.total || 0}/>
+            <HeroBalance total={balance?.totalSpent || 0}/>
             
             <h3 style={{ margin: '20px 0 10px', fontSize: '1.1rem', fontWeight: 600 }}>
                 Movimientos Recientes
             </h3>
 
             <div className="list-container">
-                {transactions.map(tx => (
-                    <TransactionItem
+                {expenses.map(tx => (
+                    <ExpenseItem
                     key={tx.id}
-                    merchant={tx.merchant}
+                    description={tx.description}
                     amount={tx.amount}
                     category={tx.category}
                     date={tx.date}

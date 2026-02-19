@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { Transaction, UserBalance } from '../types';
-import { TransactionService } from '../services/api';
+import type { Expense, UserBalance } from '../types';
+import { ExpenseService } from '../services/api';
 
 export function useDashboardData() {
-    const [ transactions, setTransaction ] = useState<Transaction[]>([]);
+    const [ expenses, setExpenses ] = useState<Expense[]>([]);
     const [ balance, setBalance ] = useState<UserBalance | null>(null);
     const [ loading, setLoading ] = useState(true);
     const [ error, setError ] = useState<string | null>(null);
@@ -14,10 +14,10 @@ export function useDashboardData() {
                 setLoading(true);
                 // Hacemos las dos peticiones en paralelo para ganar tiempo
                 const [txData, balanceData] = await Promise.all([
-                    TransactionService.getAll(),
-                    TransactionService.getBalance()
+                    ExpenseService.getAll(),
+                    ExpenseService.getBalance()
                 ]);
-                setTransaction(txData);
+                setExpenses(txData);
                 setBalance(balanceData);
             } catch(err){
                 setError('Error al cargar los datos');
@@ -28,5 +28,5 @@ export function useDashboardData() {
         };
         fetchData();
     }, []); // El array vacio significa: "Ejecutar solo al montar el componente"
-    return { transactions, balance, loading, error };
+    return { expenses, balance, loading, error };
 }

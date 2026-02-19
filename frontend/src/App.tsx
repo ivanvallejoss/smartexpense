@@ -3,7 +3,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import History from './pages/History';
 import MainLayout from './components/layout/MainLayout';
-import AddTransaction from './pages/AddTransaction';
+import AddExpense from './pages/AddExpense';
 
 function App() {
   return (
@@ -12,7 +12,7 @@ function App() {
       <Route path="/login" element={<Login />} />
 
       {/* Sin Layout */}
-      <Route path="/add" element={<AddTransaction />} />
+      <Route path="/add" element={<AddExpense />} />
 
       {/* Tuas privadas (con BottomNav) */}
       <Route element={< MainLayout />}>

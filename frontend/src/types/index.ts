@@ -1,15 +1,21 @@
 
-export interface Transaction {
+export interface Expense {
     id: number;
-    merchant: string;
+    description: string;
     amount: number;
-    category: string;
+    category: Category;
     date: string;
     // status: 'pending' | 'completed; -> Como podemos escalar esta interface
 }
 
 export interface UserBalance {
-    total: number;
+    totalSpent: number;
     currency: string;
-    trend: number; // Porcentaje de cambio (ej: 12 para +12%)
+    trend?: number; // Porcentaje de cambio (ej: 12 para +12%)
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    color: string;
 }
