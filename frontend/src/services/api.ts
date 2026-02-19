@@ -1,55 +1,69 @@
-import type { Expense, UserBalance, Category } from "../types";
+import type { Expense, Category, UserBalance } from "../types";
 
-// Datos falsos que simulan venir de la base de datos
-let mockExpenses: Expense[] = [
-    {id: 1, description: "Supermecado Dia", amount: 15400, category: {id: 4, name: "Comida", color: "#FFF"}, date: "Hoy"},
-    {id: 2, description: "Uber", amount: 4200, category: {id: 1, name: "Transporte", color: "#FFF"}, date: "Ayer"},
-    {id: 3, description: "Spotify", amount: 599, category: {id: 2, name: "Suscripciones", color: "#FFF"}, date: "20 Feb"},
-    {id: 4, description: "Farmacity", amount: 8500, category: {id: 3, name: "Salud", color: "#FFF"}, date: "18 Feb"},
-    {id: 5, description: "Netflix", amount: 700, category: {id: 2, name: "Suscripciones", color: "#FFF"}, date: "15 Feb"},
-    {id: 6, description: "Sube", amount: 10000, category: {id: 1, name: "Transporte", color: "#FFF"}, date: "14 Feb"},    
-];
+// 1. Obtenemos la URL base del entorno
+const API_URL = import.meta.env.VITE_API_URL;
+
+// 2. Función Helper: Construye las cabeceras (headers) inyectando el JWT
+const getHeaders = () => {
+  const token = localStorage.getItem('jwt_token');
+  return {
+    'Content-Type': 'application/json',
+    // Si hay token, lo mandamos en el formato estándar de autorización
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
+// 3. Función Helper: Maneja las respuestas y errores comunes
+const handleResponse = async (response: Response) => {
+  if (response.status === 401) {
+    // 401 Unauthorized: El token expiró o es inválido.
+    // Borramos la evidencia y pateamos al usuario al login.
+    localStorage.removeItem('jwt_token');
+    window.location.href = '/login'; 
+    throw new Error('Sesión expirada o inválida');
+  }
+  
+  if (!response.ok) {
+    throw new Error(`Error en la API: ${response.statusText}`);
+  }
+  
+  return response.json();
+};
 
 export const ExpenseService = {
-    // Simula un GET /Expense
-    getAll: async(): Promise<Expense[]> => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                // Usamos [...] para devolver una copia y evitar bugs de referencia
-                resolve([...mockExpenses]);
-            }, 2000); // Tardamos 2 segundos a proposito (para ver el loading)
-        })
-    },
+  // GET: Traer todos los gastos
+  getAll: async (): Promise<Expense[]> => {
+    const response = await fetch(`${API_URL}/expenses`, { // Asegúrate que tu endpoint en Django se llame así
+      method: 'GET',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
 
-    // Simula un GET /balance
-    getBalance: async(): Promise<UserBalance> => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const totalSpent = mockExpenses.reduce((acc, curr) => acc + curr.amount, 0);
-                resolve({
-                    totalSpent: totalSpent,
-                    currency: 'ARS',
-                    trend: 12
-                });
-            }, 1000);
-        });
-    },
+  // POST: Crear un nuevo gasto (Respetando tu Schema ExpenseIn)
+  create: async (amount: number, description: string, category: Category): Promise<Expense> => {
+    // Construimos el payload exactamente como lo pide tu backend
+    const payload = {
+      amount: amount,
+      description: description,
+      category_id: category.id // ¡Mandamos solo el ID como acordamos!
+    };
 
-    create: async (amount: number, category: Category, description: string = "Gasto Manual"):
-    Promise<Expense> => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const newTx: Expense = {
-                    id: Date.now(), // Usamos la fecha como id, ESTO ES TEMPORAL 
-                    amount: amount,
-                    category: category,
-                    description: description,
-                    date: "Ahora mismo"
-                };
+    const response = await fetch(`${API_URL}/expenses`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    return handleResponse(response);
+  },
 
-                mockExpenses.unshift(newTx);
-                resolve(newTx);
-            }, 1000); // Simulamos que el servidor tarda 1s en guardar
-        }) 
-    }
+  // GET: Obtener balance
+  // (Si aún no tienes este endpoint, podemos calcularlo sumando el getAll por ahora)
+//   getBalance: async (): Promise<UserBalance> => {
+//     const response = await fetch(`${API_URL}/balance`, {
+//       method: 'GET',
+//       headers: getHeaders(),
+//     });
+//     return handleResponse(response);
+//   }
 };

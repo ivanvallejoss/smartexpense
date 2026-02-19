@@ -1,63 +1,46 @@
-import { useState } from 'react';
-import { Mail, ArrowRight } from 'lucide-react';
-// import styles from './Login.module.css'; // (Crea este archivo CSS básico o usa estilos inline por ahora si prefieres rapidez)
+// src/pages/Login.tsx
+import { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
+  // Este hook de React Router lee los parámetros de la URL (?token=...)
+  const [searchParams] = useSearchParams(); 
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Enviando magic link a:", email);
-    setSent(true);
-    // Aquí luego llamaremos al backend real
-  };
+  useEffect(() => {
+    // 1. Extraemos el token de la URL: http://tusitio.com/login?token=eyJhbG...
+    const token = searchParams.get('token');
 
-  if (sent) {
+    if (token) {
+      // 2. Lo guardamos (LocalStorage es el estándar para SPAs por ahora)
+      localStorage.setItem('jwt_token', token);
+
+      // 3. Limpiamos la URL y redirigimos al Dashboard.
+      // El { replace: true } es MAGIA: borra el /login?token=... del historial del navegador.
+      // Así, si el usuario presiona "Atrás" en el celular, no vuelve a la URL con el token,
+      // sino que se sale de la app. ¡Pura seguridad!
+      navigate('/', { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  // Si no hay token, mostramos las instrucciones
+  if (!searchParams.get('token')) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '20px' }}>📧</div>
-        <h2>¡Revisa tu correo!</h2>
-        <p style={{ color: '#64748b' }}>Te enviamos un enlace mágico a <strong>{email}</strong></p>
-        <button onClick={() => setSent(false)} style={{ marginTop: '20px', background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}>
-          Intentar con otro correo
-        </button>
+      <div style={{ padding: '20px', textAlign: 'center', marginTop: '50vh', transform: 'translateY(-50%)' }}>
+        <h1>🔐 SmartExpense</h1>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>
+          Para ingresar, solicita tu Magic Link a nuestro bot de Telegram usando el comando <b>/link</b>.
+        </p>
       </div>
     );
   }
 
+  // Si hay token, mostramos un spinner mientras procesa la redirección (dura milisegundos)
   return (
-    <div style={{ padding: '24px', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>Bienvenido 👋</h1>
-      <p style={{ color: '#64748b', marginBottom: '40px' }}>Ingresa tu correo para entrar a SmartExpense.</p>
-
-      <form onSubmit={handleSubmit}>
-        <div style={{ position: 'relative', marginBottom: '20px' }}>
-          <Mail size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: '#94a3b8' }} />
-          <input 
-            type="email" 
-            placeholder="tu@email.com" 
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ 
-              width: '100%', padding: '12px 12px 12px 40px', fontSize: '1rem', 
-              border: '1px solid #e2e8f0', borderRadius: '12px', outline: 'none' 
-            }}
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          style={{ 
-            width: '100%', padding: '14px', backgroundColor: 'var(--primary)', color: 'white', 
-            border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 600,
-            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px'
-          }}
-        >
-          Enviar Enlace Mágico <ArrowRight size={20} />
-        </button>
-      </form>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Loader2 className="animate-spin" size={48} color="var(--primary)" />
+      <span style={{ marginLeft: '10px' }}>Autenticando...</span>
     </div>
   );
 }
