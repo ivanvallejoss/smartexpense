@@ -3,6 +3,9 @@ Telegram bot handlers.
 Works with the bot application to handle updates. (/start, /help, /stats and expenses)
 """
 import logging
+import os
+
+from dotenv import load_dotenv
 
 from asgiref.sync import sync_to_async
 
@@ -14,13 +17,17 @@ from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
 from services.selectors import get_lasts_expenses, get_month_stats
+from services.auth import generate_magic_link_token
 
 from apps.core.models import Expense
 from apps.bot.errors import error_parsing_expenses
 from apps.bot.utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram, format_expense_list
 
 from .helpers import get_keyboard_markup
+from django.conf import settings
 
+
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
@@ -215,3 +222,27 @@ async def history_command(update, context):
 
     response_text = format_expense_list(expenses)
     await update.message.reply_text(response_text, parse_mode="HTML")
+
+
+async def link_command(update, context):
+    """
+    Genera un Magic Link de un solo uso (o de tiempo limitado) para entrar al frontend
+    """
+    telegram_id = update.effective_user.id
+
+    # Obtenemos el token desde el servicio
+    token = generate_magic_link_token(telegram_id=telegram_id)
+
+    # Construimos la URL.
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    magic_link = f"{frontend_url}/login?token={token}"
+
+    # Respondemos al usuario
+    mensaje = (
+        "<b>Acceso a tu Dashboard</b>\n\n"
+        "Haz clic en el enlace de abajo para entrar."
+        "<i>Este link es personal, seguro y caduca en 15 minutos.</i>"
+        f"<a href='{magic_link}'>Ir a mif finanzas</a>"
+    )
+
+    await update.message.reply_text(mensaje, parse_mode="HTML")
