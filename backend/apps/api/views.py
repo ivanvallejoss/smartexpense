@@ -1,23 +1,21 @@
 from ninja import NinjaAPI
 from typing import List
-from apps.api.schemas import ExpenseOut
+from .schemas import ExpenseOut
+from .auth import GlobalAuth
 from services.selectors import get_lasts_expenses
 
-# Instanciamos la API. Esto es como el router principal
-api = NinjaAPI(title="SmartExpense API")
+# Instanciamos la API y la envolvemos con el candado global.
+api = NinjaAPI(title="SmartExpense API", auth=GlobalAuth())
 
-# Definimos el endpoint.
-# Nota: 'response=List[ExpenseOut]' es la clave. le dice a Ninja que:
-#  tome la lista de objetos de Django y los pase por el molde de ExpenseOut
+#  Ninja automaticamente toma la lista de objetos de Django y los pase por el molde de ExpenseOut
 @api.get("/expenses/", response=List[ExpenseOut])
-async def list_expenses(request, telegram_id: int, limit:int = 10):
+async def list_expenses(request, limit:int = 10):
     """
-    Obtiene los ultimos gastos de un usuario.
-    Por ahora pedimos el 'telegram_id' como parametro en la URL para poder probarlo.
-    Mas adelante, esto vendra oculto y seguro en el token JWT
+    Obtiene los ultimos 10 gastos del usuario.
     """
-    # Llamamos al MISMO servicio que usa el bot.
-    expenses = await get_lasts_expenses(telegram_id=telegram_id, limit=limit)
+    # Obtenemos al usuario mediante el candado global
+    user = request.auth
+    expenses = await get_lasts_expenses(telegram_id=user.telegram_id, limit=limit)
 
     # Ninja se encarga de serializar la lista de objetos a JSON automaticamente
     return expenses
