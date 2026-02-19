@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party apps
     "django_extensions",
+    "corsheaders",
     # Local apps
     "apps.core",
     "apps.api",
@@ -51,6 +52,7 @@ AUTH_USER_MODEL = "core.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -214,3 +216,17 @@ LOGGING = {
     },
 }
 
+# =======================
+#   CORS configuration
+# =======================
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_OPTIONS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
+# If production environment
+FRONTEND_URL = os.environ.get('FRONTEND_URL')
+if FRONTEND_URL:
+    CORS_ALLOWED_OPTIONS.append(FRONTEND_URL)
