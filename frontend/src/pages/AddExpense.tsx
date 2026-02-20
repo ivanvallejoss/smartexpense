@@ -38,7 +38,7 @@ export default function AddExpense() {
       }
 
       // 2. Llamamos al servicio para simular la peticion al backend
-      await ExpenseService.create(Number(amount), categoryObject, description);
+      await ExpenseService.create(Number(amount), description, categoryObject);
 
       // 3. Volvemos al dashboard
       navigate('/')
