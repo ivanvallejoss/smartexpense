@@ -220,7 +220,7 @@ LOGGING = {
 #   CORS configuration
 # =======================
 # CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_OPTIONS = [
     "http://localhost:5173",

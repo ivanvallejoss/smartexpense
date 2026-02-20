@@ -19,3 +19,6 @@ async def list_expenses(request, limit:int = 50):
 
     # Ninja se encarga de serializar la lista de objetos a JSON automaticamente
     return expenses
+
+
+# @api.post("/expenses/", )
