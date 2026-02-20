@@ -1,58 +1,29 @@
 import type { Expense, Category} from "../types";
+import { getHeaders, handleResponse } from "./api_helpers";
 
-// 1. Obtenemos la URL base del entorno
+// URL base + Expense URL
 const API_URL = import.meta.env.VITE_API_URL;
-
-// 2. Función Helper: Construye las cabeceras (headers) inyectando el JWT
-const getHeaders = () => {
-  const token = localStorage.getItem('jwt_token');
-  return {
-    'Content-Type': 'application/json',
-    // Si hay token, lo mandamos en el formato estándar de autorización
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
-};
-
-// 3. Función Helper: Maneja las respuestas y errores comunes
-const handleResponse = async (response: Response) => {
-  if (response.status === 401) {
-    // 401 Unauthorized: El token expiró o es inválido.
-    // Borramos la evidencia y pateamos al usuario al login.
-    localStorage.removeItem('jwt_token');
-    window.location.href = '/login'; 
-    throw new Error('Sesión expirada o inválida');
-  }
-  
-  if (!response.ok) {
-    throw new Error(`Error en la API: ${response.statusText}`);
-  }
-  
-  return response.json();
-};
-
-const url_exacta = `${API_URL}/expenses/`
-console.log(`haciendo fetch a: ${url_exacta}`)
+const EXPENSE_URL = `${API_URL}/expenses/`
 
 export const ExpenseService = {
-  // GET: Traer todos los gastos
+  // GET
   getAll: async (): Promise<Expense[]> => {
-    const response = await fetch(url_exacta, {
+    const response = await fetch(EXPENSE_URL, {
       method: 'GET',
       headers: getHeaders(),
     });
     return handleResponse(response);
   },
 
-  // POST: Crear un nuevo gasto (Respetando tu Schema ExpenseIn)
+  // POST:
   create: async (amount: number, description: string, category: Category): Promise<Expense> => {
-    // Construimos el payload exactamente como lo pide tu backend
     const payload = {
       amount: amount,
       description: description,
-      category_id: category.id // ¡Mandamos solo el ID como acordamos!
+      category_id: category.id // Mandamos solo el id de category. El backend se encarga del resto
     };
 
-    const response = await fetch(`${API_URL}/expenses`, {
+    const response = await fetch(EXPENSE_URL, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload),
@@ -61,7 +32,8 @@ export const ExpenseService = {
   },
 
   // GET: Obtener balance
-  // (Si aún no tienes este endpoint, podemos calcularlo sumando el getAll por ahora)
+  // Todavia no cree este endpoint, queda para despues
+
   // getBalance: async (): Promise<UserBalance> => {
   //   const response = await fetch(`${API_URL}/balance`, {
   //     method: 'GET',
