@@ -59,11 +59,11 @@ export const ExpenseService = {
 
   // GET: Obtener balance
   // (Si aún no tienes este endpoint, podemos calcularlo sumando el getAll por ahora)
-//   getBalance: async (): Promise<UserBalance> => {
-//     const response = await fetch(`${API_URL}/balance`, {
-//       method: 'GET',
-//       headers: getHeaders(),
-//     });
-//     return handleResponse(response);
-//   }
+  // getBalance: async (): Promise<UserBalance> => {
+  //   const response = await fetch(`${API_URL}/balance`, {
+  //     method: 'GET',
+  //     headers: getHeaders(),
+  //   });
+  //   return handleResponse(response);
+  // }
 };
