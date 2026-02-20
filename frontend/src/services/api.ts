@@ -33,7 +33,7 @@ const handleResponse = async (response: Response) => {
 export const ExpenseService = {
   // GET: Traer todos los gastos
   getAll: async (): Promise<Expense[]> => {
-    const response = await fetch(`${API_URL}/expenses`, { // Asegúrate que tu endpoint en Django se llame así
+    const response = await fetch(`${API_URL}/expenses/`, { // Asegúrate que tu endpoint en Django se llame así
       method: 'GET',
       headers: getHeaders(),
     });
