@@ -2,6 +2,8 @@ import type { Expense, Category, UserBalance } from "../types";
 
 // 1. Obtenemos la URL base del entorno
 const API_URL = import.meta.env.VITE_API_URL;
+console.log("LA VARIABLE ES: ", API_URL)
+console.log("Solo por si acaso", import.meta.env.VITE_API_URL)
 
 // 2. Función Helper: Construye las cabeceras (headers) inyectando el JWT
 const getHeaders = () => {
