@@ -25,7 +25,7 @@ export default function ExpenseItem({description, amount, category, date}: Expen
         className={styles.icon}
         style={{ backgroundColor: displayCategory.color + '20', color: displayCategory.color }}
         >
-          <ShoppingBag size={20} />
+          <Icon size={20} />
         </div>
         <div className={styles.details}>
           <span className={styles.merchant}>{description}</span>
