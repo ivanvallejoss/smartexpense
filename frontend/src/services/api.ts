@@ -1,4 +1,4 @@
-import type { Expense, Category, UserBalance } from "../types";
+import type { Expense, Category, UserBalance} from "../types";
 
 // 1. Obtenemos la URL base del entorno
 const API_URL = import.meta.env.VITE_API_URL;
