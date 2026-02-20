@@ -1,5 +1,6 @@
 from ninja import Schema
 from datetime import datetime
+from typing import Optional
 
 
 # ------- CATEGORY SCHEMA -------
@@ -29,6 +30,6 @@ class ExpenseOut(Schema):
     id: int
     amount: float
     description: str
-    category: CategoryOut       # se anida el schema de salida de la categoria
-    date: datetime              # Django Ninja convierte esto automaticamente a ISO 8061 (2026-02-19T14:30:00z)
+    category: Optional(CategoryOut) = None     # se anida el schema de salida de la categoria
+    date: datetime                             # Django Ninja convierte esto automaticamente a ISO 8061 (2026-02-19T14:30:00z)
     

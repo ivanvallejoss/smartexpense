@@ -3,7 +3,7 @@ export interface Expense {
     id: number;
     description: string;
     amount: number;
-    category: Category;
+    category: Category | null; 
     date: string;
     // status: 'pending' | 'completed; -> Como podemos escalar esta interface
 }
