@@ -2,8 +2,6 @@ import type { Expense, Category, UserBalance } from "../types";
 
 // 1. Obtenemos la URL base del entorno
 const API_URL = import.meta.env.VITE_API_URL;
-console.log("LA VARIABLE ES: ", API_URL)
-console.log("Solo por si acaso", import.meta.env.VITE_API_URL)
 
 // 2. Función Helper: Construye las cabeceras (headers) inyectando el JWT
 const getHeaders = () => {
@@ -32,10 +30,13 @@ const handleResponse = async (response: Response) => {
   return response.json();
 };
 
+const url_exacta = `${API_URL}/expenses/`
+console.log(`haciendo fetch a: ${url_exacta}`)
+
 export const ExpenseService = {
   // GET: Traer todos los gastos
   getAll: async (): Promise<Expense[]> => {
-    const response = await fetch(`${API_URL}/expenses/`, { // Asegúrate que tu endpoint en Django se llame así
+    const response = await fetch(url_exacta, {
       method: 'GET',
       headers: getHeaders(),
     });
