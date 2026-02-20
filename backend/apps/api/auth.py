@@ -10,30 +10,23 @@ logger = logging.getLogger(__name__)
 class GlobalAuth(HttpBearer):
     async def authenticate(self, request, token):
         try:
-            # 1. Decodificamos el token
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            telegram_id = payload.get("sub")
 
-            # 2. Buscamos al usuario de forma limpia
+            # Recibimos string y devolvemos convertirlo a entero
+            telegram_id = int(payload.get("sub"))
+
             user = await get_user_by_telegram_id(telegram_id=telegram_id)
 
-
-            if not user:
-                logger.warning(f"Usuario no encontrado para telegram_id: {telegram_id}")
-                return None
-
+            # logger para tener informacion durante el proceso
             logger.info(
                 "Authentication process", extra={
-                    "user_id": user.id,
+                    "user_id": user,
                     "expire_time": payload.get("exp"),
                     "telegram": telegram_id
                 },
             )
 
-
-
-
-            # 3. Retornamos el usuario (Si es None, Ninja lanza error 401)
+            # Si no hay usuario obtenemos Error 401 de Ninja
             return user
 
         except jwt.ExpiredSignatureError:
