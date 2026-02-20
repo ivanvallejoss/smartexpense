@@ -1,0 +1,57 @@
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: white;
+}
+
+.inputGroup {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* El input de dinero debe ser enorme */
+.amountInput {
+  width: 100%;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border: none;
+  border-bottom: 2px solid #e2e8f0;
+  outline: none;
+  background: transparent;
+  padding: 8px 0;
+}
+
+.amountInput:focus {
+  border-bottom-color: var(--primary);
+}
+
+.select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.saveButton {
+  margin-top: auto; /* Empuja el botón al final de la pantalla */
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}

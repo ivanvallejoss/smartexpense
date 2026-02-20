@@ -1,0 +1,37 @@
+/* src/index.css */
+:root {
+  /* Paleta Base (Neutros) */
+  --bg-color: #f8fafc;       /* Fondo gris muy claro */
+  --card-bg: #ffffff;        /* Blanco puro */
+  --text-primary: #1e293b;   /* Gris oscuro casi negro */
+  --text-secondary: #64748b; /* Gris medio */
+  
+  /* Colores de Marca (Acentos) */
+  --primary: #2563eb;        /* Azul vibrante */
+  --success: #22c55e;        /* Verde ingresos */
+  --danger: #ef4444;         /* Rojo gastos */
+
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center; /* Centrado temporal */
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+}
+
+/* Reset básico */
+h1, h2, h3, p {
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+}

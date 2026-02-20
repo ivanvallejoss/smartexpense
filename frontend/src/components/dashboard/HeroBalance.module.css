@@ -1,0 +1,32 @@
+.container {
+  background: linear-gradient(135deg, var(--primary), #1e40af); /* Un degradado azul */
+  color: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.label {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.trend {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
