@@ -219,7 +219,8 @@ LOGGING = {
 # =======================
 #   CORS configuration
 # =======================
-CORS_ALLOW_ALL_ORIGINS = False
+# CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_OPTIONS = [
     "http://localhost:5173",
@@ -229,4 +230,4 @@ CORS_ALLOWED_OPTIONS = [
 # If production environment
 FRONTEND_URL = os.environ.get('FRONTEND_URL')
 if FRONTEND_URL:
-    CORS_ALLOWED_OPTIONS.append(FRONTEND_URL)
+    CORS_ALLOWED_OPTIONS = [FRONTEND_URL]
