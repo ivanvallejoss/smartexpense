@@ -1,9 +1,10 @@
 import type { Expense, Category} from "../types";
 import { getHeaders, handleResponse } from "./api_helpers";
 
-// URL base + Expense URL
+
 const API_URL = import.meta.env.VITE_API_URL;
 const EXPENSE_URL = `${API_URL}/expenses/`
+
 
 export const ExpenseService = {
   // GET
@@ -20,7 +21,7 @@ export const ExpenseService = {
     const payload = {
       amount: amount,
       description: description,
-      category_id: category.id // Mandamos solo el id de category. El backend se encarga del resto
+      category_id: category.id
     };
 
     const response = await fetch(EXPENSE_URL, {
