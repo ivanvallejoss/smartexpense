@@ -30,6 +30,6 @@ class ExpenseOut(Schema):
     id: int
     amount: float
     description: str
-    category: Optional(CategoryOut) = None     # se anida el schema de salida de la categoria
+    category: Optional[CategoryOut] = None     # se anida el schema de salida de la categoria
     date: datetime                             # Django Ninja convierte esto automaticamente a ISO 8061 (2026-02-19T14:30:00z)
     
