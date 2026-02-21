@@ -14,18 +14,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #            ENVIRONMENT VARIABLES
 # ================================================
 
-env = environ.Env(
-    DEBUG=(bool, False)
-    )
+env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
 
+DEBUG = env('DEBUG', default=False, cast=bool)
 # --------------------------
 #       VARIABLES
 # --------------------------
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
-FRONTEND_URL = env('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 
 
 
