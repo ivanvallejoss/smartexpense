@@ -2,37 +2,43 @@
 Django settings for SmartExpense project.
 """
 import os
-import sys
 import dj_database_url
 from datetime import timedelta
 from pathlib import Path
 
 import environ
-from dotenv import load_dotenv
 
-load_dotenv()
-
-# Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Inicializar django-environ
-env = environ.Env(DEBUG=(bool, False))
+# ================================================
+#            ENVIRONMENT VARIABLES
+# ================================================
 
-# Leemos .env file
+env = environ.Env(
+    DEBUG=(bool, False)
+    )
 environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
 
-
-SECRET_KEY = os.getenv("SECRET_KEY")
+# --------------------------
+#       VARIABLES
+# --------------------------
+SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
+FRONTEND_URL = env('FRONTEND_URL', 'http://localhost:5173')
 
-# Import Telegram Token depending on environment
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+
+# ----------------------------
+#   DataBase configuration
+# ----------------------------
+DATABASES = {
+    'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')
+}
 
 
 # Application definition
-
 INSTALLED_APPS = [
-    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -52,6 +58,7 @@ AUTH_USER_MODEL = "core.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # CORS
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -80,7 +87,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -128,66 +134,77 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 
-# ===========================
+# ======================================================
 #  
-#   RAILWAY CONFIGURATION
+#       PRODUCTION/DEVELOPMENT CONFIGURATION
 #
-# ===========================
+# ======================================================
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+# --------------------------
+#     DATABASE AND CORS
+# --------------------------
+if DEBUG:
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'disable'}
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    DATABASES['default']['CONN_MAX_AGE'] = 600
+    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+    CORS_ALLOW_ALL_ORIGINS = False
 
-IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT_NAME') is not None
+
+
+# -------------
+#    RAILWAY
+# -------------
+IS_PRODUCTION = env.bool('RAILWAY_ENVIRONMENT_NAME', default=False)
 
 if IS_PRODUCTION:
-    ALLOWED_HOSTS = ["*"]
+    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 else:
-    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
-
-# DB configuration for Railway
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-            ssl_require=True)
-    }
-else:
-    # Local database configuration
-    DATABASES = {"default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3")}
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
 
-# CELERY Configuration for Railway
-REDIS_URL = os.getenv('REDIS_URL')
 
-if REDIS_URL:
-    CELERY_WORKER_POOL = 'prefork'
-    CELERY_BROKER_URL = REDIS_URL
-    CELERY_RESULT_BACKEND = REDIS_URL
-else:
-    # CELERY Configuration for local development
+# -------------
+#     CORS
+# -------------
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL,]
+
+
+
+# -------------
+#    CELERY
+# -------------
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+
+# GLOBAL
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+# Serializacion
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+# Timezone
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+# Task Tracking
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 20 * 60  # CALCULANDO EN MINUTOS (20 MINUTOS MAX)
+CELERY_TASK_SOFT_TIME_LIMIT = 15 * 60  # Warning a los 15 minutos
+
+
+if DEBUG:
     CELERY_WORKER_POOL = 'solo'
+else:
+    CELERY_WORKER_POOL = 'prefork'
     CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-    CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
-    # Serializacion
-    CELERY_ACCEPT_CONTENT = ["json"]
-    CELERY_TASK_SERIALIZER = "json"
-    CELERY_RESULT_SERIALIZER = "json"
-    # Timezone
-    CELERY_TIMEZONE = TIME_ZONE
-    CELERY_ENABLE_UTC = True
-    # Task Tracking
-    CELERY_TASK_TRACK_STARTED = True
-    CELERY_TASK_TIME_LIMIT = 30 * 60  # CALCULANDO EN MINUTOS (30 MINUTOS MAX)
-    CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Warning a los 25 minutos
-
-# CELERY PARA TESTING
-if "test" in sys.argv:
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
 
 
-# Logging
+
+# --------------------------
+#   Logging configuration
+# --------------------------
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -215,12 +232,3 @@ LOGGING = {
         },
     },
 }
-
-# =======================
-#   CORS configuration
-# =======================
-# CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_ALL_ORIGINS = False
-
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL,]
