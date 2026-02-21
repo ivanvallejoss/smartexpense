@@ -5,8 +5,6 @@ Works with the bot application to handle updates. (/start, /help, /stats and exp
 import logging
 import os
 
-from dotenv import load_dotenv
-
 from asgiref.sync import sync_to_async
 
 from telegram import Update
@@ -27,7 +25,6 @@ from .helpers import get_keyboard_markup
 from django.conf import settings
 
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
 
@@ -234,7 +231,7 @@ async def link_command(update, context):
     token = generate_magic_link_token(telegram_id=telegram_id)
 
     # Construimos la URL.
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    frontend_url = settings.FRONTEND_URL
     magic_link = f"{frontend_url}/login?token={token}"
 
     # Respondemos al usuario
