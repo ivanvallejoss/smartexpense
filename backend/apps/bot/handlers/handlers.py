@@ -9,6 +9,7 @@ from asgiref.sync import sync_to_async
 
 from telegram import Update
 from telegram.ext import ContextTypes
+from telegram.constants import ParseMode
 
 from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
@@ -236,10 +237,10 @@ async def link_command(update, context):
 
     # Respondemos al usuario
     mensaje = (
-        "<b>Acceso a tu Dashboard</b>\n\n"
-        "Haz clic en el enlace de abajo para entrar."
-        "<i>Este link es personal, seguro y caduca en 15 minutos.</i>"
-        f"<a href='{magic_link}'>Ir a mif finanzas</a>"
+        '<b>Acceso a tu Dashboard</b>\n\n'
+        'Haz clic en el enlace de abajo para entrar.\n'
+        '<i>Este link es personal, seguro y caduca en 15 minutos.</i>\n\n'
+        f'<a href="{magic_link}">Ir a mif finanzas</a>'
     )
 
-    await update.message.reply_text(mensaje, parse_mode="HTML")
+    await update.message.reply_text(mensaje, parse_mode=ParseMode.HTML)
