@@ -25,6 +25,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
 
 
@@ -161,7 +162,7 @@ IS_PRODUCTION = env.bool('RAILWAY_ENVIRONMENT_NAME', default=False)
 if IS_PRODUCTION:
     ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+    ALLOWED_HOSTS = ["*"]
 
 
 
@@ -175,7 +176,6 @@ CORS_ALLOWED_ORIGINS = [FRONTEND_URL,]
 # -------------
 #    CELERY
 # -------------
-REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
 # GLOBAL
 CELERY_BROKER_URL = REDIS_URL
