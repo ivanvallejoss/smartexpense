@@ -240,7 +240,7 @@ async def link_command(update, context):
         '<b>Acceso a tu Dashboard</b>\n\n'
         'Haz clic en el enlace de abajo para entrar.\n'
         '<i>Este link es personal, seguro y caduca en 15 minutos.</i>\n\n'
-        f'<a href="{magic_link}">Ir a mif finanzas</a>'
+        f'<a href="{magic_link}">Ir al dashboard</a>'
     )
 
     await update.message.reply_text(mensaje, parse_mode=ParseMode.HTML)
