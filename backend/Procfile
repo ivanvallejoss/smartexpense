@@ -1,1 +1,2 @@
-web: gunicorn -k uvicorn.workers.UvicornWorker config.asgi:application --log-file -
+release: python manage.py migrate && python manage.py collectstatic --noinput
+web: gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --access-logfile -
