@@ -10,18 +10,33 @@ from asgiref.sync import sync_to_async
 from django.utils import timezone
 from django.db.models import Count, Sum
 from decimal import Decimal
+from typing import Optional
 
 from zoneinfo import ZoneInfo
 
 
 @sync_to_async
-def get_lasts_expenses(telegram_id, limit=5):
+def get_lasts_expenses(
+    telegram_id:int, 
+    limit:int=7,
+    offset:int=0,
+    month:Optional[int]=None,
+    year:Optional[int]=None
+    ):
     """
     Gets the last n expenses for a user.
     """
     expenses = Expense.objects.filter(
         user__telegram_id=telegram_id
-        ).select_related('category').order_by('-date')[:limit]
+        ).select_related('category')
+
+    if month:
+        expenses = expenses.filter(date__month=month)
+    if year:
+        expenses = expenses.filter(date__year=year)
+    
+    # Implementing the offset and limit
+    expenses = expenses.order_by('-date')[offset: offset + limit]
     
     # We need to return a list so we force Django to evaluate the queryset
     # Otherwise we can get an error for SychronousOnlyOperation

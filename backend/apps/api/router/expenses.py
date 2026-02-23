@@ -1,7 +1,9 @@
 from ninja import Router
 from typing import List, Optional
-from apps.api.schemas import ExpenseOut
+from apps.api.schemas import ExpenseOut, ExpenseIn
 from services.selectors import get_lasts_expenses
+from services.expenses import create_expense
+from services.users import get_user_by_telegram_id
 
 # Enrutador especifico para gastos
 router = Router(tags=["Gastos"])
@@ -30,3 +32,21 @@ async def list_expenses(
         )
     
     return expenses
+
+
+@router.post("/", response={201: ExpenseOut})
+async def create_expense_endpoint(request, payload: ExpenseIn):
+    """
+    Crea un nuevo gasto.
+    Espera un JSON con amount, description y category_id
+    """
+    user = request.auth
+
+    expense = await create_expense(
+        user=user,
+        amount=payload.amount,
+        description=payload.description,
+        category_id=payload.category_id
+    )
+    
+    return expense

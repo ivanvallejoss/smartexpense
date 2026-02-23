@@ -3,17 +3,27 @@ Service Layer
 Logic that creates or deletes expenses
 """
 
-from apps.core.models import Expense
+from apps.core.models import Expense, Category
 from asgiref.sync import sync_to_async
 from django.db import transaction
 from django.utils import timezone
 from typing import Optional
 
 @sync_to_async
-def create_expense(user, amount, description, category, raw_message, date=None):
+def create_expense(user, amount:float, description:string, category_id:int, date=None, raw_message=None):
     """Helper sincrónico para crear expense con categoría."""
     if not date:
         date = timezone.now()
+    
+    # I will keep like this just for now,
+    # not sure how to fix this for the web cases.
+    if not raw_message:
+        raw_message = description
+
+    # This line should be modify if 
+    # we add a functionality 
+    # to create personalized categories
+    category = Category.objects.get(id=category_id)
 
     with transaction.atomic():
         expense = Expense.objects.create(
@@ -22,7 +32,7 @@ def create_expense(user, amount, description, category, raw_message, date=None):
             description=description,
             category=category,
             date=date,
-            raw_message=raw_message,
+            raw_message=raw_message
         )
     return expense
 

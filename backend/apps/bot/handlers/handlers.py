@@ -15,6 +15,7 @@ from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
+from services.users import get_user_by_telegram_id
 from services.selectors import get_lasts_expenses, get_month_stats
 from services.auth import generate_magic_link_token
 
@@ -154,8 +155,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     message_text = update.message.text
 
     try:
-        # Obtener o crear usuario
-        user, _ = await async_get_or_create_user(telegram_user)
+        # Getting the user
+        user = await get_user_by_telegram_id(telegram_user.id)
 
         # Parsear mensaje con ExpenseParser (sync operation)
         parser = ExpenseParser()
@@ -175,7 +176,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             amount=message_parsed["amount"],
             description=message_parsed["description"],
             category=suggestion.category,
-            raw_message=message_text,
         )
 
         # Format confirmation message
