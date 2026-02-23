@@ -42,4 +42,4 @@ whitenoise==6.11.0
 gunicorn==24.1.0
 
 # ASGI
-Uvicorn==0.40.0
+uvicorn==0.41.0
