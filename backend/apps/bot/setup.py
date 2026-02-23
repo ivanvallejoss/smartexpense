@@ -14,7 +14,7 @@ def build_ptb_application():
         raise ValueError("TELEGRAM_TOKEN is not set in the environment variables")
 
     # Building App
-    app_builder = ApplicationBuilder().token(token)
+    app_builder = ApplicationBuilder().token(token).updater(None)
     application = app_builder.build()
 
     # Add handlers

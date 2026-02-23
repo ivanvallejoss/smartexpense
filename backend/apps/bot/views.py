@@ -1,37 +1,50 @@
 import json
+import logging
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST 
+from arq import create_pool
+from arq.connections import RedisSettings
 from telegram import Update
 
-# Imported the created mechanism to get the bot application
-from .setup import build_ptb_application
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+# Variable global para reutilizar la conexion a Redis entre peticiones 
+_redis_pool = None
+
+async def get_redis_pool():
+    global _redis_pool
+    if _redis_pool is None:
+        # Crea la conexion usando la URL de tu settings.py
+        _redis_pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
+    return _redis_pool
+
+
 
 @csrf_exempt
+@require_POST
 async def webhook(request):
-    if request.method == 'POST':
-
-        # Get or create the bot application
-        ptb_app = build_ptb_application()
-
-        # We need to initialize the application
-        await ptb_app.initialize()
-
-        try:
-            # Decoded the request body and parsed it as JSON
-            json_str = request.body.decode('UTF-8')
-            data = json.loads(json_str)
-            
-            update = Update.de_json(data, ptb_app.bot)
-
-            await ptb_app.process_update(update)
-            return HttpResponse("Update processed", status=200)
-
-        except Exception as e:
-            print(f"Error en webhook: {e}")
-            return HttpResponse("Error procesado", status=200)
+    try:
+        json_data = request.body.decode('UTF-8')
+        payload = json.loads(json_data)
         
-        finally:
-            # Shutdown the bot application
-            await ptb_app.shutdown()
+        # Conectamos a Redis y encolamos al trabajo
+        redis = await get_redis_pool()
+        await redis.enqueue_job('process_telegram_message', payload)
+
+        return HttpResponse("OK", status=200)
     
-    return HttpResponse(status=405)
+    except json.JSONDecodeError:
+        return HttpResponse("Invalid JSON", status=400)
+
+    except Exception as e:
+        logger.error(
+            "An unexpected error ocurred processing the webhook:",
+            extra={
+                'error_info': str(e),  
+                },
+            exc_info=True
+            )
+        return HttpResponse("Error procesado", status=200)
