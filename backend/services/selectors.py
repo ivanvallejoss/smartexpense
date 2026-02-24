@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 
 
 @sync_to_async
-def get_lasts_expenses(
+def get_expenses(
     telegram_id:int, 
     limit:int=7,
     offset:int=0,
@@ -41,6 +41,7 @@ def get_lasts_expenses(
     # We need to return a list so we force Django to evaluate the queryset
     # Otherwise we can get an error for SychronousOnlyOperation
     return list(expenses)
+
 
 
 # ---------------------------------------
