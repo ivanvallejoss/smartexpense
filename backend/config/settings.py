@@ -169,7 +169,7 @@ else:
 # -------------
 #     CORS
 # -------------
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL,]
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL, FRONTEND_TEST]
 
 
 
