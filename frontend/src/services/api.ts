@@ -3,7 +3,7 @@ import { getHeaders, handleResponse } from "./api_helpers";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
-const EXPENSE_URL = `${API_URL}/expenses/`
+const EXPENSE_URL = `${API_URL}/expenses`
 
 
 export const ExpenseService = {
@@ -15,6 +15,9 @@ export const ExpenseService = {
     });
     return handleResponse(response);
   },
+
+
+
 
   // POST:
   create: async (amount: number, description: string, category: Category): Promise<Expense> => {
@@ -32,14 +35,27 @@ export const ExpenseService = {
     return handleResponse(response);
   },
 
-  // GET: Obtener balance
-  // Todavia no cree este endpoint, queda para despues
 
-  // getBalance: async (): Promise<UserBalance> => {
-  //   const response = await fetch(`${API_URL}/balance`, {
-  //     method: 'GET',
-  //     headers: getHeaders(),
-  //   });
-  //   return handleResponse(response);
-  // }
+
+  // DELETE
+  delete: async (id: number): Promise<void> => {
+    const token = localStorage.getItem('jwt_token');
+
+    const response = await fetch(`${EXPENSE_URL}/${id}`, {
+      method: 'DELETE',
+      headers: {
+        // conditional ternary
+        'Authorization': token ? `Bearer ${token}`: ''
+      },
+    });
+
+    if (!response.ok){
+      throw new Error(`Error al eliminar: ${response.status}`)
+    }
+  },
+
+
+
+
+
 };

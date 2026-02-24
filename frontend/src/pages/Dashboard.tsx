@@ -5,7 +5,7 @@ import { useDashboardData } from "../hooks/useDashboardData";
 
 export default function Dashboard(){
     // Usamos el hook.
-    const { expenses, balance, loading, error } = useDashboardData();
+    const { expenses, balance, loading, error, deleteExpense } = useDashboardData();
 
     if (loading) {
         return (
@@ -32,13 +32,14 @@ export default function Dashboard(){
             </h3>
 
             <div className="list-container">
-                {expenses.map(tx => (
+                {expenses.map(expense => (
                     <ExpenseItem
-                    key={tx.id}
-                    description={tx.description}
-                    amount={tx.amount}
-                    category={tx.category}
-                    date={tx.date}
+                    id={expense.id}
+                    description={expense.description}
+                    amount={expense.amount}
+                    category={expense.category}
+                    date={expense.date}
+                    onDelete={deleteExpense}
                     />
                 ))}
             </div>

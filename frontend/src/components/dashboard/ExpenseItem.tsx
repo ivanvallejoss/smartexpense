@@ -1,21 +1,20 @@
-import { HelpCircle, ShoppingBag } from 'lucide-react'; // Icono genérico por ahora
+import { HelpCircle, ShoppingBag, Trash2 } from 'lucide-react'; // Icono genérico por ahora
 import type { Expense } from '../../types';
 import styles from './ExpenseItem.module.css';
 
-interface ExpenseItemProps extends Omit<Expense, 'id'> {}
+interface ExpenseItemProps extends Expense{
+  onDelete?: (id: number) => void
+}
 
-export default function ExpenseItem({description, amount, category, date}: ExpenseItemProps) {
+export default function ExpenseItem({ id, description, amount, category, date, onDelete }: ExpenseItemProps) {
+  
   const formattedAmount = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
     maximumFractionDigits: 0
   }).format(amount);
 
-  const displayCategory = category || {
-    name: 'Sin categoria',
-    color: '#9CA3AF', // Un gris neutro
-  };
-
+  const displayCategory = category || {name: 'Sin categoria',color: '#9CA3AF'};
   const Icon = category ? ShoppingBag : HelpCircle;
 
     return (
@@ -32,7 +31,25 @@ export default function ExpenseItem({description, amount, category, date}: Expen
           <span className={styles.category}>{displayCategory.name} • {date}</span>
         </div>
       </div>
-      <span className={styles.amount}>-{formattedAmount}</span>
+
+      {/* Contenedor derecho para monto y boton */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span className={styles.amount}>-{formattedAmount}</span>
+        {/* Si tenemos la funcion onDelete */}
+        {onDelete && (
+          <button onClick={() => onDelete(id)}
+          style={{
+            background: 'none', border: 'none', padding: '4px',
+            cursor: 'pointer', color: '#ef4444', display: 'flex'
+          }}
+          title="Eliminar Gasto"
+          >
+            <Trash2 size={18} /> 
+          </button>
+        )}
+      </div>
+
+      {/* <span className={styles.amount}>-{formattedAmount}</span> */}
     </div>
   );
 }

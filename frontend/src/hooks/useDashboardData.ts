@@ -39,5 +39,24 @@ export function useDashboardData() {
         };
         fetchData();
     }, []); // El array vacio significa: "Ejecutar solo al montar el componente"
-    return { expenses, balance, loading, error };
+
+    const deleteExpense = async (id: number) => {
+        const expenseToDelete = expenses.find(e => e.id === id);
+        if (!expenseToDelete) return;
+
+        try{
+            await ExpenseService.delete(id);
+
+            setExpenses(prevExpenses => prevExpenses.filter(e => e.id !== id));
+
+            setBalance(prev => prev ? {
+                ...prev,
+                totalSpent: prev.totalSpent - expenseToDelete.amount
+            }: null);
+        } catch (err){
+            console.error("Error al borrar el gasto: ", err);
+            alert("No se pudo eliminar el gasto. Intenta de nuevo")
+        }
+    };
+    return { expenses, balance, loading, error, deleteExpense };
 }
