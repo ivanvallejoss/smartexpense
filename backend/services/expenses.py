@@ -11,7 +11,7 @@ from django.utils import timezone
 from typing import Optional
 
 @sync_to_async
-def create_expense(user, amount:float, description:string, category_id:int, date=None, raw_message=None):
+def create_expense(user, amount:float, description:str, category_id:int, date=None, raw_message=None):
     """Helper sincrónico para crear expense con categoría."""
     if not date:
         date = timezone.now()
