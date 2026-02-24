@@ -1,7 +1,9 @@
 from ninja import Router
 from typing import List, Optional
-from apps.api.schemas import ExpenseOut
-from services.selectors import get_lasts_expenses
+from apps.api.schemas import ExpenseOut, ExpenseIn
+from services.selectors import get_expenses
+from services.expenses import create_expense, delete_expense, update_expense
+from services.users import get_user_by_telegram_id
 
 # Enrutador especifico para gastos
 router = Router(tags=["Gastos"])
@@ -21,7 +23,7 @@ async def list_expenses(
     """
     user = request.auth
     
-    expenses = await get_lasts_expenses(
+    expenses = await get_expenses(
         telegram_id=user.telegram_id,
         limit=limit,
         offset=offset,
@@ -30,3 +32,56 @@ async def list_expenses(
         )
     
     return expenses
+
+
+
+@router.post("/", response={201: ExpenseOut})
+async def create_expense_endpoint(request, payload: ExpenseIn):
+    """
+    Crea un nuevo gasto.
+    Espera un JSON con amount, description y category_id
+    """
+    user = request.auth
+
+    expense = await create_expense(
+        user=user,
+        amount=payload.amount,
+        description=payload.description,
+        category_id=payload.category_id
+    )
+    
+    return expense
+
+
+@router.put("/{expense_id}", response=ExpenseOut)
+async def update_expense_endpoint(request, expense_id: int, payload: ExpenseIn):
+    """
+    Edita un gasto existente.
+    La URL debe contener el ID del gasto (ej: /api/expenses/6)
+    """
+    user = request.auth
+
+    expense = await update_expense(
+        user=user,
+        expense_id=expense_id,
+        amount=payload.amount,
+        description=payload.description,
+        category_id=payload.category_id
+    )
+    return expense
+
+
+
+
+@router.delete("/{expense_id}", response={204: None})
+async def delete_expense_endpoint(request, expense_id: int):
+    """
+    Borra un gasto de forma permanente
+    """
+    user = request.auth
+
+    await delete_expense(
+        user=user,
+        expense_id=expense_id
+    )
+    return None

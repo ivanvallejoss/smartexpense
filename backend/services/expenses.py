@@ -3,17 +3,28 @@ Service Layer
 Logic that creates or deletes expenses
 """
 
-from apps.core.models import Expense
+from apps.core.models import Expense, Category
 from asgiref.sync import sync_to_async
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from typing import Optional
 
 @sync_to_async
-def create_expense(user, amount, description, category, raw_message, date=None):
+def create_expense(user, amount:float, description:string, category_id:int, date=None, raw_message=None):
     """Helper sincrónico para crear expense con categoría."""
     if not date:
         date = timezone.now()
+    
+    # I will keep like this just for now,
+    # not sure how to fix this for the web cases.
+    if not raw_message:
+        raw_message = description
+
+    # This line should be modify if 
+    # we add a functionality 
+    # to create personalized categories
+    category = Category.objects.get(id=category_id)
 
     with transaction.atomic():
         expense = Expense.objects.create(
@@ -22,45 +33,46 @@ def create_expense(user, amount, description, category, raw_message, date=None):
             description=description,
             category=category,
             date=date,
-            raw_message=raw_message,
+            raw_message=raw_message
         )
     return expense
 
 
-@sync_to_async
-def delete_expense(expense_id, user_telegram_id):
-    try:
-        # Get the expense_id object that match with the user_id
-        expense = Expense.objects.get(id=expense_id, user__telegram_id=user_telegram_id)
-        # Delete the expense
-        expense.delete()
-        return True
-    except Expense.DoesNotExist:
-        return False
 
 @sync_to_async
-def get_filtered_expenses(
-    telegram_id: int,
-    limit: int=15,
-    offset: int=0,
-    month: Optional[int] = None,
-    year: Optional[int] = None
-):
+def update_expense(user, expense_id: int, amount: float, description: str, category_id: int):
     """
-    Obtiene gastos con soporte para paginacion y filtros por fecha.
+    Actualiza un gasto asegurado que le pertenezca al usuario.
     """
-    # Join con category
-    qs = Expense.objects.filter(
-        user__telegram_id=telegram_id
-    ).select_related(category)
-
-    if month:
-        qs = qs.filter(date__month=month)
-    if year:
-        qs = qs.filter(date__year=year)
+    # This line should be modify if 
+    # we add a functionality 
+    # to create personalized categories
+    category = Category.objects.get(id=category_id)
     
-    # offset=10, limit=10 -> qs[10:20] (Pagina 2)
-    qs = qs.order_by('-date')[offset : offset + limit]
+    filas_actualizadas = Expense.objects.filter(id=expense_id, user=user).update(
+        amount=amount,
+        description=description,
+        category=category
+    )
 
-    # Forzamos el calculo para evitar error de sincronia
-    return list(qs)
+    if filas_actualizadas == 0:
+        raise ObjectDoesNotExist("El gasto no existe o no tienes permisos.")
+    
+    expense = Expense.objects.select_related('category').get(id=expense_id, user=user)
+
+    return expense
+
+
+
+@sync_to_async
+def delete_expense(user, expense_id):
+    """
+    Elimina la expense, cruzando user con expense 
+    """
+    filas_borradas, _ = Expense.objects.filter(id=expense_id, user=user).delete()
+    
+    if filas_borradas == 0:
+        raise ObjectDoesNotExist("El gasto que intentas borrar no existe o no te pertenece.")
+
+    return True
+

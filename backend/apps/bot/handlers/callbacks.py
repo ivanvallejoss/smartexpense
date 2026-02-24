@@ -5,6 +5,7 @@ central_callback_handler is in charge of managing every button event
 from telegram import Update
 from telegram.ext import ContextTypes
 from services.expenses import delete_expense
+from services.users import get_user_by_telegram_id
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,10 +17,12 @@ async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
     Calls delete_expense to get rid of the expense properly
     """
     query = update.callback_query
-    
-    # Call the logic to delete the expense
-    user_id = update.effective_user.id
-    was_deleted = await delete_expense(expense_id=payload, user_telegram_id=user_id)
+
+    # Simplifying we get the user through the telegram ID
+    telegram_id = update.effective_user.id
+    user = await get_user_by_telegram_id(telegram_id)
+
+    was_deleted = await delete_expense(expense_id=payload, user=user)
     
     if not was_deleted: 
         await query.answer("⚠️ Error", show_alert=True)
