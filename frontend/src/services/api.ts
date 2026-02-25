@@ -10,9 +10,16 @@ const BALANCE_URL = `${API_URL}/balances`
 export const ExpenseService = {
 
   // GET
-  getAll: async (limit: number=15, offset: number=0): Promise<Expense[]> => {
+  getAll: async (limit?: number, offset?: number): Promise<Expense[]> => {
     
-    const response = await fetch(`${EXPENSE_URL}/?limit=${limit}&offset=${offset}`, {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+
+    const queryString = params.toString();
+    const urlExpense = queryString ? `${EXPENSE_URL}/?${queryString}`: `${EXPENSE_URL}/`;
+    
+    const response = await fetch(urlExpense, {
       method: 'GET',
       headers: getHeaders(),
     });

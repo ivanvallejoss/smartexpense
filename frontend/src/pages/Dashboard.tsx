@@ -59,7 +59,7 @@ export default function Dashboard(){
                 </h1>
             </header>   
 
-            {balance && <HeroBalance total={balance?.totalSpent || 0}/>}
+            { balance && < HeroBalance balance={balance} /> }
         
 
             <div className="list-container">
