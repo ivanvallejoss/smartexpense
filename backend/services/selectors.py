@@ -15,9 +15,10 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 
 
+
 @sync_to_async
 def get_expenses(
-    telegram_id:int, 
+    user, 
     limit:int=7,
     offset:int=0,
     month:Optional[int]=None,
@@ -27,7 +28,7 @@ def get_expenses(
     Gets the last n expenses for a user.
     """
     expenses = Expense.objects.filter(
-        user__telegram_id=telegram_id
+        user=user
         ).select_related('category')
 
     if month:
@@ -42,6 +43,25 @@ def get_expenses(
     # Otherwise we can get an error for SychronousOnlyOperation
     return list(expenses)
 
+
+
+@sync_to_async
+def get_balance(user, month: int=None, year: int=None) -> float:
+    """
+    Calcula la suma total de gastos delegando el calculo a la BBDD
+    """
+    expenses = Expense.objects.filter(user=user)
+    # Aplicamos filtros opcionales si el frontend quiere el total de un mes especifico
+    if month:
+        expenses = expenses.filter(date__month=month)
+    if year:
+        expenses = expenses.filter(date__year=year)
+
+    resultado = expenses.aggregate(total_amount=Sum('amount'))
+
+    # Devolvemos la propiedad especifica del diccionario
+    # o 0.0 si no hay nada
+    return resultado['total_amount'] or 0.0
 
 
 # ---------------------------------------

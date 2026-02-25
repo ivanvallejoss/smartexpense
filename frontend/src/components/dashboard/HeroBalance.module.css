@@ -1,32 +1,61 @@
 .container {
-  background: linear-gradient(135deg, var(--primary), #1e40af); /* Un degradado azul */
-  color: white;
-  padding: 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  margin-bottom: 1.5rem;
   text-align: center;
+  margin: 2rem 0;
 }
 
 .label {
+  display: block;
   font-size: 0.875rem;
-  opacity: 0.9;
+  font-weight: 500;
+  color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.25rem;
 }
 
-.amount {
-  font-size: 2.5rem;
+.amount{
+  font-size: 3.75rem;
   font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
   margin: 0;
 }
 
-.trend {
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 12px;
-  border-radius: 20px;
+.currency {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  vertical-align: top;
+  position: relative;
+  top: 0.5rem;
+  margin-right: 0.2rem;
+}
+
+.trendContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.trendBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background-color: var(--bg-success);
+  color: var(--color-success);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.trendIcon {
+  font-size: 14px;
+}
+
+.trendText {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }

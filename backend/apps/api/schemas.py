@@ -33,3 +33,9 @@ class ExpenseOut(Schema):
     category: Optional[CategoryOut] = None     # se anida el schema de salida de la categoria
     date: datetime                             # Django Ninja convierte esto automaticamente a ISO 8061 (2026-02-19T14:30:00z)
     
+
+# ------- BALANCE SCHEMA -------
+class BalanceOut(Schema):
+    total: float
+    currency: str
+    # trend: trend de los gastos (raro, hay que revisar esto)

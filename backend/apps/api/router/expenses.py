@@ -3,7 +3,6 @@ from typing import List, Optional
 from apps.api.schemas import ExpenseOut, ExpenseIn
 from services.selectors import get_expenses
 from services.expenses import create_expense, delete_expense, update_expense
-from services.users import get_user_by_telegram_id
 
 # Enrutador especifico para gastos
 router = Router(tags=["Gastos"])
@@ -24,7 +23,7 @@ async def list_expenses(
     user = request.auth
     
     expenses = await get_expenses(
-        telegram_id=user.telegram_id,
+        user=user,
         limit=limit,
         offset=offset,
         month=month,
