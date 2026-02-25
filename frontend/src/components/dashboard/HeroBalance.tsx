@@ -7,9 +7,11 @@ interface HeroBalanceProps {
 }
 
 export default function HeroBalance({ balance }: HeroBalanceProps) {
-  // Formateador de moneda (para que ponga el $)
+  
+  // HASTA QUE SE SOLUCIONE RAILWAY
+  // const safeTotal = balance.totalSpent ?? (balance as any).total_spent ?? 0;
+
   const formattedTotal = new Intl.NumberFormat('es-AR', {
-    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(balance.totalSpent);
 

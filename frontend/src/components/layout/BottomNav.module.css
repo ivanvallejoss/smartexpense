@@ -1,33 +1,85 @@
-.nav{
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 65px;
-    background-color: white;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 100;
-    /* Respetando el area segura del iphone */
-    padding-bottom: env(safe-area-inset-bottom);
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem 1.5rem 1.5rem; /* Espacio extra abajo para los celulares sin botones físicos */
+  z-index: 50;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.02);
 }
 
-.link{
-    display: flex;
-    flex: column;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-secondary); 
-    font-size: 0.75rem;
-    gap: 4px;
-    transition: color 0.2s  ease;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 32rem; /* max-w-lg para que no se estire infinito en pantallas grandes */
+  margin: 0 auto;
 }
 
-/* React Router agrega la clase 'active' automaticamente,
-pero con CSS modules necesitamos seleccionarla asi o usar logica en JS.
-Para simplificar, voy a usar logica inline en el TSX. */
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+  width: 3.5rem; 
+}
+
+/* Efecto de salto al hacer hover */
+.iconWrapper {
+  transition: transform 0.2s;
+}
+.navItem:hover .iconWrapper {
+  transform: translateY(-4px);
+}
+
+.navItem:hover {
+  color: var(--color-text-main);
+}
+
+/* Estado Activo (Página actual) */
+.navItem.active {
+  color: var(--color-primary);
+}
+.navItem.active .label {
+  font-weight: 700;
+}
+
+.label {
+  font-size: 0.625rem; /* 10px */
+  font-weight: 500;
+}
+
+/* El Botón Flotante Central (FAB) */
+.fabContainer {
+  position: relative;
+  top: -2rem; /* Lo empujamos hacia arriba */
+}
+
+.fab {
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: var(--color-primary);
+  color: #042f2e; /* Un verde muy oscuro para contrastar con el cyan */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(19, 225, 236, 0.4);
+  transition: transform 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}

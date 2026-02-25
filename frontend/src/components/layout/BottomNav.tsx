@@ -1,45 +1,62 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, History, User } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, PieChart, Plus, CreditCard, User } from 'lucide-react';
 import styles from './BottomNav.module.css';
 
 export default function BottomNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Función auxiliar para saber si un tab está activo
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <nav className={styles.nav}>
-      {/* NavLink nos dice si está activo automáticamente */}
-      <NavLink 
-        to="/" 
-        className={({ isActive }) => 
-          isActive ? `${styles.link} text-blue-600` : styles.link
-        }
-        style={({ isActive }) => ({
-           color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
-        })}
-      >
-        <LayoutDashboard size={24} />
-        <span>Inicio</span>
-      </NavLink>
+      <div className={styles.container}>
+        
+        {/* Tab: Home */}
+        <Link to="/" className={`${styles.navItem} ${isActive('/') ? styles.active : ''}`}>
+          <div className={styles.iconWrapper}>
+            <Home size={24} strokeWidth={isActive('/') ? 2.5 : 2} />
+          </div>
+          <span className={styles.label}>Inicio</span>
+        </Link>
 
-      <NavLink 
-        to="/history" 
-        className={styles.link}
-        style={({ isActive }) => ({
-           color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
-        })}
-      >
-        <History size={24} />
-        <span>Historial</span>
-      </NavLink>
+        {/* Tab: Stats (History) */}
+        <Link to="/history" className={`${styles.navItem} ${isActive('/history') ? styles.active : ''}`}>
+          <div className={styles.iconWrapper}>
+            <PieChart size={24} strokeWidth={isActive('/history') ? 2.5 : 2} />
+          </div>
+          <span className={styles.label}>Stats</span>
+        </Link>
 
-      <NavLink 
-        to="/profile" 
-        className={styles.link}
-        style={({ isActive }) => ({
-           color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
-        })}
-      >
-        <User size={24} />
-        <span>Perfil</span>
-      </NavLink>
+        {/* FAB: Agregar Gasto */}
+        <div className={styles.fabContainer}>
+          <button 
+            className={styles.fab} 
+            onClick={() => navigate('/add')}
+            aria-label="Agregar Gasto"
+          >
+            <Plus size={32} strokeWidth={3} />
+          </button>
+        </div>
+
+        {/* Tab: Cards (Placeholder) */}
+        <Link to="#" className={styles.navItem}>
+          <div className={styles.iconWrapper}>
+            <CreditCard size={24} />
+          </div>
+          <span className={styles.label}>Tarjetas</span>
+        </Link>
+
+        {/* Tab: Profile (Placeholder) */}
+        <Link to="/profile" className={`${styles.navItem} ${isActive('/profile') ? styles.active : ''}`}>
+          <div className={styles.iconWrapper}>
+            <User size={24} strokeWidth={isActive('/profile') ? 2.5 : 2} />
+          </div>
+          <span className={styles.label}>Perfil</span>
+        </Link>
+
+      </div>
     </nav>
   );
 }
