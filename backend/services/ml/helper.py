@@ -43,12 +43,16 @@ def get_category_suggestion(user, description):
     suggestion = categorizer.suggest(description)
 
     # DEBUG: Ver resultado
-    print(f"[DEBUG] Sugerencia para '{description}':")
-    print(f"  - category: {suggestion.category.name if suggestion.category else None}")
-    print(f"  - confidence: {suggestion.confidence}")
-    print(f"  - reason: {suggestion.reason}")
-    print(f"  - matched_keyword: {suggestion.matched_keyword}")
-
+    logging.info(
+        "[DEBUG] Sugerencia de categorias",
+        extra={
+            "category": suggestion.category.name if suggestion else None,
+            "confidence": suggestion.confidence,
+            "reason": suggestion.reason,
+            "matched_keyword": suggestion.matched_keyword
+        }
+    )
+    
     return suggestion
 
 @sync_to_async

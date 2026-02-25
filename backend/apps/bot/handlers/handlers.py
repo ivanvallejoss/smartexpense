@@ -175,7 +175,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             user=user,
             amount=message_parsed["amount"],
             description=message_parsed["description"],
-            category=suggestion.category,
+            category_id=suggestion.category.id,
         )
 
         # Format confirmation message
