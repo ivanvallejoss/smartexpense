@@ -1,18 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Expense, UserBalance } from '../types';
-import { ExpenseService } from '../services/api';
+import { ExpenseService, BalanceService } from '../services/api';
 
 const LIMIT = 15;
 
 export function useDashboardData() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
-    
-    // 1. BALANCE HARDCODEADO (Simple y directo hasta que tengamos el endpoint)
-    const [balance, setBalance] = useState<UserBalance | null>({
-        totalSpent: 150000, // Valor fijo de prueba
-        currency: 'ARS',
-        trend: 0
-    });
+    const [balance, setBalance] = useState<UserBalance | null>(null);
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -23,6 +17,18 @@ export function useDashboardData() {
     const [loadingMore, setLoadingMore] = useState(false);
 
 
+    // HERO BALANCE 
+    const fetchBalance = async() => {
+        try{
+            const data = await BalanceService.get();
+            setBalance(data);
+        } catch (err) {
+            console.error("Error obteniendo el balance: ", err);
+            // Solo dejamos el balance en null si fall
+        }
+    }
+
+    // EXPENSES LIST
     const fetchExpense = async (currentOffset: number) => {
         try {
             // Si es la primera carga, spinner principal. Si es scroll, spinner pequeño.
@@ -56,6 +62,11 @@ export function useDashboardData() {
 
     // Se ejecuta al montar el componente (offset es 0) y cada vez que el offset cambia
     useEffect(() => {
+        // Si es la primera carga, obtenemos el balance
+        if (offset === 0){
+            fetchBalance();
+        };
+
         fetchExpense(offset);
     }, [offset]);
 
