@@ -1,24 +1,36 @@
+import type { UserBalance } from '../../types';
 import styles from './HeroBalance.module.css';
 
 // Definimos los tipos de datos que acepta este componente (TypeScript)
 interface HeroBalanceProps {
-  total: number;
-  label?: string; // El signo ? significa que es opcional
+  balance: UserBalance;
 }
 
-export default function HeroBalance({ total, label = "Gastado esta semana" }: HeroBalanceProps) {
+export default function HeroBalance({ balance }: HeroBalanceProps) {
   // Formateador de moneda (para que ponga el $)
   const formattedTotal = new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    maximumFractionDigits: 0
-  }).format(total);
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(balance.totalSpent);
 
   return (
     <div className={styles.container}>
-      <div className={styles.label}>{label}</div>
-      <h2 className={styles.amount}>{formattedTotal}</h2>
-      <span className={styles.trend}>+12% vs semana pasada</span>
+      <span className={styles.label}>Total Gastado</span>
+
+      <h1 className={styles.amount}>
+        <span className={styles.currency}>$</span>
+        {formattedTotal}
+      </h1>
+      <div className={styles.trendContainer}>
+        <span className={styles.trendBadge}>
+          {/* PROXIMAMENTE: hacer que el icono cambie segun el tren */}
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+            trending_down
+          </span>
+          12%
+        </span>
+        <span className={styles.trendText}> vs. mes anterior</span>
+      </div>
     </div>
   );
 }

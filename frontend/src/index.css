@@ -1,37 +1,54 @@
-/* src/index.css */
-:root {
-  /* Paleta Base (Neutros) */
-  --bg-color: #f8fafc;       /* Fondo gris muy claro */
-  --card-bg: #ffffff;        /* Blanco puro */
-  --text-primary: #1e293b;   /* Gris oscuro casi negro */
-  --text-secondary: #64748b; /* Gris medio */
-  
-  /* Colores de Marca (Acentos) */
-  --primary: #2563eb;        /* Azul vibrante */
-  --success: #22c55e;        /* Verde ingresos */
-  --danger: #ef4444;         /* Rojo gastos */
+/* IMPORTAMOS fuentes de Google */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols_Outlined:wght,FILL@100..700,0..1&display=swap');
 
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  box-sizing: border-box;
+:root {
+  /* PALETA DE COLORES (modo claro) */
+  --color-primary: #13e1ec;
+  --color-bg: #f6f8f8;
+  --color-surface: #fff;
+
+  /* TEXTOS */
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+
+  /* OTROS */
+  --color-border: #f1f5f9;
+  --color-danger: #ef4444;
+  --color-success: #15803d;
+  --bg-success: #dcfce7;
+
+  --font-display: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* MODO OSCURO (basado en el sistema del usuario) */
+@media (prefers-color-scheme: dark){
+  :root {
+    --color-bg: #102122;
+    --color-surface: #162a2b;
+    --color-text-main: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-border: #1e293b;
+    --bg-success: rgba(21, 128, 61, 0.3);
+    --color-success: #4ade80;
+  }
+}
+
+/* RESETEO BASE */
 body {
   margin: 0;
-  display: flex;
-  place-items: center; /* Centrado temporal */
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: var(--bg-color);
-  color: var(--text-primary);
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Reset básico */
-h1, h2, h3, p {
-  margin: 0;
+/* Clase utilitaria para ocultar scrollbars */
+.no-scrollbar::-webkit-scrollbar{
+  display: none;
 }
-
-button {
-  cursor: pointer;
+.no-scrollbar{
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
