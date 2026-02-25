@@ -36,6 +36,6 @@ class ExpenseOut(Schema):
 
 # ------- BALANCE SCHEMA -------
 class BalanceOut(Schema):
-    total: float
+    total_spent: float
     currency: str
     # trend: trend de los gastos (raro, hay que revisar esto)

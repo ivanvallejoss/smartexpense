@@ -57,11 +57,11 @@ def get_balance(user, month: int=None, year: int=None) -> float:
     if year:
         expenses = expenses.filter(date__year=year)
 
-    resultado = expenses.aggregate(total_amount=Sum('amount'))
+    resultado = expenses.aggregate(total_spent=Sum('amount'))
 
     # Devolvemos la propiedad especifica del diccionario
     # o 0.0 si no hay nada
-    return resultado['total_amount'] or 0.0
+    return resultado['total_spent'] or 0.0
 
 
 # ---------------------------------------
