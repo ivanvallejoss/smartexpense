@@ -18,4 +18,6 @@ async def get_balance_endpoint(request, month: int=None, year: int=None):
         year=year
     )
 
-    return {"total_spent": total_spent, "currency": "ARS"}
+    balance = {"total_spent": total_spent, "currency": "ARS"}
+
+    return balance

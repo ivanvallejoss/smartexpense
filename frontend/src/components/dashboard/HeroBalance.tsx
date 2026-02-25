@@ -9,11 +9,11 @@ interface HeroBalanceProps {
 export default function HeroBalance({ balance }: HeroBalanceProps) {
   
   // HASTA QUE SE SOLUCIONE RAILWAY
-  // const safeTotal = balance.totalSpent ?? (balance as any).total_spent ?? 0;
+  const safeTotal = balance.totalSpent ?? (balance as any).total_spent ?? 0;
 
   const formattedTotal = new Intl.NumberFormat('es-AR', {
     maximumFractionDigits: 2,
-  }).format(balance.totalSpent);
+  }).format(safeTotal);
 
   return (
     <div className={styles.container}>
