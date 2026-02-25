@@ -1,0 +1,47 @@
+.scrollContainer {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 1.5rem; /* pb-6 de Tailwind */
+  
+  /* Ocultar barra de scroll en Firefox y navegadores webkit */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.pill {
+  flex-shrink: 0; /* Evita que el botón se aplaste si hay muchos */
+  padding: 0.625rem 1.5rem; /* px-6 py-2.5 */
+  border-radius: 9999px; /* rounded-full */
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  
+  /* Estado Inactivo (Por defecto) */
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.pill:hover {
+  filter: brightness(0.95);
+}
+
+/* Efecto de "clic" nativo */
+.pill:active {
+  transform: scale(0.95);
+}
+
+/* Estado Activo */
+.pillActive {
+  background-color: var(--color-text-main);
+  color: var(--color-surface);
+  border-color: var(--color-text-main);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}

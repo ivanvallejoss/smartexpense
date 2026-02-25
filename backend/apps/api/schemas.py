@@ -1,6 +1,7 @@
 from ninja import Schema
 from datetime import datetime
 from typing import Optional
+from pydantic import Field
 
 
 # ------- CATEGORY SCHEMA -------
@@ -36,6 +37,10 @@ class ExpenseOut(Schema):
 
 # ------- BALANCE SCHEMA -------
 class BalanceOut(Schema):
-    total_spent: float
+    total_spent: float = Field(alias="totalSpent")
     currency: str
+
+    class Config:
+        populate_by_name = True
+        allow_population_by_field_name = True
     # trend: trend de los gastos (raro, hay que revisar esto)

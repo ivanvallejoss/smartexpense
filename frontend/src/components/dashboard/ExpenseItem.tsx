@@ -1,6 +1,7 @@
-import { HelpCircle, ShoppingBag, Trash2, Edit2 } from 'lucide-react'; // Icono genérico por ahora
-import { useNavigate } from 'react-router-dom';
+import { HelpCircle, ShoppingBag } from 'lucide-react'; // Icono genérico por ahora
+// import { useNavigate } from 'react-router-dom';
 
+import { formatDate } from '../../utils/formatters';
 import type { Expense } from '../../types';
 import styles from './ExpenseItem.module.css';
 
@@ -10,8 +11,16 @@ interface ExpenseItemProps extends Expense{
 
 export default function ExpenseItem(props: ExpenseItemProps) {
 
-  const { id, description, amount, category, date, onDelete} = props;
-  const navigate = useNavigate();
+  const { 
+    // id, 
+    description, 
+    amount, 
+    category, 
+    date, 
+    // onDelete
+  } = props;
+  // const navigate = useNavigate();
+  const displayDate = formatDate(date);
 
 
   const formattedAmount = new Intl.NumberFormat('es-AR', {
@@ -24,52 +33,54 @@ export default function ExpenseItem(props: ExpenseItemProps) {
   const Icon = category ? ShoppingBag : HelpCircle;
 
 
-  const handleEdit = () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { onDelete, ...cleanData} = props;
-    navigate(`/edit/${id}`, { state: {expenseData: cleanData} });
-  }
+  // const handleEdit = () => {
+  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //   const { onDelete, ...cleanData} = props;
+  //   navigate(`/edit/${id}`, { state: {expenseData: cleanData} });
+  // }
 
 
     return (
     <div className={styles.card}>
       {/* LEFT SIDE */}
-      <div className={styles.left}>
+      <div className={styles.leftSide}>
         <div 
-        className={styles.icon}
-        style={{ backgroundColor: displayCategory.color + '20', color: displayCategory.color }}
+        className={styles.iconContainer}
+        style={{ backgroundColor: `${displayCategory.color}20`, color: displayCategory.color }}
         >
-          <Icon size={20} />
+          <Icon size={20} strokeWidth={2.5} />
         </div>
         <div className={styles.details}>
           <span className={styles.merchant}>{description}</span>
-          <span className={styles.category}>{displayCategory.name} • {date}</span>
+          {/* <span className={styles.category}>{displayCategory.name} • {displayDate}</span> */}
         </div>
       </div>
 
       {/* RIGHT SIDE: amount + botones */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span className={styles.amount}>-{formattedAmount}</span>
-        {/* EDIT */}
+      <div className={styles.rightSide}>
+        <div className={styles.priceBlock}>
+          <span className={styles.amount}>-{formattedAmount}</span>
+          <span className={styles.date}>{displayDate}</span>
+        </div>
+
+        {/* EDIT
         <button
         onClick={handleEdit}
-        style={{ background: 'none', border: 'none', padding: '4px', cursor: 'pointer', color: '#3B82F6', display: 'flex' }}
+        className={`${styles.actionBtn} ${styles.editBtn}`}
+        title='Editar'
         >
           <Edit2 size={18} />
         </button>
 
         {/* DELETE*/}
-        {onDelete && (
+        {/* {onDelete && (
           <button onClick={() => onDelete(id)}
-          style={{
-            background: 'none', border: 'none', padding: '4px',
-            cursor: 'pointer', color: '#ef4444', display: 'flex'
-          }}
-          title="Eliminar Gasto"
+          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+          title="Eliminar"
           >
-            <Trash2 size={18} /> 
+            <Trash2 size={16} /> 
           </button>
-        )}
+        )}  */}
       </div>
     </div>
   );

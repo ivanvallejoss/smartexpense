@@ -1,6 +1,6 @@
 import HeroBalance from "../components/dashboard/HeroBalance";
 import ExpenseItem from "../components/dashboard/ExpenseItem";
-import FloatingActionButton from "../components/ui/FloatingActionButton";
+import FilterPills from "../components/dashboard/FilterPills";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useEffect, useRef } from "react";
 
@@ -54,13 +54,10 @@ export default function Dashboard(){
 
     return (
         <div style={{ padding: '20px', maxWidth: '480px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '1.2rem', color: 'var(--text-secondary)'}}>Hola, Ivan!
-                </h1>
-            </header>   
 
             { balance && < HeroBalance balance={balance} /> }
-        
+
+            <FilterPills />
 
             <div className="list-container">
                 {expenses.map(expense => (
@@ -90,7 +87,6 @@ export default function Dashboard(){
 
                 </div>
             </div>
-            <FloatingActionButton />
         </div>
     );
 }

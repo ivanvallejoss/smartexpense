@@ -1,30 +1,32 @@
 .card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background-color: white;
-  padding: 1rem;
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Sombra sutil */
-  border: 1px solid #f1f5f9;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 0.5rem;
 }
 
-.left {
+/* Efecto de "presionado" nativo de móviles */
+.card:active {
+  transform: scale(0.98);
+}
+
+.leftSide {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1rem;
 }
 
-.icon {
-  width: 40px;
-  height: 40px;
-  background-color: #eff6ff;
-  color: var(--primary);
+.iconContainer {
+  width: 3rem;
+  height: 3rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .details {
@@ -33,17 +35,66 @@
 }
 
 .merchant {
-  font-weight: 600;
-  color: var(--text-primary);
   font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.2;
+  margin-bottom: 0.125rem;
 }
 
 .category {
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--color-text-muted);
+}
+
+.rightSide {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Separación entre el precio y los botones */
+  text-align: right;
+}
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .amount {
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text-main);
+  line-height: 1.2;
 }
+
+.date {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.editBtn {
+  color: #3b82f6;
+}
+.editBtn:hover { background-color: rgba(59, 130, 246, 0.1); }
+
+.deleteBtn {
+  color: var(--color-danger);
+}
+.deleteBtn:hover { background-color: rgba(239, 68, 68, 0.1); }
