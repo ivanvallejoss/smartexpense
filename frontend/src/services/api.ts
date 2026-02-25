@@ -7,12 +7,15 @@ const EXPENSE_URL = `${API_URL}/expenses`
 
 
 export const ExpenseService = {
+
   // GET
-  getAll: async (): Promise<Expense[]> => {
-    const response = await fetch(EXPENSE_URL, {
+  getAll: async (limit: number=15, offset: number=0): Promise<Expense[]> => {
+    
+    const response = await fetch(`${EXPENSE_URL}/?limit=${limit}&offset=${offset}`, {
       method: 'GET',
       headers: getHeaders(),
     });
+
     return handleResponse(response);
   },
 
@@ -21,17 +24,19 @@ export const ExpenseService = {
 
   // POST:
   create: async (amount: number, description: string, category: Category): Promise<Expense> => {
+    
     const payload = {
       amount: amount,
       description: description,
       category_id: category.id
     };
 
-    const response = await fetch(EXPENSE_URL, {
+    const response = await fetch(`${EXPENSE_URL}/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(payload),
     });
+
     return handleResponse(response);
   },
 
@@ -39,40 +44,26 @@ export const ExpenseService = {
 
   // DELETE
   delete: async (id: number): Promise<void> => {
-    const token = localStorage.getItem('jwt_token');
 
-    const response = await fetch(`${EXPENSE_URL}/${id}`, {
+    const response = await fetch(`${EXPENSE_URL}/${id}/`, {
       method: 'DELETE',
-      headers: {
-        // conditional ternary
-        'Authorization': token ? `Bearer ${token}`: ''
-      },
+      headers: getHeaders(),
     });
 
-    if (!response.ok){
-      throw new Error(`Error al eliminar: ${response.status}`)
-    }
+    handleResponse(response)
   },
 
 
 
   // PUT
   update: async (id: number, amount: number, description: string, category_id: number): Promise <Expense> => {
-    const token = localStorage.getItem('jwt_token');
 
-    const response = await fetch(`${EXPENSE_URL}/${id}`, {
+    const response = await fetch(`${EXPENSE_URL}/${id}/`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}`: ''
-      },
+      headers: getHeaders(),
       body: JSON.stringify({amount, description, category_id})
     });
 
-    if (!response.ok){
-      throw new Error(`Error al actualizar: ${response.status}`)
-    }
-
-    return response.json();
+    return handleResponse(response);
   }
 };

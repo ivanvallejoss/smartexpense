@@ -1,6 +1,6 @@
-`
-Funciones helpers para services/api
-`
+// 
+// Funciones helpers para services/api
+//
 
 
 export const getHeaders = () => {
