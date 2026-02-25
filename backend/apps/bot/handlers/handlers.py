@@ -206,13 +206,15 @@ async def history_command(update, context):
             0 < n <= 22
     """
     telegram_id = update.effective_user.id
+    user = await get_user_by_telegram_id(telegram_id=telegram_id)
+
     args = context.args # Get everything after the command
 
     limit = 5
     if args and args[0].isdigit():
         limit = min(int(context.args[0]), 22) # setting a max-value of 22 expenses to show
     
-    expenses = await get_expenses(telegram_id, limit)
+    expenses = await get_expenses(user, limit)
 
     if not expenses:
         await update.message.reply_text("No encontramos gastos relacionados con tu usuario")

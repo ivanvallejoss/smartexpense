@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from ninja import NinjaAPI
 from .auth import GlobalAuth
 from .router.expenses import router as expense_router
+from .router.balances import router as balance_router
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ api = NinjaAPI(
     )
 
 api.add_router("/expenses/", expense_router)
+api.add_router("/balances/", balance_router)
 
 @api.exception_handler(Http404)
 @api.exception_handler(ObjectDoesNotExist)
