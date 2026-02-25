@@ -1,9 +1,10 @@
-import type { Expense, Category} from "../types";
+import type { Expense, Category, UserBalance} from "../types";
 import { getHeaders, handleResponse } from "./api_helpers";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 const EXPENSE_URL = `${API_URL}/expenses`
+const BALANCE_URL = `${API_URL}/balances`
 
 
 export const ExpenseService = {
@@ -65,5 +66,30 @@ export const ExpenseService = {
     });
 
     return handleResponse(response);
-  }
+  },
+
 };
+
+
+
+export const BalanceService = {
+  
+  // GET
+  get: async(month?: number, year?: number): Promise <UserBalance> => {
+    const params = new URLSearchParams();
+
+    if (month) params.append('month', month.toString());
+    if (year) params.append('year', year.toString());
+
+    const queryString = params.toString();
+    const urlBalance = queryString ? `${BALANCE_URL}/?${queryString}`: `${BALANCE_URL}/`;
+    
+    const response = await fetch(urlBalance, {
+      method: 'GET',
+      headers: getHeaders()
+    });
+
+    return handleResponse(response);
+  },
+
+} ;

@@ -12,10 +12,10 @@ async def get_balance_endpoint(request, month: int=None, year: int=None):
     """
     user = request.auth
 
-    total = await get_balance(
+    total_spent = await get_balance(
         user=user,
         month=month,
         year=year
     )
 
-    return {"total": total, "currency": "ARS"}
+    return {"total_spent": total_spent, "currency": "ARS"}
