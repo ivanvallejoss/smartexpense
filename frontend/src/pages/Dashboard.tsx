@@ -34,11 +34,8 @@ export default function Dashboard(){
             <div className="list-container">
                 {expenses.map(expense => (
                     <ExpenseItem
-                    id={expense.id}
-                    description={expense.description}
-                    amount={expense.amount}
-                    category={expense.category}
-                    date={expense.date}
+                    key={expense.id}
+                    {...expense}
                     onDelete={deleteExpense}
                     />
                 ))}

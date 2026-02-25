@@ -1,4 +1,6 @@
-import { HelpCircle, ShoppingBag, Trash2 } from 'lucide-react'; // Icono genérico por ahora
+import { HelpCircle, ShoppingBag, Trash2, Edit2 } from 'lucide-react'; // Icono genérico por ahora
+import { useNavigate } from 'react-router-dom';
+
 import type { Expense } from '../../types';
 import styles from './ExpenseItem.module.css';
 
@@ -6,8 +8,12 @@ interface ExpenseItemProps extends Expense{
   onDelete?: (id: number) => void
 }
 
-export default function ExpenseItem({ id, description, amount, category, date, onDelete }: ExpenseItemProps) {
-  
+export default function ExpenseItem(props: ExpenseItemProps) {
+
+  const { id, description, amount, category, date, onDelete} = props;
+  const navigate = useNavigate();
+
+
   const formattedAmount = new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
@@ -17,8 +23,17 @@ export default function ExpenseItem({ id, description, amount, category, date, o
   const displayCategory = category || {name: 'Sin categoria',color: '#9CA3AF'};
   const Icon = category ? ShoppingBag : HelpCircle;
 
+
+  const handleEdit = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { onDelete, ...cleanData} = props;
+    navigate(`/edit/${id}`, { state: {expenseData: cleanData} });
+  }
+
+
     return (
     <div className={styles.card}>
+      {/* LEFT SIDE */}
       <div className={styles.left}>
         <div 
         className={styles.icon}
@@ -32,10 +47,18 @@ export default function ExpenseItem({ id, description, amount, category, date, o
         </div>
       </div>
 
-      {/* Contenedor derecho para monto y boton */}
+      {/* RIGHT SIDE: amount + botones */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <span className={styles.amount}>-{formattedAmount}</span>
-        {/* Si tenemos la funcion onDelete */}
+        {/* EDIT */}
+        <button
+        onClick={handleEdit}
+        style={{ background: 'none', border: 'none', padding: '4px', cursor: 'pointer', color: '#3B82F6', display: 'flex' }}
+        >
+          <Edit2 size={18} />
+        </button>
+
+        {/* DELETE*/}
         {onDelete && (
           <button onClick={() => onDelete(id)}
           style={{
@@ -48,8 +71,6 @@ export default function ExpenseItem({ id, description, amount, category, date, o
           </button>
         )}
       </div>
-
-      {/* <span className={styles.amount}>-{formattedAmount}</span> */}
     </div>
   );
 }

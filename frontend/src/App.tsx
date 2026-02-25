@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import History from './pages/History';
 import MainLayout from './components/layout/MainLayout';
 import AddExpense from './pages/AddExpense';
+import EditExpense from './pages/EditExpense';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
 
         {/* Sin Layout */}
         <Route path="/add" element={<AddExpense />} />
+        <Route path="/edit/:id" element={<EditExpense />} />
         {/* Tuas privadas (con BottomNav) */}
         <Route element={< MainLayout />}>
           <Route path="/" element={<Dashboard />} />

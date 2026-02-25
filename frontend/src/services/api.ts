@@ -56,6 +56,23 @@ export const ExpenseService = {
 
 
 
+  // PUT
+  update: async (id: number, amount: number, description: string, category_id: number): Promise <Expense> => {
+    const token = localStorage.getItem('jwt_token');
 
+    const response = await fetch(`${EXPENSE_URL}/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}`: ''
+      },
+      body: JSON.stringify({amount, description, category_id})
+    });
 
+    if (!response.ok){
+      throw new Error(`Error al actualizar: ${response.status}`)
+    }
+
+    return response.json();
+  }
 };
