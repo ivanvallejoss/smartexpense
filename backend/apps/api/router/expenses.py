@@ -52,7 +52,7 @@ async def create_expense_endpoint(request, payload: ExpenseIn):
     return expense
 
 
-@router.put("/{expense_id}", response=ExpenseOut)
+@router.put("/{expense_id}/", response=ExpenseOut)
 async def update_expense_endpoint(request, expense_id: int, payload: ExpenseIn):
     """
     Edita un gasto existente.
@@ -72,7 +72,7 @@ async def update_expense_endpoint(request, expense_id: int, payload: ExpenseIn):
 
 
 
-@router.delete("/{expense_id}", response={204: None})
+@router.delete("/{expense_id}/", response={204: None})
 async def delete_expense_endpoint(request, expense_id: int):
     """
     Borra un gasto de forma permanente
