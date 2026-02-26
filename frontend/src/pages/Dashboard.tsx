@@ -10,7 +10,7 @@ export default function Dashboard(){
     
     // HOOK
     const { 
-        expenses, balance, loading, error, hasMore, loadingMore, loadMore, deleteExpense 
+        expenses, balance, loading, error, hasMore, loadingMore, loadMore, deleteExpense, updateExpense
     } = useDashboardData();
 
 
@@ -66,6 +66,7 @@ export default function Dashboard(){
                     key={expense.id}
                     {...expense}
                     onDelete={deleteExpense}
+                    onUpdate={updateExpense}
                     />
                 ))}
 

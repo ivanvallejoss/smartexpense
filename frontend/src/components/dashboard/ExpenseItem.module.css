@@ -100,3 +100,128 @@
   color: var(--color-danger);
 }
 .deleteBtn:hover { background-color: rgba(239, 68, 68, 0.1); }
+
+
+
+/* 
+
+ESTADO DE EDICION Y DELETE
+
+*/
+
+.cardEditing {
+  transform: scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background-color: var(--color-surface);
+  z-index: 10;
+  position: relative;
+  flex-direction: column; /* Cambiamos a columna para apilar los botones abajo */
+  align-items: stretch;
+  padding: 1rem;
+  border: 1px solid var(--color-primary);
+}
+
+.editRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* Inputs Minimalistas */
+.inlineInput {
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed var(--color-border);
+  color: var(--color-text-main);
+  font-family: inherit;
+  padding: 0.25rem 0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.inlineInput:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.inputDesc {
+  font-size: 1rem;
+  font-weight: 700;
+  width: 100%;
+}
+
+.inputAmount {
+  font-size: 1rem;
+  font-weight: 700;
+  width: 80px;
+  text-align: right;
+  color: var(--color-danger);
+}
+
+/* Select nativo para categoría */
+.categorySelect {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.2rem;
+  margin-top: 0.25rem;
+}
+
+/* Botones de Acción Inline (El Nuevo Footer) */
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  width: calc(100% + 2rem); /* Compensamos el padding de la tarjeta */
+  margin: 1rem -1rem -1rem -1rem; /* Lo estiramos hasta los bordes */
+  padding: 0.75rem 1rem;
+  background-color: var(--color-bg); /* El color de fondo de la app (gris claro) */
+  border-top: 1px solid var(--color-border);
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+.btnInline {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnInline:active { transform: scale(0.95); }
+
+/* Jerarquía: Botones Fantasma (Ghost) para destructivos/cancelar */
+.btnCancel { 
+  background-color: transparent; 
+  color: var(--color-text-muted); 
+  padding: 0.5rem; /* Más pequeños */
+}
+.btnCancel:hover { background-color: var(--color-border); }
+
+.btnDelete { 
+  background-color: transparent; 
+  color: var(--color-danger); 
+  padding: 0.5rem;
+  margin-right: auto; /* Empuja a este botón a la izquierda del todo! */
+}
+.btnDelete:hover { background-color: rgba(239, 68, 68, 0.1); }
+
+/* Jerarquía: Botón Sólido y Gigante para Guardar */
+.btnSave { 
+  background-color: var(--color-primary); 
+  color: #042f2e; 
+  padding: 0.6rem 1.5rem; /* Más grande y "clickeable" */
+  box-shadow: 0 4px 6px -1px rgba(19, 225, 236, 0.2);
+}
+.btnSave:hover { filter: brightness(1.05); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
