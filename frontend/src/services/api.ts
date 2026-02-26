@@ -17,7 +17,7 @@ export const ExpenseService = {
     if (offset) params.append('offset', offset.toString());
 
     const queryString = params.toString();
-    const urlExpense = queryString ? `${EXPENSE_URL}/?${queryString}/`: `${EXPENSE_URL}/`;
+    const urlExpense = queryString ? `${EXPENSE_URL}/?${queryString}`: `${EXPENSE_URL}/`;
     
     const response = await fetch(urlExpense, {
       method: 'GET',
@@ -89,7 +89,7 @@ export const BalanceService = {
     if (year) params.append('year', year.toString());
 
     const queryString = params.toString();
-    const urlBalance = queryString ? `${BALANCE_URL}/?${queryString}/`: `${BALANCE_URL}/`;
+    const urlBalance = queryString ? `${BALANCE_URL}/?${queryString}`: `${BALANCE_URL}/`;
     
     const response = await fetch(urlBalance, {
       method: 'GET',
