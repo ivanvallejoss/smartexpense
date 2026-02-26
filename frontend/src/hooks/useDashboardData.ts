@@ -97,7 +97,41 @@ export function useDashboardData() {
         }
     };
 
+    const updateExpense = async(id: number, amount: number, description: string, category_id: number) => {
+        //  Buscamos el gasto original para saber cuanto costaba antes
+        const oldExpense = expenses.find(e => e.id === id);
+        if (!oldExpense) return;
+
+        try {
+            //  Le pegamos a la API
+            // Asumimos que expenseservice.update devuelve el gasto actualizado con su categoria nueva
+            const updatedExpense = await ExpenseService.update(id, amount, description, category_id);
+
+            // Actualizamos la lista de gastos visual
+            setExpenses(prevExpenses => prevExpenses.map(expense => 
+                expense.id === id ? {
+                    ...expense,
+                    amount,
+                    description,
+                    category: updatedExpense.category
+                } : expense
+            ));
+            // Si antes era 100 y ahora 1500, la diferencia es +500 al balance
+            const difference = amount - oldExpense.amount;
+
+            setBalance(prev => prev ? {
+                ...prev,
+                totalSpent: prev.totalSpent + difference
+            }: null);
+        } catch(err) {
+            console.error("Error al actualizar el gasto: ", err)
+            alert("No se pudo actualizar el gasto. Revisa tu conexion.")
+            throw err; // Lanzamos el error para que el expenseItem desactive su spinner
+        }
+
+    }
+
     // 6. EXPORTAMOS TODO LO NECESARIO
     // Agregamos hasMore, loadingMore y loadMore para que el Dashboard pueda usarlos
-    return { expenses, balance, loading, error, hasMore, loadingMore, loadMore, deleteExpense };
+    return { expenses, balance, loading, error, hasMore, loadingMore, loadMore, deleteExpense, updateExpense };
 }

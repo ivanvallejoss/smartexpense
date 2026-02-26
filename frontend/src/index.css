@@ -42,6 +42,7 @@ body {
   color: var(--color-text-main);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
 }
 
 /* Clase utilitaria para ocultar scrollbars */

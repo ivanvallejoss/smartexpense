@@ -1,6 +1,15 @@
 .container {
   text-align: center;
   margin: 2rem 0;
+  height: 20vh;
+}
+
+.amountContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 60%;
+  margin-bottom: 1rem;
 }
 
 .label {
@@ -14,21 +23,21 @@
 }
 
 .amount{
-  font-size: 3.75rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   line-height: 1;
   margin: 0;
 }
 
 .currency {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--color-text-light);
   vertical-align: top;
   position: relative;
   top: 0.5rem;
-  margin-right: 0.2rem;
+  margin-right: 0.3rem;
 }
 
 .trendContainer {
