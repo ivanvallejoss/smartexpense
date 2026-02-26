@@ -17,14 +17,14 @@ export const ExpenseService = {
     if (offset) params.append('offset', offset.toString());
 
     const queryString = params.toString();
-    const urlExpense = queryString ? `${EXPENSE_URL}/?${queryString}`: `${EXPENSE_URL}/`;
+    const urlExpense = queryString ? `${EXPENSE_URL}/?${queryString}/`: `${EXPENSE_URL}/`;
     
     const response = await fetch(urlExpense, {
       method: 'GET',
       headers: getHeaders(),
     });
 
-    return handleResponse(response);
+    return await handleResponse(response);
   },
 
 
@@ -45,7 +45,7 @@ export const ExpenseService = {
       body: JSON.stringify(payload),
     });
 
-    return handleResponse(response);
+    return await handleResponse(response);
   },
 
 
@@ -58,7 +58,7 @@ export const ExpenseService = {
       headers: getHeaders(),
     });
 
-    handleResponse(response)
+    await handleResponse(response)
   },
 
 
@@ -72,7 +72,7 @@ export const ExpenseService = {
       body: JSON.stringify({amount, description, category_id})
     });
 
-    return handleResponse(response);
+    return await handleResponse(response);
   },
 
 };
@@ -89,7 +89,7 @@ export const BalanceService = {
     if (year) params.append('year', year.toString());
 
     const queryString = params.toString();
-    const urlBalance = queryString ? `${BALANCE_URL}/?${queryString}`: `${BALANCE_URL}/`;
+    const urlBalance = queryString ? `${BALANCE_URL}/?${queryString}/`: `${BALANCE_URL}/`;
     
     const response = await fetch(urlBalance, {
       method: 'GET',

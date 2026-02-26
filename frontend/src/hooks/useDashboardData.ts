@@ -80,8 +80,10 @@ export function useDashboardData() {
     //  LÓGICA DE BORRADO
     const deleteExpense = async (id: number) => {
         const expenseToDelete = expenses.find(e => e.id === id);
-        if (!expenseToDelete) return;
-
+        if (!expenseToDelete){ 
+            console.error(`No expenses matched id: ${id}`);
+            return;
+        }
         try {
             await ExpenseService.delete(id);
             setExpenses(prevExpenses => prevExpenses.filter(e => e.id !== id));
