@@ -3,6 +3,7 @@ import ExpenseItem from "../components/dashboard/ExpenseItem";
 import FilterPills from "../components/dashboard/FilterPills";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useEffect, useRef } from "react";
+import DashboardSkeleton from "../components/layout/DashboardSkeleton";
 
 
 export default function Dashboard(){
@@ -45,7 +46,7 @@ export default function Dashboard(){
     // RENDERIZADO CONDICIONAL
     // Estado de carga inicial (pantalla completa vacia)
     if (loading && expenses.length === 0){
-        return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando tu informacion...</div>;
+        return <div className="dashboard-container">< DashboardSkeleton /></div>;
     }
 
     if (error) {
@@ -67,6 +68,7 @@ export default function Dashboard(){
                     onDelete={deleteExpense}
                     />
                 ))}
+
                 {!loading && expenses.length === 0 && (
                     <p style={{ textAlign: 'center', color: '#6b7280' }}>
                     Aun no tienes gastos registrados. Anota el primero!
