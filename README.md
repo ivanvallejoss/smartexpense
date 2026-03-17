@@ -1,59 +1,19 @@
-# SmartExpense
+# SmartExpense: track your Expenses in a Smart way
 
-Expense tracker inteligente con bot de Telegram para parsing automático de gastos. Actualmente trabajando en el proyecto pero sin preparar bien el README.
-Puedes encontrar mas informacion sobre mis avances, la configuracion del bot y como voy preparando todo en mi [blog](https://www.notion.so/ideavallejos/SmartExpense-2e027bfa15f580768e56ecae126c8836?source=copy_link)
-Tambien puedes probar el bot y sus avances en telegram como: @your_smartexpense_bot[bot](https://web.telegram.org/a/#8478720243)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Python](https://img.shields.io/badge/Python-3.14-blue)
+![Django](https://img.shields.io/badge/Django_Ninja-FastAPI_Style-green)
+![React](https://img.shields.io/badge/React-TypeScript-blue)
+![Redis](https://img.shields.io/badge/Redis-Arq_Worker-red)
 
-## Stack Tecnológico
+<!-- ESPACIO RESERVADO PARA CAPTURAS DE PANTALLA -->
 
-- **Backend:** Django 5.0 + Django REST Framework
-- **Database:** PostgreSQL 15
-- **Cache/Queue:** Redis 7
-- **Async Tasks:** Celery
-- **Bot:** python-telegram-bot
-- **Testing:** pytest + factory-boy
-- **Code Quality:** black, isort, flake8
+SmartExpense is a smart & fast way to keep track of your personal finance.It was designed with a modern async/distributed architecture letting the user save the expense quickly by sending a message to the bot and visualize the balance (and all the expenses) at any moment in the dashboard webpage.
 
-## 📁 Estructura del Proyecto
+Built with a strict focus on performance, clean architecture, and developer experience, the system leverages Django's async capabilities, Django Ninja for a fast API development, and ARQ (a Redis-based task queue) to handle background processes without blocking the main event loop.
 
-```
-smartexpense/
-├── backend/
-│   ├── config/              # Configuración Django
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   ├── wsgi.py
-│   │   └── asgi.py
-│   ├── apps/
-│   │   ├── core/            # Modelos principales
-│   │   ├── api/             # API REST endpoints
-│   │   └── bot/             # Telegram bot
-│   ├── tests/               # Tests de integración
-│   └── manage.py
-├── docker-compose.yml       # Servicios Docker
-├── Dockerfile              # Imagen Docker
-├── requirements.txt        # Dependencias Python
-├── pyproject.toml         # Configuración herramientas
-├── pytest.ini             # Configuración pytest
-├── .pre-commit-config.yaml # Pre-commit hooks
-├── .env.example           # Variables de entorno ejemplo
-├── .gitignore
-└── README.md
-```
+## Features (Business & Tech Value)
 
-## Próximos Pasos
-
-- [ ] Crear endpoints REST API
-- [ ]
-
-## Contribución
-
-Este es un proyecto educativo/portafolio. Las contribuciones son bienvenidas.
-
-## Licencia
-
-MIT
-
----
-
-**Desarrollado por Ivan Vallejos** | Backend Developer
+* **Telegram Bot**: Save the expense on-the-go with a conversational and natural way, or through the Web Dashboard.
+* **Passwordless Authentication**: JWT-base "Magic Links" delivered directly via Telegram. No passwords to remember, no user registration friction.
+* ****

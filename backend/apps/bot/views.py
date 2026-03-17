@@ -17,7 +17,7 @@ _redis_pool = None
 async def get_redis_pool():
     global _redis_pool
     if _redis_pool is None:
-        # Crea la conexion usando la URL de tu settings.py
+        # Crea la conexion usando la URL de settings
         _redis_pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
     return _redis_pool
 

@@ -13,8 +13,16 @@ def build_ptb_application():
     if not token:
         raise ValueError("TELEGRAM_TOKEN is not set in the environment variables")
 
+    # are we in production or development environment?
+    env = settings.ENVIRONMENT
+
     # Building App
-    app_builder = ApplicationBuilder().token(token).updater(None)
+    app_builder = ApplicationBuilder().token(token)
+
+    if env == 'production':
+        # We turn off the updater on production environment
+        app_builder.updater(None)
+        
     application = app_builder.build()
 
     # Add handlers
