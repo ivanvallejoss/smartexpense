@@ -15,26 +15,19 @@ from services.ml.helper import is_autocategorized, get_category_suggestion
 from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
-from services.users import get_user_by_telegram_id
+from services.users import get_or_create_user_by_telegram
 from services.selectors import get_expenses, get_month_stats
 from services.auth import generate_magic_link_token
 
 from apps.core.models import Expense
 from apps.bot.errors import error_parsing_expenses
-from apps.bot.utils import format_expense_confirmation, format_stats_message, get_or_create_user_from_telegram, format_expense_list
+from apps.bot.utils import format_expense_confirmation, format_stats_message, format_expense_list
 
 from .helpers import get_keyboard_markup
 from django.conf import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-# Wrappear la función con el decorador para evitar race conditions
-@sync_to_async
-def async_get_or_create_user(telegram_user):
-    """Versión async-safe de get_or_create_user_from_telegram."""
-    return get_or_create_user_from_telegram(telegram_user)
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -46,7 +39,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     try:
         # get or create user
-        user, created = await async_get_or_create_user(telegram_user)
+        user, created = await get_or_create_user_by_telegram(telegram_user)
 
         logger.info(
             "Start command executed",
@@ -112,7 +105,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     try:
         # Obtener o crear usuario
-        user, _ = await async_get_or_create_user(telegram_user)
+        user, _ = await get_or_create_user_by_telegram(telegram_user)
 
         # Obtener stats
         stats = await get_month_stats(user)
@@ -156,7 +149,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     try:
         # Getting the user
-        user = await get_user_by_telegram_id(telegram_user.id)
+        user, _ = await get_or_create_user_by_telegram(telegram_user)
 
         # Parsear mensaje con ExpenseParser (sync operation)
         parser = ExpenseParser()

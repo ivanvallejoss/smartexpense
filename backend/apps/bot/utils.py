@@ -5,9 +5,6 @@ Funciones helper para formateo y manejo de usuarios.
 from decimal import Decimal
 from typing import Tuple
 
-from telegram import User as TelegramUser
-from apps.core.models import User
-
 from zoneinfo import ZoneInfo
 
 import logging
@@ -52,14 +49,14 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
     # Mapeo de colores a emojis
 
     color_to_emoji = {
-        "red": "🔴",
-        "blue": "🔵",
-        "green": "🟢",
-        "yellow": "🟡",
-        "orange": "🟠",
-        "purple": "🟣",
-        "brown": "🟤",
-        "gray": "⚫",
+        "#F54927": "🔴",
+        "#0000FF": "🔵",
+        "#3CB371": "🟢",
+        "#FFFF00": "🟡",
+        "#FFFF00": "🟠",
+        "#800080": "🟣",
+        "#D2691E": "🟤",
+        "#D3D3D3": "⚫",
         "default": "📂",
     }
 
@@ -95,55 +92,6 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
         )
     
     return message
-
-
-def _get_or_create_user_sync(telegram_user: TelegramUser) -> Tuple[User, bool]:
-    """
-    Versión sincrónica interna de get_or_create_user.
-    NO llamar directamente desde código async.
-    """
-    user, created = User.objects.get_or_create(
-        telegram_id=telegram_user.id,
-        defaults={
-            "username": telegram_user.username or f"user_{telegram_user.id}",
-            "first_name": telegram_user.first_name,
-            "last_name": telegram_user.last_name or "",
-        },
-    )
-
-    # Actualizar datos si cambiaron (username, nombre)
-    if not created:
-        updated = False
-
-        if telegram_user.username and user.username != telegram_user.username:
-            user.username = telegram_user.username
-            updated = True
-
-        if user.first_name != telegram_user.first_name:
-            user.first_name = telegram_user.first_name
-            user.last_name = telegram_user.last_name
-            updated = True
-
-        if updated:
-            user.save()
-
-    return user, created
-
-
-def get_or_create_user_from_telegram(telegram_user: TelegramUser) -> Tuple[User, bool]:
-    """
-    Obtiene o crea un User desde un objeto de Telegram user.
-
-    Esta es la función pública que se debe usar desde código sincrónico.
-    Para código async, wrappear con sync_to_async en el handler.
-
-    Args:
-        telegram_user: Usuario de Telegram (update.effective_user)
-
-    Returns:
-        Tupla (User, created) donde created es True si se creó nuevo
-    """
-    return _get_or_create_user_sync(telegram_user)
 
 
 

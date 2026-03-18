@@ -27,6 +27,7 @@ TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 FRONTEND_TEST = env('FRONTEND_TEST', default='http://localhost:5173')
+ENVIRONMENT = env('ENVIRONMENT', default='development')
 
 
 
@@ -171,34 +172,6 @@ else:
 #     CORS
 # -------------
 CORS_ALLOWED_ORIGINS = [FRONTEND_URL, FRONTEND_TEST]
-
-
-
-# -------------
-#    CELERY
-# -------------
-
-# GLOBAL
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
-# Serializacion
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-# Timezone
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ENABLE_UTC = True
-# Task Tracking
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 20 * 60  # CALCULANDO EN MINUTOS (20 MINUTOS MAX)
-CELERY_TASK_SOFT_TIME_LIMIT = 15 * 60  # Warning a los 15 minutos
-
-
-if DEBUG:
-    CELERY_WORKER_POOL = 'solo'
-else:
-    CELERY_WORKER_POOL = 'prefork'
-    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
 

@@ -49,7 +49,7 @@ async def error_parsing_expenses(update: Update, context: ContextTypes.DEFAULT_T
         "Failed to parse expense",
         extra={
             "user_id": update.effective_user.id,
-            "telegram_id": update.effective_user.telegram_id,
+            "telegram_id": update.effective_user.id,
             "message_text": update.message.text or None,
         },
     )
