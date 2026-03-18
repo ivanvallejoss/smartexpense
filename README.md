@@ -1,9 +1,8 @@
-# SmartExpense 
+# 💸 SmartExpense 
 
-> A seamless personal finance ecosystem combining the immediacy of a Telegram Bot with the analytical power of a modern web dashboard, driven by asynchronous processing and AI-assisted categorization.
-> You can find it on telegram! [@your_smartexpense_bot](https://web.telegram.org/a/#8478720243)
+> A seamless personal finance ecosystem combining the immediacy of a Telegram Bot with the analytical power of a modern web dashboard, driven by asynchronous processing and key-match categorization. <br>
+> Originally built for educational purposes, this project has evolved into my primary day by day finance tool. Try the live version yourself here: [@smartexpense_bot](https://web.telegram.org/a/#8478720243)
 
-> This README has been made with the help of Gemini Pro, I edited the relevants sections and decided to keep some of the emojis because it looks good.  
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django_5-092E20?logo=django&logoColor=white)
@@ -60,7 +59,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### 1. Prerequisites
 * Python 3.12+ (Recommended via `pyenv`)
@@ -71,12 +70,11 @@ sequenceDiagram
 ### 2. Infrastructure Setup
 Clone the repository and spin up the database and message broker:
 ```bash
-git clone https://github.com/ivanvallejoss/smartexpense.git
+git clone [https://github.com/YOUR_USERNAME/smartexpense.git](https://github.com/YOUR_USERNAME/smartexpense.git)
 cd smartexpense
 docker compose up -d db redis
 ```
-In the `docker-compose.yaml` I specified the DB and Redis`s ports to use 5442 and 6389 respectively so it does not interferred if you have a db or redis running in your machine
-
+> 💡 Port Configuration: To prevent conflicts with any existing services on your local machine, the `docker-compose.yml` is configured to map PostgreSQL to port 5442 and Redis to 6389. Remember to update your .env database and redis URLs accordingly.
 ### 3. Backend Setup
 ```Bash
 cd backend
@@ -105,10 +103,11 @@ arq apps.bot.worker.WorkerSettings
 # Terminal 3: Open the Webhook Tunnel
 ngrok http 8000
 ```
-Finally, register your Ngrok URL with Telegram using our custom management command:
+*Finally, register your Ngrok URL with Telegram using our custom management command:*
 
-```Bash
-python manage.py set_webhook https://<THE_NGROK_URL>.ngrok-free.dev
+```bash
+# Tip: Look for the "Forwarding" row in your Ngrok terminal to find your exact URL
+python manage.py set_webhook https://<YOUR_NGROK_URL>.ngrok-free.dev
 ```
 Now, you are ready to try the system in your local machine
 
