@@ -9,6 +9,7 @@ Estrategia de matching (en orden de prioridad):
 4. Sin match: Retornar None con confidence 0
 """
 import re
+import logging
 import unicodedata
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
@@ -18,6 +19,8 @@ from django.db.models import Count, Q
 from apps.core.models import Category, CategorySuggestionFeedback, Expense, User
 
 from .default_keywords import DEFAULT_CATEGORY_KEYWORDS, SPANISH_STOPWORDS
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -182,7 +185,7 @@ class ExpenseCategorizer:
 
     def _check_user_history(self, description_normalized: str, description_words: Set[str]) -> Optional[CategorySuggestion]:
         """Busca en historial de expenses del usuario."""
-        past_expenses = Expense.objects.filter(user=self.user, category__isnull=False).exclude(description="").select_related("category").order_by("-date")[:100]
+        past_expenses = Expense.objects.filter(user_id=self.user.id, category__isnull=False).exclude(description="").select_related("category").order_by("-date")[:100]
 
         if not past_expenses:
             return None
@@ -400,10 +403,6 @@ class ExpenseCategorizer:
         )
 
         if created:
-            # Log para debugging
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.info(f"Auto-created category '{name}' for user {self.user.username} " f"with {len(keywords)} keywords")
+            logger.info(f"Auto-created category '{name}' for user {self.user.id} " f"with {len(keywords)} keywords")
 
         return category

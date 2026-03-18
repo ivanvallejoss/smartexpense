@@ -21,8 +21,9 @@ async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
     # Simplifying we get the user through the telegram ID
     telegram_id = update.effective_user.id
     user = await get_user_by_telegram_id(telegram_id)
+    expense_id = int(payload)
 
-    was_deleted = await delete_expense(expense_id=payload, user=user)
+    was_deleted = await delete_expense(user=user, expense_id=expense_id)
     
     if not was_deleted: 
         await query.answer("⚠️ Error", show_alert=True)
