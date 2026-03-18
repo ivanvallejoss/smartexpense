@@ -42,5 +42,4 @@ class BalanceOut(Schema):
 
     class Config:
         populate_by_name = True
-        allow_population_by_field_name = True
     # trend: trend de los gastos (raro, hay que revisar esto)

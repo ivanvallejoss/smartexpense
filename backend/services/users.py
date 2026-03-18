@@ -38,6 +38,6 @@ async def get_or_create_user_by_telegram(telegram_user):
             updated = True
 
         if updated:
-            user.save()
+            await user.asave()
     
     return user, created
