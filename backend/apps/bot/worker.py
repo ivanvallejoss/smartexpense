@@ -1,3 +1,4 @@
+
 import os
 import logging
 import django
@@ -14,7 +15,6 @@ from apps.bot.setup import build_ptb_application
 
 logger = logging.getLogger(__name__)
 
-
 # Hooks de ciclo de vida del worker
 async def startup(ctx):
     """
@@ -26,24 +26,11 @@ async def startup(ctx):
     ptb_app = build_ptb_application()
     await ptb_app.initialize()
 
-    env = settings.ENVIRONMENT
-
-    if env == 'development':
-        logger.info("Development Mode active: Building polling with Telegram...")
-        # Cleaning webhooks
-        await ptb_app.bot.delete_webhook(drop_pending_updates=True)
-        # Starting the app + polling
-        await ptb_app.start()
-        await ptb_app.updater.start_polling()
-    else:
-        logger.info("Production Mode active: Ready to receive through the webhook")
-
     # Guardamos la app viva en el diccionario ctx (memoria RAM compartida)
     ctx['ptb_app'] = ptb_app
     logger.info(
         "Worker listo para procesar gastos."
     )
-
 
 async def shutdown(ctx):
     """
@@ -53,19 +40,11 @@ async def shutdown(ctx):
         "Apagando worker y limpiando sockets.."
     )
     ptb_app = ctx.get('ptb_app')
-
+    
     if ptb_app:
-        env = settings.ENVIRONMENT
-
-        if env == 'development':
-            # if we are in development we stop the polling
-            await ptb_app.updater.stop()
-            await ptb_app.stop()
-        # Stopping the core app
         await ctx['ptb_app'].shutdown()
 
 
-# La tarea asincrona pura
 async def process_telegram_message(ctx, payload):
     """
     Esta funcion recibe los datos de Redis y dispara tus handlers
