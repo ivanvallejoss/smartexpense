@@ -62,7 +62,7 @@ sequenceDiagram
 ## Quick Start (Local Development)
 
 ### 1. Prerequisites
-* Python 3.12+ (Recommended via `pyenv`)
+* Python 3.12.x or 3.13.x (Recommended via `pyenv`)
 * Docker & Docker Compose
 * [Ngrok](https://ngrok.com/) (For webhook parity in dev)
 * Node.js & npm 
