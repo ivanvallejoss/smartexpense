@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
+from datetime import datetime
 
 from decimal import Decimal
 from typing import Optional
@@ -132,7 +133,7 @@ def restore_expense(user, deleted_object_id: int):
             amount=Decimal(data["amount"]),
             description=data["description"],
             category=category,
-            date=timezone.datetime.fromisoformat(data["date"]),
+            date=datetime.fromisoformat(data["date"]),
             raw_message=data["raw_message"],
         )
 
