@@ -198,8 +198,8 @@ async def history_command(update, context):
     Command that show the user the lasts n expenses
             0 < n <= 22
     """
-    telegram_id = update.effective_user.id
-    user = await get_user_by_telegram_id(telegram_id=telegram_id)
+    telegram_user = update.effective_user
+    user = await get_or_create_user_by_telegram(telegram_user=telegram_user)
 
     args = context.args # Get everything after the command
 
