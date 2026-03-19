@@ -4,8 +4,10 @@ Funciones helper para formateo y manejo de usuarios.
 """
 from decimal import Decimal
 from typing import Tuple
-
 from zoneinfo import ZoneInfo
+
+from services.constants import CATEGORY_EMOJIS, HEX_TO_EMOJI, DEFAULT_EMOJI
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -45,24 +47,11 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
     Returns:
         Mensaje formateado para enviar al usuario
     """
-    # Mapeo de colores a emojis
-
-    color_to_emoji = {
-        "#F54927": "🔴",
-        "#0000FF": "🔵",
-        "#3CB371": "🟢",
-        "#FFFF00": "🟡",
-        "#FFFF00": "🟠",
-        "#800080": "🟣",
-        "#D2691E": "🟤",
-        "#D3D3D3": "⚫",
-        "default": "📂",
-    }
 
     if expense.category:
         category_name = expense.category.name
         category_color = expense.category.color if expense.category else "default"
-        category_emoji = color_to_emoji.get(category_color, "📂")
+        category_emoji = get_category_emoji(category_name=category_name, category_color=category_color)
 
         # Si fue auto-categorizado, agregar indicador
         if auto_categorized:
@@ -70,12 +59,17 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
         else:
             category_display = f"{category_emoji} {category_name}"
     else:
-        category_display = "📂 Sin categorizar"
+        category_display = f"{DEFAULT_EMOJI} Sin categorizar"
 
     # Show the date in local timezone
     date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime("%d %b %Y, %H:%M")
 
-    message = "✅ Guardado correctamente\n\n" f"💵 Monto: {format_amount(expense.amount)}\n" f"📝 Descripción: {expense.description}\n" f"📂 Categoría: {category_display}\n" f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
+    message = (
+        "✅ Guardado correctamente\n\n" 
+        f"💵 Monto: {format_amount(expense.amount)}\n" 
+        f"📝 Descripción: {expense.description}\n" f"📂 Categoría: {category_display}\n" 
+        f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
+        )
     
     logger.info(
             "Expense created successfully",
@@ -108,34 +102,28 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
         Mensaje formateado
     """
     if total_count == 0:
-        return f"📊 Resumen de {month_name}\n\n" "No tenés gastos registrados este mes todavía.\n" "¡Empezá a trackear tus expenses!"
+        return (
+            f"📊 Resumen de {month_name}\n\n" 
+            "No tenés gastos registrados este mes todavía.\n" 
+            "¡Empezá a trackear tus expenses!")
 
     message = f"📊 Resumen de {month_name}\n\n" f"💰 Total gastado: {format_amount(total_amount)}\n" f"📦 Gastos registrados: {total_count}\n"
 
     if by_category:
         message += "\nPor categoría:\n"
 
-        # Mapeo de colores a emojis (ya que no hay campo emoji)
-        color_to_emoji = {
-            "red": "🔴",
-            "blue": "🔵",
-            "green": "🟢",
-            "yellow": "🟡",
-            "orange": "🟠",
-            "purple": "🟣",
-            "brown": "🟤",
-            "gray": "⚫",
-            "default": "📂",
-        }
-
         for cat in by_category:
-            cat_name = cat["category__name"] or "Sin categorizar"
+            cat_name = cat["category__name"]
             cat_color = cat.get("category__color", "default")
-            cat_emoji = color_to_emoji.get(cat_color, "🔴")
             cat_total = cat["total"]
             cat_percentage = (cat_total / total_amount * 100) if total_amount > 0 else 0
+            cat_emoji = get_category_emoji(cat_name, cat_color)
+            display_name = cat_name or "Sin categorizar"
 
-            message += f"{cat_emoji} {cat_name}: {format_amount(cat_total)} " f"({cat_percentage:.0f}%)\n"
+            message += (
+                f"{cat_emoji} {display_name}:" 
+                f"{format_amount(cat_total)}  ({cat_percentage:.0f}%)\n"
+                )
 
     return message
 
@@ -182,3 +170,34 @@ def format_expense_list(expenses):
         lines.append(line)
 
     return "\n".join(lines)
+
+
+def get_category_emoji(category_name: str | None, category_color: str | None) -> str:
+    """
+    Resuelve el emoji de una categoría con prioridad:
+    1. Nombre de la categoría (semántico, más preciso)
+    2. Color HEX de la categoría (fallback para categorías custom)
+    3. Emoji por defecto "📂"
+
+    Args:
+        category_name: Nombre de la categoría (puede ser None)
+        category_color: Color HEX de la categoría (puede ser None)
+
+    Returns:
+        Emoji como string
+    
+    Examples:
+        >>> get_category_emoji("Comida", "#FF5733")
+        '🍔'
+        >>> get_category_emoji("Mi categoria custom", "#3366FF")
+        '🔵'
+        >>> get_category_emoji("Algo desconocido", "#color_raro")
+        '📂'
+    """
+    if category_name and category_name in CATEGORY_EMOJIS:
+        return CATEGORY_EMOJIS[category_name]
+    
+    if category_color and category_color in HEX_TO_EMOJI:
+        return HEX_TO_EMOJI[category_color]
+    
+    return DEFAULT_EMOJI
