@@ -16,6 +16,8 @@ from typing import Dict, List, Optional, Set
 
 from django.db.models import Count, Q
 
+from services.constants import CATEGORY_COLORS
+
 from apps.core.models import Category, CategorySuggestionFeedback, Expense, User
 
 from .default_keywords import DEFAULT_CATEGORY_KEYWORDS, SPANISH_STOPWORDS
@@ -325,24 +327,11 @@ class ExpenseCategorizer:
             "by_category": category_stats,
         }
 
-    def _check_and_create_from_defaults(self, description_words: Set[str]) -> Optional[CategorySuggestion]:
+    def _check_and_create_from_defaults(self, description_words):
         """
         Busca en DEFAULT_CATEGORY_KEYWORDS y auto-crea la categoría para el usuario.
         Solo se ejecuta si el usuario NO tiene categorías propias.
         """
-        # Colores por defecto para cada categoría
-        DEFAULT_COLORS = {
-            "Comida": "#FF5733",
-            "Supermercado": "#33FF57",
-            "Transporte": "#3366FF",
-            "Delivery": "#FF33F5",
-            "Servicios": "#FFC300",
-            "Salud": "#F38181",
-            "Entretenimiento": "#C70039",
-            "Ropa": "#900C3F",
-            "Hogar": "#581845",
-            "Educación": "#1E8449",
-        }
 
         # Buscar match en DEFAULT_CATEGORY_KEYWORDS
         for category_name, keywords in DEFAULT_CATEGORY_KEYWORDS.items():
@@ -353,7 +342,7 @@ class ExpenseCategorizer:
                     category = self._create_user_category(
                         name=category_name,
                         keywords=keywords,
-                        color=DEFAULT_COLORS.get(category_name, "#6B7280"),
+                        color=CATEGORY_COLORS.get(category_name, "#6B7280"),
                     )
 
                     # Invalidar cache para que la use inmediatamente
