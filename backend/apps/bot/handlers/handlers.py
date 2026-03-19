@@ -199,7 +199,7 @@ async def history_command(update, context):
             0 < n <= 22
     """
     telegram_user = update.effective_user
-    user = await get_or_create_user_by_telegram(telegram_user=telegram_user)
+    user, _ = await get_or_create_user_by_telegram(telegram_user=telegram_user)
 
     args = context.args # Get everything after the command
 
@@ -221,10 +221,12 @@ async def link_command(update, context):
     """
     Genera un Magic Link de un solo uso (o de tiempo limitado) para entrar al frontend
     """
-    telegram_id = update.effective_user.id
+    telegram_user = update.effective_user
+
+    user, _ = await get_or_create_user_by_telegram(telegram_user=telegram_user)
 
     # Obtenemos el token desde el servicio
-    token = generate_magic_link_token(telegram_id=telegram_id)
+    token = generate_magic_link_token(telegram_id=telegram_user.id)
 
     # Construimos la URL.
     frontend_url = settings.FRONTEND_URL

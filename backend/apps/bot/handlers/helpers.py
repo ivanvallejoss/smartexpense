@@ -20,3 +20,13 @@ def get_keyboard_markup(expense_id):
     markup = InlineKeyboardMarkup(keyboard) 
     
     return markup
+
+def get_undo_keyboard_markup(deleted_object_id):
+    """
+    Genera el boton de deshacer apuntando el ID de la papelera de reciclaje
+    """
+    keyboard = [
+        [InlineKeyboardButton("↩️ Deshacer borrado", callback_data=f"undo:{deleted_object_id}"),]
+    ]
+
+    return InlineKeyboardMarkup(keyboard)

@@ -6,7 +6,6 @@ from decimal import Decimal
 from typing import Tuple
 
 from zoneinfo import ZoneInfo
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -144,7 +143,7 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
 
 def format_expense_list(expenses):
     """
-    Format expenses list to show in the bot
+    Format expenses list to show for the history command
     """
     if not expenses:
         return "📭 No tienes gastos registrados todavía."
