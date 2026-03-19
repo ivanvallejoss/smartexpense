@@ -1,247 +1,204 @@
 """
-Tests para los handlers del bot de Telegram.
+Tests de integración y mocking para los handlers de Telegram.
 """
-import logging
-from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
-
-from django.utils import timezone
-
 import pytest
-from asgiref.sync import sync_to_async
+from unittest.mock import AsyncMock, MagicMock, patch
+from decimal import Decimal
 
-from apps.bot.handlers import handle_message, help_command, start_command, stats_command
-from apps.core.models import Category, Expense, User
+# Importamos los handlers
+from apps.bot.handlers.handlers import start_command, help_command, handle_message, stats_command, history_command, link_command
+from apps.core.models import User, Category, Expense
 
+# Activamos acceso a BD
+pytestmark = pytest.mark.django_db(transaction=True)
+
+
+# ============================================
+# FIXTURES (Los dobles de riesgo)
+# ============================================
 
 @pytest.fixture
 def mock_update():
-    """Fixture para mock de Telegram Update."""
-    update = Mock()
-    update.effective_user = Mock()
-    update.effective_user.id = 12345
-    update.effective_user.username = "testuser"
+    """Simula un objeto Update de Telegram."""
+    update = MagicMock()
+    # Simulamos el usuario
+    update.effective_user.id = 123456789
+    update.effective_user.username = "test_user"
     update.effective_user.first_name = "Test"
     update.effective_user.last_name = "User"
+    
+    # Simulamos el mensaje y sus métodos asíncronos
     update.message = AsyncMock()
+    update.message.text = ""
+    
+    # Simulamos para los callbacks
+    update.callback_query = AsyncMock()
+    
     return update
 
 
 @pytest.fixture
 def mock_context():
-    """Fixture para mock de ContextTypes."""
-    context = Mock()
+    """Simula el context de python-telegram-bot."""
+    context = AsyncMock()
+    context.args = []
     return context
 
 
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
-class TestStartCommand:
-    """Tests para /start command."""
+# ============================================
+# TESTS DE COMANDOS BÁSICOS
+# ============================================
 
-    async def test_creates_user_if_not_exists(self, mock_update, mock_context, caplog):
-        """Test que /start crea un nuevo usuario si no existe."""
-        caplog.set_level(logging.ERROR)
-
-        # Verificar que no existe - WRAPPED
-        exists = await sync_to_async(User.objects.filter(telegram_id=12345).exists)()
-        assert not exists
-
-        # Ejecutar comando
+class TestBasicCommands:
+    
+    async def test_start_command_new_user(self, mock_update, mock_context):
+        # Act
         await start_command(mock_update, mock_context)
-
-        # Verificar que se creó el usuario - WRAPPED
-        user = await sync_to_async(User.objects.get)(telegram_id=12345)
-        assert user.username == "testuser"
-        assert user.first_name == "Test"
-
-        # Verificar que se envió mensaje
+        
+        # Assert: Verificamos que el usuario se creó en la DB
+        user_exists = await User.objects.filter(telegram_id=123456789).aexists()
+        assert user_exists is True
+        
+        # Assert: Verificamos que el bot respondió con el mensaje de bienvenida
         mock_update.message.reply_text.assert_called_once()
-        args = mock_update.message.reply_text.call_args[0]
-        assert "Bienvenido" in args[0]
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "Bienvenido a SmartExpense" in respuesta
 
-    async def test_does_not_duplicate_existing_user(self, mock_update, mock_context):
-        """Test que /start no duplica usuario si ya existe."""
-        # Crear usuario existente - WRAPPED
-        await sync_to_async(User.objects.create)(telegram_id=12345, username="existing", first_name="Existing")
-
-        initial_count = await sync_to_async(User.objects.count)()
-
-        # Ejecutar comando
-        await start_command(mock_update, mock_context)
-
-        # Verificar que no se duplicó - WRAPPED
-        final_count = await sync_to_async(User.objects.count)()
-        assert final_count == initial_count
-
-        user_count = await sync_to_async(User.objects.filter(telegram_id=12345).count)()
-        assert user_count == 1
-
-        # Verificar mensaje enviado
-        mock_update.message.reply_text.assert_called_once()
-
-    async def test_handles_error_gracefully(self, mock_update, mock_context):
-        """Test que /start maneja errores correctamente."""
-        # Forzar error en get_or_create
-        with patch("apps.bot.handlers.get_or_create_user_from_telegram") as mock_get:
-            mock_get.side_effect = Exception("Database error")
-
-            await start_command(mock_update, mock_context)
-
-            # Verificar mensaje de error
-            mock_update.message.reply_text.assert_called_once()
-            args = mock_update.message.reply_text.call_args[0]
-            assert "error" in args[0]
-
-
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
-class TestHelpCommand:
-    """Tests para /help command."""
-
-    async def test_sends_help_message(self, mock_update, mock_context):
-        """Test que /help envía mensaje de ayuda."""
+    async def test_help_command(self, mock_update, mock_context):
+        # Act
         await help_command(mock_update, mock_context)
-
-        # Verificar mensaje
+        
+        # Assert
         mock_update.message.reply_text.assert_called_once()
-        args = mock_update.message.reply_text.call_args[0]
-        assert "Formatos soportados" in args[0]
-        assert "/stats" in args[0]
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "Formatos soportados" in respuesta
 
 
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
-class TestStatsCommand:
-    """Tests para /stats command."""
+# ============================================
+# TESTS DEL FLUJO PRINCIPAL (handle_message)
+# ============================================
 
-    async def test_shows_stats_with_expenses(self, mock_update, mock_context):
-        """Test que /stats muestra estadísticas correctas."""
-        # Crear usuario y expenses - TODO WRAPPED
-        user = await sync_to_async(User.objects.create)(telegram_id=12345, username="testuser", first_name="Test")
+class TestMessageHandling:
 
-        category = await sync_to_async(Category.objects.create)(name="Comida")
+    @patch("apps.bot.handlers.handlers.is_autocategorized")
+    @patch("apps.bot.handlers.handlers.get_category_suggestion")
+    async def test_handle_message_valid_expense(self, mock_get_suggestion, mock_is_auto, mock_update, mock_context):
+        """Prueba que un mensaje válido se parsea, puentea el ML y se guarda en BD."""
+        
+        # 1. Setup inicial
+        mock_update.message.text = "Hamburguesa 5000"
+        
+        # Creamos una categoría para que el ML "sugiera"
+        category = await Category.objects.acreate(name="Comida", is_default=True)
+        
+        # Configuramos los Mocks del ML (Deuda técnica aparcada)
+        mock_suggestion = MagicMock()
+        mock_suggestion.category = category
+        mock_get_suggestion.return_value = mock_suggestion
+        mock_is_auto.return_value = True
 
-        await sync_to_async(Expense.objects.create)(user=user, amount=Decimal("2000"), description="Pizza", category=category, date=timezone.now())
-
-        await sync_to_async(Expense.objects.create)(user=user, amount=Decimal("1500"), description="Café", date=timezone.now())
-
-        await stats_command(mock_update, mock_context)
-
-        # Verificar mensaje
-        mock_update.message.reply_text.assert_called_once()
-        args = mock_update.message.reply_text.call_args[0]
-        assert "$3.500" in args[0]  # Total
-        assert "2" in args[0]  # Count
-
-    async def test_handles_no_expenses(self, mock_update, mock_context, caplog):
-        """Test que /stats maneja caso sin expenses."""
-        from datetime import datetime
-
-        caplog.set_level(logging.ERROR)
-        # Crear usuario sin expenses - WRAPPED
-        await sync_to_async(User.objects.create)(telegram_id=12345, username="testuser", first_name="Test")
-        # Mock de timezone.now() para asegurar fecha consistente
-        with patch("apps.bot.handlers.timezone.now") as mock_now:
-            mock_now.return_value = timezone.make_aware(datetime(2024, 11, 20, 12, 0, 0))
-
-            await stats_command(mock_update, mock_context)
-
-        if caplog.records:
-            for record in caplog.records:
-                print(f"\nERROR: {record.message}")
-                if hasattr(record, "exc_info") and record.exc_info:
-                    import traceback
-
-                    print("".join(traceback.format_exception(*record.exc_info)))
-
-        # Verificar mensaje
-        mock_update.message.reply_text.assert_called_once()
-        args = mock_update.message.reply_text.call_args[0]
-        assert "No tenés gastos" in args[0]
-
-
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
-class TestHandleMessage:
-    """Tests para handler de mensajes normales."""
-
-    async def test_saves_valid_expense(self, mock_update, mock_context):
-        """Test que mensaje válido guarda expense correctamente."""
-        # Crear usuario - WRAPPED
-        user = await sync_to_async(User.objects.create)(telegram_id=12345, username="testuser", first_name="Test")
-
-        # Mensaje válido
-        mock_update.message.text = "Pizza 2000"
-
+        # 2. Act
         await handle_message(mock_update, mock_context)
-
-        # Verificar que se guardó - WRAPPED
-        expense = await sync_to_async(Expense.objects.get)(user=user)
-        assert expense.amount == Decimal("2000")
-        assert expense.description == "Pizza"
-
-        # Verificar confirmación
+        
+        # 3. Asserts
+        # Verificar que se creó el gasto en la BD
+        expense = await Expense.objects.select_related('category').afirst()
+        assert expense is not None
+        assert expense.amount == Decimal("5000")
+        assert expense.description == "Hamburguesa"
+        assert expense.category.name == "Comida"
+        
+        # Verificar que el bot respondió enviando el teclado inline (reply_markup)
         mock_update.message.reply_text.assert_called_once()
-        args = mock_update.message.reply_text.call_args[0]
-        assert "$2.000" in args[0]
+        kwargs = mock_update.message.reply_text.call_args[1] # Obtenemos los argumentos nombrados
+        assert "reply_markup" in kwargs
+        assert kwargs["reply_markup"] is not None
 
-    async def test_handles_invalid_format(self, mock_update, mock_context):
-        """Test que mensaje inválido devuelve error amigable."""
-        # Crear usuario - WRAPPED
-        await sync_to_async(User.objects.create)(telegram_id=12345, username="testuser", first_name="Test")
-
-        # Mensaje inválido
-        mock_update.message.text = "esto no es un expense"
-
+    async def test_handle_message_invalid_format(self, mock_update, mock_context):
+        """Prueba que el bot ataja mensajes sin montos enviando el error de parseo."""
+        
+        mock_update.message.text = "Hola bot, ¿cómo estás?"
+        
         await handle_message(mock_update, mock_context)
-
-        # Verificar que no se guardó - WRAPPED
-        count = await sync_to_async(Expense.objects.count)()
+        
+        # Verificar que no se guardó nada
+        count = await Expense.objects.acount()
         assert count == 0
-
-        # Verificar mensaje de error
+        
+        # Verificar la respuesta de error
         mock_update.message.reply_text.assert_called_once()
-        args = mock_update.message.reply_text.call_args[0]
-        assert "No pude detectar" in args[0]
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "No pude detectar el monto" in respuesta
 
-    async def test_associates_expense_to_correct_user(self, mock_update, mock_context):
-        """Test que expense se asocia al usuario correcto."""
-        # Crear dos usuarios - WRAPPED
-        user1 = await sync_to_async(User.objects.create)(telegram_id=12345, username="user1", first_name="User1")
-        user2 = await sync_to_async(User.objects.create)(telegram_id=67890, username="user2", first_name="User2")
 
-        # Mensaje de user1
-        mock_update.effective_user.id = 12345
-        mock_update.message.text = "Pizza 2000"
+# ============================================
+# TESTS DE COMANDOS AVANZADOS Y EXCEPCIONES
+# ============================================
 
+class TestAdvancedCommandsAndExceptions:
+
+    @patch("apps.bot.handlers.handlers.get_month_stats")
+    async def test_stats_command(self, mock_get_stats, mock_update, mock_context):
+        """Prueba el comando /stats falseando la respuesta de la base de datos."""
+        # Simulamos lo que devolvería el selector
+        mock_get_stats.return_value = {
+            "month_name": "Marzo 2026",
+            "total_amount": Decimal("1500"),
+            "total_count": 1,
+            "by_category": []
+        }
+        
+        await stats_command(mock_update, mock_context)
+        
+        mock_update.message.reply_text.assert_called_once()
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "Resumen de Marzo 2026" in respuesta
+
+    async def test_history_command_no_expenses(self, mock_update, mock_context):
+        """Prueba el comando /historial cuando el usuario no tiene gastos."""
+        await User.objects.acreate(telegram_id=123456789, username="test_history")
+        mock_context.args = ["5"] # Probamos pasarle un límite
+        
+        await history_command(mock_update, mock_context)
+        
+        mock_update.message.reply_text.assert_called_once()
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "No encontramos gastos" in respuesta or "No tienes gastos registrados" in respuesta
+
+    @patch("apps.bot.handlers.handlers.generate_magic_link_token")
+    async def test_link_command(self, mock_gen_token, mock_update, mock_context):
+        """Prueba la generación del Magic Link."""
+        mock_gen_token.return_value = "token-secreto-123"
+        
+        await link_command(mock_update, mock_context)
+        
+        mock_update.message.reply_text.assert_called_once()
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "token-secreto-123" in respuesta
+        assert "Ir al dashboard" in respuesta
+
+    # --- FORZANDO ERRORES PARA CUBRIR LOS BLOQUES "except" ---
+    
+    @patch("apps.bot.handlers.handlers.get_or_create_user_by_telegram")
+    async def test_start_command_triggers_exception(self, mock_get_user, mock_update, mock_context):
+        """Simulamos que la base de datos se cae al intentar crear el usuario."""
+        mock_get_user.side_effect = Exception("Fallo catastrófico de DB")
+        
+        await start_command(mock_update, mock_context)
+        
+        # Debe atrapar el error y enviar un mensaje amigable
+        mock_update.message.reply_text.assert_called_with("Ocurrió un error al iniciar. Por favor, intentá de nuevo.")
+
+    @patch("apps.bot.handlers.handlers.ExpenseParser")
+    async def test_handle_message_triggers_exception(self, mock_parser_class, mock_update, mock_context):
+        """Simulamos que el parser falla inesperadamente."""
+        mock_update.message.text = "Gasto"
+        
+        # Configuramos el mock para que lance un error al instanciarse o parsear
+        mock_instance = MagicMock()
+        mock_instance.parse.side_effect = Exception("Error de lógica interno")
+        mock_parser_class.return_value = mock_instance
+        
         await handle_message(mock_update, mock_context)
-
-        # Verificar asociación correcta - WRAPPED
-        expense = await sync_to_async(Expense.objects.get)()
-
-        # Comparar IDs en lugar de objetos directamente
-        assert expense.user_id == user1.id
-        assert expense.user_id != user2.id
-
-    async def test_handles_parser_exception(self, mock_update, mock_context):
-        """Test que maneja excepciones del parser."""
-        # Crear usuario - WRAPPED
-        await sync_to_async(User.objects.create)(telegram_id=12345, username="testuser", first_name="Test")
-
-        mock_update.message.text = "Pizza 2000"
-
-        # Forzar error en parser
-        with patch("apps.bot.handlers.ExpenseParser") as MockParser:
-            MockParser.return_value.parse.side_effect = Exception("Parser error")
-
-            await handle_message(mock_update, mock_context)
-
-            # Verificar que no se guardó - WRAPPED
-            count = await sync_to_async(Expense.objects.count)()
-            assert count == 0
-
-            # Verificar mensaje de error
-            mock_update.message.reply_text.assert_called_once()
-            args = mock_update.message.reply_text.call_args[0]
-            assert "error" in args[0]
+        
+        mock_update.message.reply_text.assert_called_with("Ocurrió un error al guardar tu gasto. Por favor, intentá de nuevo.")

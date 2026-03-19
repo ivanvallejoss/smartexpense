@@ -192,6 +192,7 @@ class ExpenseParser:
                 magnitude = self._parse_to_decimal(number)
             except ValueError as e:
                 print(f"An error has ocurred, {e}")
+                magnitude = Decimal("0")
 
             candidates.append({"raw": raw, "raw_number": number, "position": match.start(), "has_symbol": has_symbol, "has_decimals": has_decimals, "magnitude": magnitude})
 
@@ -323,6 +324,8 @@ class ExpenseParser:
 
         # Limpiar símbolos $ sobrantes
         description = description.replace("$", "").strip()
+
+        description = " ".join(description.split())
 
         # Si quedó vacío, poner descripción default
         if not description:

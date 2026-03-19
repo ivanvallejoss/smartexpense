@@ -37,7 +37,7 @@ class ExpenseOut(Schema):
 
 # ------- BALANCE SCHEMA -------
 class BalanceOut(Schema):
-    total_spent: float = Field(alias="totalSpent")
+    totalSpent: float
     currency: str
 
     class Config:

@@ -28,6 +28,7 @@ async def on_delete_click(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
     if not was_deleted: 
         await query.answer("⚠️ Error", show_alert=True)
         await query.edit_message_text("⚠️ No se pudo borrar el gasto (quizás ya no existe).")        
+        return
 
     # Expense deleted successfully
     await query.answer("🗑️ Gasto eliminado")
