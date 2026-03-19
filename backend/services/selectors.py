@@ -3,7 +3,8 @@ Service Layer
 Logic to show data related to expenses
 """
 
-from apps.core.models import Expense
+from apps.core.models import Expense, Category
+from django.core.exceptions import ObjectDoesNotExist
 
 from asgiref.sync import sync_to_async
 
@@ -148,3 +149,17 @@ def get_week_stats(user):
         # Returned the start of the week for the user
         "start_date": week_start.strftime("%d/%m")
         }
+
+
+# -------------------------------------
+#              CATEGORY
+# -------------------------------------
+
+def get_category_by_id(category_id):
+    """
+    Obtiene una categoria por su ID.
+    """
+    try:
+        return Category.objects.get(id=category_id)
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist(f"La categoria con id {category_id} no existe.")
