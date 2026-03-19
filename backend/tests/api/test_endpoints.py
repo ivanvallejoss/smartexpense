@@ -5,6 +5,7 @@ import jwt
 import pytest
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
+from django.utils import timezone as djangotz
 from ninja.testing import TestAsyncClient
 
 # Importamos la instancia central de tu API
@@ -62,8 +63,8 @@ class TestExpensesEndpoints:
         category = await Category.objects.acreate(name="Food", is_default=True)
         
         # Creamos 2 gastos para este usuario
-        await Expense.objects.acreate(user=user, category=category, amount=100, description="1", date=datetime.now())
-        await Expense.objects.acreate(user=user, category=category, amount=200, description="2", date=datetime.now())
+        await Expense.objects.acreate(user=user, category=category, amount=100, description="1", date=djangotz.now())
+        await Expense.objects.acreate(user=user, category=category, amount=200, description="2", date=djangotz.now())
 
         headers = get_auth_headers(user)
         response = await client.get("/expenses/", headers=headers)
@@ -98,7 +99,7 @@ class TestExpensesEndpoints:
         user = await User.objects.acreate(telegram_id=777, username="updater")
         cat_old = await Category.objects.acreate(name="Old", is_default=True)
         cat_new = await Category.objects.acreate(name="New", is_default=True)
-        expense = await Expense.objects.acreate(user=user, category=cat_old, amount=100, description="A", date=datetime.now())
+        expense = await Expense.objects.acreate(user=user, category=cat_old, amount=100, description="A", date=djangotz.now())
 
         headers = get_auth_headers(user)
         payload = {
@@ -131,7 +132,7 @@ class TestExpensesEndpoints:
     async def test_delete_expense(self, client):
         user = await User.objects.acreate(telegram_id=999, username="deleter")
         cat = await Category.objects.acreate(name="Del", is_default=True)
-        expense = await Expense.objects.acreate(user=user, category=cat, amount=100, description="Borrar", date=datetime.now())
+        expense = await Expense.objects.acreate(user=user, category=cat, amount=100, description="Borrar", date=djangotz.now())
 
         headers = get_auth_headers(user)
         response = await client.delete(f"/expenses/{expense.id}/", headers=headers)
@@ -154,8 +155,8 @@ class TestBalancesEndpoints:
         cat = await Category.objects.acreate(name="Test", is_default=True)
         
         # Gastos que suman 300.75
-        await Expense.objects.acreate(user=user, category=cat, amount=100.50, description="1", date=datetime.now())
-        await Expense.objects.acreate(user=user, category=cat, amount=200.25, description="2", date=datetime.now())
+        await Expense.objects.acreate(user=user, category=cat, amount=100.50, description="1", date=djangotz.now())
+        await Expense.objects.acreate(user=user, category=cat, amount=200.25, description="2", date=djangotz.now())
 
         headers = get_auth_headers(user)
         response = await client.get("/balances/", headers=headers)

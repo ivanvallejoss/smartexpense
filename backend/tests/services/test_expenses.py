@@ -1,8 +1,8 @@
 import pytest
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
-from apps.core.models import Expense
-from services.expenses import create_expense, update_expense, delete_expense
+from apps.core.models import Expense, DeletedObject
+from services.expenses import create_expense, update_expense, delete_expense, restore_expense
 from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -53,7 +53,7 @@ class TestExpenseServices:
         expense = await sync_to_async(ExpenseFactory)(user=owner)
 
         # Intentamos actualizar con un usuario que no es el dueño
-        with pytest.raises(ObjectDoesNotExist, match="no existe o no tienes permisos"):
+        with pytest.raises(ObjectDoesNotExist, match="El gasto no existe o no tienes permisos."):
             await update_expense(
                 user=hacker,
                 expense_id=expense.id,
@@ -64,19 +64,61 @@ class TestExpenseServices:
 
     async def test_delete_expense_success(self):
         user = await sync_to_async(UserFactory)()
-        expense = await sync_to_async(ExpenseFactory)(user=user)
+        expense = await sync_to_async(ExpenseFactory)(user=user, description="Gasto a borrar")
 
-        result = await delete_expense(user=user, expense_id=expense.id)
+        # Act
+        deleted_obj_id = await delete_expense(user=user, expense_id=expense.id)
 
-        assert result is True
-        # Verificamos que ya no exista en la DB
+        # Assert: Ahora devuelve el ID de la papelera (un entero)
+        assert isinstance(deleted_obj_id, int)
+        
+        # Verificamos que ya no exista en la tabla original
         count = await Expense.objects.filter(id=expense.id).acount()
         assert count == 0
+
+        # Verificamos que se haya creado en la papelera
+        deleted_obj = await DeletedObject.objects.aget(id=deleted_obj_id)
+        assert deleted_obj.object_data["description"] == "Gasto a borrar"
 
     async def test_delete_expense_wrong_user_fails(self):
         owner = await sync_to_async(UserFactory)()
         hacker = await sync_to_async(UserFactory)()
         expense = await sync_to_async(ExpenseFactory)(user=owner)
 
-        with pytest.raises(ObjectDoesNotExist, match="no existe o no te pertenece"):
+        with pytest.raises(ObjectDoesNotExist, match="El gasto que intentas borrar no existe"):
             await delete_expense(user=hacker, expense_id=expense.id)
+
+
+    async def test_restore_expense_success(self):
+        user = await sync_to_async(UserFactory)()
+        category = await sync_to_async(CategoryFactory)(name="Test Category")
+        
+        # 1. Creamos un gasto y lo mandamos a la papelera
+        expense = await sync_to_async(ExpenseFactory)(
+            user=user, category=category, amount=1500, description="Gasto recuperable"
+        )
+        deleted_obj_id = await delete_expense(user=user, expense_id=expense.id)
+
+        # Act: Restauramos
+        restored_expense = await restore_expense(user=user, deleted_object_id=deleted_obj_id)
+
+        # Assert: El gasto revivió con sus datos originales
+        assert restored_expense.amount == 1500
+        assert restored_expense.description == "Gasto recuperable"
+        assert restored_expense.category.name == "Test Category"
+        
+        # Assert: La papelera se limpió para evitar duplicados
+        count = await DeletedObject.objects.filter(id=deleted_obj_id).acount()
+        assert count == 0
+
+    async def test_restore_expense_wrong_user_fails(self):
+        owner = await sync_to_async(UserFactory)()
+        hacker = await sync_to_async(UserFactory)()
+        expense = await sync_to_async(ExpenseFactory)(user=owner)
+        
+        # El dueño original lo borra
+        deleted_obj_id = await delete_expense(user=owner, expense_id=expense.id)
+
+        # El hacker intenta restaurarlo
+        with pytest.raises(ObjectDoesNotExist):
+            await restore_expense(user=hacker, deleted_object_id=deleted_obj_id)

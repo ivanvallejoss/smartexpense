@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 
 # Asegúrate de que la ruta de importación sea la correcta en tu proyecto
-from backend.services.parser.expense_parser import ExpenseParser
+from services.parser.expense_parser import ExpenseParser
 
 
 @pytest.fixture
