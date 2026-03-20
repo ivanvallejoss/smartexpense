@@ -88,7 +88,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         '✓ Miles: "$1.500"\n\n'
         "Comandos:\n"
         "/stats - Ver estadísticas del mes\n"
-        "/help - Esta ayuda"
+        "/history - Ver tus ultimos 10 gastos\n"
+        "/help - Esta ayuda\n"
+        "/link - Obtener el link para ver todos tus gastos en un dashboard"
     )
 
     logger.info("Help command executed", extra={"telegram_id": update.effective_user.id})
@@ -203,7 +205,7 @@ async def history_command(update, context):
 
     args = context.args # Get everything after the command
 
-    limit = 5
+    limit = 10
     if args and args[0].isdigit():
         limit = min(int(context.args[0]), 22) # setting a max-value of 22 expenses to show
     

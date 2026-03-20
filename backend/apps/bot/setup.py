@@ -22,7 +22,7 @@ def build_ptb_application():
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("stats", stats_command))
-    application.add_handler(CommandHandler("historial", history_command))
+    application.add_handler(CommandHandler("history", history_command))
     application.add_handler(CommandHandler("link", link_command))
 
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

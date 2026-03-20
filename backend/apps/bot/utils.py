@@ -107,7 +107,11 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
             "No tenés gastos registrados este mes todavía.\n" 
             "¡Empezá a trackear tus expenses!")
 
-    message = f"📊 Resumen de {month_name}\n\n" f"💰 Total gastado: {format_amount(total_amount)}\n" f"📦 Gastos registrados: {total_count}\n"
+    message = (
+        f"📊 Resumen de {month_name}\n\n" 
+        f"💰 Total gastado: {format_amount(total_amount)}\n" 
+        f"📦 Gastos registrados: {total_count}\n"
+    )
 
     if by_category:
         message += "\nPor categoría:\n"

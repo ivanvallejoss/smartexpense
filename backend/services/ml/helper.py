@@ -46,7 +46,7 @@ def get_category_suggestion(user, description):
     logging.info(
         "[DEBUG] Sugerencia de categorias",
         extra={
-            "category": suggestion.category.name if suggestion else None,
+            "category": suggestion.category.name if suggestion.category else None,
             "confidence": suggestion.confidence,
             "reason": suggestion.reason,
             "matched_keyword": suggestion.matched_keyword
