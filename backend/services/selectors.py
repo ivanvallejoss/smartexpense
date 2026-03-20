@@ -154,7 +154,7 @@ def get_week_stats(user):
 # -------------------------------------
 #              CATEGORY
 # -------------------------------------
-
+#
 def get_category_by_id(category_id):
     """
     Obtiene una categoria por su ID.

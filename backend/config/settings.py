@@ -18,17 +18,19 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
 
 DEBUG = env('DEBUG', default=False, cast=bool)
+
 # --------------------------
 #       VARIABLES
 # --------------------------
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = env("DEBUG")
+
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
-REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
-FRONTEND_TEST = env('FRONTEND_TEST', default='http://localhost:5173')
 TELEGRAM_WEBHOOK_TOKEN = env('TELEGRAM_WEBHOOK_TOKEN')
 
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+
+FRONTEND_TEST = env('FRONTEND_TEST', default='http://localhost:5173')
 
 # ----------------------------
 #   DataBase configuration
