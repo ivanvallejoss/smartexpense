@@ -27,12 +27,16 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CategorySuggestion:
-    """Resultado de una sugerencia de categoría."""
+    """
+    Resultado de una sugerencia de categoría.
+    Avisa al handler si una categoria es recomendada para el gasto del usuario
+    """
 
     category: Optional[Category]
     confidence: float  # 0.0 a 1.0
     reason: str  # "user_history", "keyword_match", "partial_match", "no_match"
     matched_keyword: Optional[str] = None
+    suggested_category_name: Optional[str] = None
 
 
 class TextNormalizer:
@@ -329,69 +333,60 @@ class ExpenseCategorizer:
 
     def _check_and_create_from_defaults(self, description_words):
         """
-        Busca en DEFAULT_CATEGORY_KEYWORDS y auto-crea la categoría para el usuario.
-        Solo se ejecuta si el usuario NO tiene categorías propias.
+        Busca en DEFAULT_CATEGORY_KEYWORDS.
+        Ya no crea categorías — solo sugiere. El caller decide si crear.
         """
-
-        # Buscar match en DEFAULT_CATEGORY_KEYWORDS
         for category_name, keywords in DEFAULT_CATEGORY_KEYWORDS.items():
-            # 1. Match exacto
+            
+            # Match exacto
             for word in description_words:
                 if word in keywords:
-                    # AUTO-CREAR categoría para el usuario
-                    category = self._create_user_category(
-                        name=category_name,
-                        keywords=keywords,
-                        color=CATEGORY_COLORS.get(category_name, "#6B7280"),
-                    )
-
-                    # Invalidar cache para que la use inmediatamente
-                    self._keyword_map = None
-                    self._categories = None
-
                     return CategorySuggestion(
-                        category=category,
+                        category=None,
                         confidence=self.CONFIDENCE_KEYWORD_EXACT,
                         reason="keyword_match",
                         matched_keyword=word,
+                        suggested_category_name=category_name,  # nuevo
                     )
 
-            # 2. Match parcial (substring)
+            # Match parcial
             for keyword in keywords:
                 for word in description_words:
                     if keyword in word or word in keyword:
-                        category = self._create_user_category(
-                            name=category_name,
-                            keywords=keywords,
-                            color=CATEGORY_COLORS.get(category_name, "#6B7280"),
-                        )
-
-                        self._keyword_map = None
-                        self._categories = None
-
                         return CategorySuggestion(
-                            category=category,
+                            category=None,
                             confidence=self.CONFIDENCE_KEYWORD_PARTIAL,
                             reason="partial_match",
                             matched_keyword=keyword,
+                            suggested_category_name=category_name,  # nuevo
                         )
 
         return None
 
-    def _create_user_category(self, name: str, keywords: List[str], color: str) -> Category:
-        """
-        Crea una categoría para el usuario si no existe.
-        """
-        category, created = Category.objects.get_or_create(
-            name=name,
-            user=self.user,
-            defaults={
-                "keywords": keywords,
-                "color": color,
-            },
+
+
+def create_category_for_user(user: User, name: str) -> Category:
+    """
+    Crea una categoría para el usuario si no existe.
+    Es el único lugar del sistema que crea categorías automáticamente.
+    Debe llamarse explícitamente, nunca como side effect.
+    """
+    keywords = DEFAULT_CATEGORY_KEYWORDS.get(name, [])
+    color = CATEGORY_COLORS.get(name, "#6B7280")
+
+    category, created = Category.objects.get_or_create(
+        name=name,
+        user=user,
+        defaults={
+            "keywords": keywords,
+            "color": color,
+        },
+    )
+
+    if created:
+        logger.info(
+            "Category created for user",
+            extra={"category_name": name, "user_id": user.id}
         )
 
-        if created:
-            logger.info(f"Auto-created category '{name}' for user {self.user.id} " f"with {len(keywords)} keywords")
-
-        return category
+    return category
