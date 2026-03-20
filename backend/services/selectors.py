@@ -86,7 +86,7 @@ def get_month_stats(user):
     # So, we use the timezone of the server for accuracy
     expenses = Expense.objects.filter(
         user=user, 
-        status=STATUS_CONFIRMED,
+        status=Expense.STATUS_CONFIRMED,
         date__gte=local_month_start, 
         date__lte=now
         )
