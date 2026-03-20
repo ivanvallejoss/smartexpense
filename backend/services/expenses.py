@@ -6,6 +6,8 @@ Logic that creates or deletes expenses
 from apps.core.models import Expense, Category, DeletedObject
 from .selectors import get_category_by_id
 
+from services.ml.categorizer import ExpenseCategorizer
+
 from asgiref.sync import sync_to_async
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -17,7 +19,14 @@ from decimal import Decimal
 from typing import Optional
 
 @sync_to_async
-def create_expense(user, amount:float, description:str, category=None, date=None, raw_message=None):
+def create_expense(
+    user, 
+    amount:float, 
+    description:str, 
+    category=None, 
+    date=None, 
+    raw_message=None
+    ):
     """Helper sincrónico para crear expense con categoría."""
     if not date:
         date = timezone.now()
@@ -41,21 +50,41 @@ def create_expense(user, amount:float, description:str, category=None, date=None
 
 
 @sync_to_async
-def update_expense(user, expense_id: int, amount: float, description: str, category=None):
+def update_expense(
+    user, 
+    expense_id: int, 
+    amount: float, 
+    description: str, 
+    category=None,
+    previous_category=None
+    ):
     """
-    Actualiza un gasto asegurado que le pertenezca al usuario.
+    Actualiza los gastos del usuario.
+    Si existe previous_category significa una correcion de categoria y se debe registrar en el feedback del ML.
     """
-    
-    filas_actualizadas = Expense.objects.filter(id=expense_id, user=user).update(
-        amount=amount,
-        description=description,
-        category=category
-    )
-
-    if filas_actualizadas == 0:
+    try:
+        expense = Expense.objects.select_related('category').get(
+            id=expense_id,
+            user=user
+        )
+    except Expense.DoesNotExist:
         raise ObjectDoesNotExist("El gasto no existe o no tienes permisos.")
-    
-    expense = Expense.objects.select_related("category").get(id=expense.id, user=user)
+
+    expense.amount = amount
+    expense.description = description
+    expense.category = category
+    expense.save()
+
+    # Si nos pasaron la categoría anterior, es una corrección
+    # El feedback lo registramos sincrónicamente porque ya estamos en un contexto sync
+    if previous_category is not None:
+        categorizer = ExpenseCategorizer(user)
+        categorizer.record_feedback(
+            expense=expense,
+            suggested_category=previous_category,
+            accepted=False,
+            final_category=category,
+        )
 
     return expense
 
