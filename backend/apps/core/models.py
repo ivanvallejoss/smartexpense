@@ -97,6 +97,14 @@ class Expense(models.Model):
     Registra cada gasto con su monto, categoría, fecha y mensaje original del bot.
     """
 
+    # ---- ESTADOS -----
+    STATUS_PENDING = 'pending'
+    STATUS_CONFIRMED = 'confirmed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pendiente'),
+        (STATUS_CONFIRMED, 'Confirmado'),
+    ]
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -126,6 +134,15 @@ class Expense(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CONFIRMED,
+        db_index=True,
+        help_text="Estado del gasto. 'pending'=esperando confirmacion de categoria"
+    )
+
 
     class Meta:
         db_table = "expenses"

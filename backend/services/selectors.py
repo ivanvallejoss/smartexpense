@@ -29,7 +29,8 @@ def get_expenses(
     Gets the last n expenses for a user.
     """
     expenses = Expense.objects.filter(
-        user=user
+        user=user,
+        status=Expense.STATUS_CONFIRMED
         ).select_related('category')
 
     if month:
@@ -51,7 +52,7 @@ def get_balance(user, month: int=None, year: int=None) -> float:
     """
     Calcula la suma total de gastos delegando el calculo a la BBDD
     """
-    expenses = Expense.objects.filter(user=user)
+    expenses = Expense.objects.filter(user=user, status=STATUS_CONFIRMED)
     # Aplicamos filtros opcionales si el frontend quiere el total de un mes especifico
     if month:
         expenses = expenses.filter(date__month=month)
@@ -85,6 +86,7 @@ def get_month_stats(user):
     # So, we use the timezone of the server for accuracy
     expenses = Expense.objects.filter(
         user=user, 
+        status=STATUS_CONFIRMED,
         date__gte=local_month_start, 
         date__lte=now
         )
@@ -130,6 +132,7 @@ def get_week_stats(user):
     # So the query gets the expenses from the monday of this week to now
     expenses = Expense.objects.filter(
         user=user, 
+        status=STATUS_CONFIRMED,
         date__gte=week_start, 
         date__lte=now
         )
