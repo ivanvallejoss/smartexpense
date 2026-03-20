@@ -41,14 +41,14 @@ async def create_expense_endpoint(request, payload: ExpenseIn):
     Espera un JSON con amount, description y category_id
     """
     user = request.auth
+    category = Category.objects.aget(id=payload.category_id)
 
     expense = await create_expense(
         user=user,
         amount=payload.amount,
         description=payload.description,
-        category_id=payload.category_id
+        category=category
     )
-    
     return expense
 
 
@@ -59,13 +59,14 @@ async def update_expense_endpoint(request, expense_id: int, payload: ExpenseIn):
     La URL debe contener el ID del gasto (ej: /api/expenses/6)
     """
     user = request.auth
+    category = Category.objects.aget(id=payload.category_id)
 
     expense = await update_expense(
         user=user,
         expense_id=expense_id,
         amount=payload.amount,
         description=payload.description,
-        category_id=payload.category_id
+        category=category
     )
     return expense
 

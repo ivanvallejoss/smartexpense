@@ -17,7 +17,7 @@ from decimal import Decimal
 from typing import Optional
 
 @sync_to_async
-def create_expense(user, amount:float, description:str, category_id:int, date=None, raw_message=None):
+def create_expense(user, amount:float, description:str, category=None, date=None, raw_message=None):
     """Helper sincrónico para crear expense con categoría."""
     if not date:
         date = timezone.now()
@@ -26,11 +26,6 @@ def create_expense(user, amount:float, description:str, category_id:int, date=No
     # not sure how to fix this for the web cases.
     if not raw_message:
         raw_message = description
-
-    # This line should be modify if 
-    # we add a functionality 
-    # to create personalized categories
-    category = get_category_by_id(category_id=category_id)
     
     with transaction.atomic():
         expense = Expense.objects.create(
@@ -46,14 +41,10 @@ def create_expense(user, amount:float, description:str, category_id:int, date=No
 
 
 @sync_to_async
-def update_expense(user, expense_id: int, amount: float, description: str, category_id: int):
+def update_expense(user, expense_id: int, amount: float, description: str, category=None):
     """
     Actualiza un gasto asegurado que le pertenezca al usuario.
     """
-    # This line should be modify if 
-    # we add a functionality 
-    # to create personalized categories
-    category = Category.objects.get(id=category_id)
     
     filas_actualizadas = Expense.objects.filter(id=expense_id, user=user).update(
         amount=amount,
@@ -63,8 +54,6 @@ def update_expense(user, expense_id: int, amount: float, description: str, categ
 
     if filas_actualizadas == 0:
         raise ObjectDoesNotExist("El gasto no existe o no tienes permisos.")
-    
-    expense = Expense.objects.select_related('category').get(id=expense_id, user=user)
 
     return expense
 
@@ -79,22 +68,22 @@ def delete_expense(user, expense_id):
         object_id -> permite deshacer la eliminacion del objeto
     """
     with transaction.atomic():
-        # 1. Buscar el registro en la tabla de gastos
         try:
             expense = Expense.objects.get(id=expense_id, user=user)
         except Expense.DoesNotExist:
             raise ObjectDoesNotExist("El gasto que intentas borrar no existe")
 
-        # 2. Serializamos los datos para guardarlos en el JSONfield
+        # Serializamos los datos para guardarlos en el JSONfield
+        category = expense.category.id if expense.category else None
         expense_data = {
             "amount": str(expense.amount),
             "description": expense.description,
-            "category_id": expense.category_id,
+            "category": category,
             "date": expense.date.isoformat(),
             "raw_message": expense.raw_message
         }
 
-        # 3. Creamos el registro en la papeleara usando GenericForeignKey
+        # Creamos el registro en la papeleara usando GenericForeignKey
         content_type = ContentType.objects.get_for_model(Expense)
         deleted_obj = DeletedObject.objects.create(
             content_type=content_type,
@@ -104,7 +93,7 @@ def delete_expense(user, expense_id):
             reason="Eliminado por el usuario via bot/web"
         )
 
-        # 4.Hard Delete en la tabla original
+        # Hard delete
         expense.delete()
 
         return deleted_obj.id
@@ -115,7 +104,6 @@ def restore_expense(user, deleted_object_id: int):
     Restaura un gasto desde la papelera a la tabla original.
     """
     with transaction.atomic():
-        # Buscamos el registro en la papelera
         try:
             deleted_obj = DeletedObject.objects.get(id=deleted_object_id, deleted_by=user)
         except DeletedObject.DoesNotExist:
@@ -123,11 +111,14 @@ def restore_expense(user, deleted_object_id: int):
 
         # Extraccion del JSON
         data = deleted_obj.object_data
-        # Obtenemos la categoria a la que apunta
-        category_id = int(data["category_id"])
-        category = get_category_by_id(category_id=category_id)
 
-        # 2. Re-creacion del gasto original
+        # Verificamos si el category que se guardo es un id o un null.
+        # obtenemos el objeto si es un id
+        if isinstance(data["category"], int):
+            category = get_category_by_id(data["category"])
+        else:
+            category = None
+
         expense = Expense.objects.create(
             user=user,
             amount=Decimal(data["amount"]),
@@ -137,7 +128,7 @@ def restore_expense(user, deleted_object_id: int):
             raw_message=data["raw_message"],
         )
 
-        # 3. Eliminamos el registro de la papelera para no tener duplicados
+        # Hard delete
         deleted_obj.delete()
 
         return expense
