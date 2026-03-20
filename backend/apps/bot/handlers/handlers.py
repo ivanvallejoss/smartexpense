@@ -11,8 +11,8 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
-from services.ml.helper import is_autocategorized, get_category_suggestion
-from services.ml.categorizer import ExpenseCategorizer
+from services.ml.helper import is_autocategorized, get_category_suggestion, record_categorization_feedback
+from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
 from services.users import get_or_create_user_by_telegram
@@ -22,6 +22,7 @@ from services.auth import generate_magic_link_token
 from apps.core.models import Expense
 from apps.bot.errors import error_parsing_expenses
 from apps.bot.utils import format_expense_confirmation, format_stats_message, format_expense_list, format_expense_needs_confirmation, format_expense_pending
+from apps.bot.state import get_pending_category_state, clear_pending_category_state
 
 from .helpers import get_delete_keyboard_markup, get_correction_keyboard_markup, get_category_selection_keyboard_markup
 from django.conf import settings
@@ -141,6 +142,68 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 
+async def handle_new_category_input(
+    update: Update,
+    context,
+    user,
+    expense_id: int
+) -> None:
+    """
+    Procesa el nombre de categoría que el usuario envió.
+    Se llama cuando hay un estado pendiente de creación de categoría.
+    """
+    category_name = update.message.text.strip()
+
+    if not category_name or len(category_name) > 100:
+        await update.message.reply_text(
+            "⚠️ El nombre debe tener entre 1 y 100 caracteres. Intentá de nuevo."
+        )
+        return
+
+    await clear_pending_category_state(update.effective_user.id)
+
+    try:
+        # Creamos la categoría
+        new_category = await sync_to_async(create_category_for_user)(
+            user=user,
+            name=category_name
+        )
+
+        # Buscamos el expense y le asignamos la categoría
+        expense = await Expense.objects.select_related('category', 'user').aget(
+            id=expense_id,
+            user=user
+        )
+
+        previous_category = expense.category
+        expense.category = new_category
+        expense.status = Expense.STATUS_CONFIRMED
+        await expense.asave()
+
+        # Feedback para el ML
+        if previous_category != new_category:
+            await record_categorization_feedback(
+                expense=expense,
+                suggested_category=previous_category,
+                accepted=False,
+                final_category=new_category,
+            )
+
+        # Limpiamos el estado
+        await clear_pending_category_state(update.effective_user.id)
+
+        reply_markup = get_delete_keyboard_markup(expense_id=expense.id)
+        await update.message.reply_text(
+            format_expense_confirmation(expense, auto_categorized=False),
+            reply_markup=reply_markup
+        )
+
+    except Expense.DoesNotExist:
+        await clear_pending_category_state(update.effective_user.id)
+        await update.message.reply_text("⚠️ No se encontró el gasto. El estado fue limpiado.")
+
+
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handler para mensajes normales.
@@ -154,6 +217,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     try:
         user, _ = await get_or_create_user_by_telegram(telegram_user)
+
+        # Verificamos si el usuario está en medio de crear una categoría
+        pending_expense_id = await get_pending_category_state(telegram_user.id)
+        if pending_expense_id:
+            await handle_new_category_input(update, context, user, pending_expense_id)
+            return
+
 
         parser = ExpenseParser()
         message_parsed = parser.parse(message_text)

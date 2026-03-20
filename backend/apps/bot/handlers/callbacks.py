@@ -11,8 +11,12 @@ from services.selectors import get_user_categories
 from services.expenses import delete_expense, restore_expense
 from services.users import get_user_by_telegram_id
 
+
+
+
 from .helpers import get_undo_keyboard_markup, get_delete_keyboard_markup
 
+from apps.bot.state import set_pending_category_state
 from apps.bot.utils import format_expense_confirmation
 from apps.core.models import Expense, Category
 from apps.bot.handlers.helpers import get_category_selection_keyboard_markup, get_delete_keyboard_markup
@@ -123,6 +127,28 @@ async def on_cat_select_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.answer("⚠️ Error", show_alert=True)
         await query.edit_message_text("⚠️ No se pudo actualizar la categoría.")
 
+async def on_cat_new_click(update: Update, context: ContextTypes.DEFAULT_TYPE, payload: str):
+    """
+    El usuario quiere crear una categoría nueva.
+    Guardamos el estado en Redis y le pedimos el nombre.
+    """
+    query = update.callback_query
+    expense_id = int(payload)
+    telegram_user_id = update.effective_user.id
+
+    await set_pending_category_state(
+        telegram_user_id=telegram_user_id,
+        expense_id=expense_id
+    )
+
+    await query.answer()
+    await query.edit_message_text(
+        "📝 ¿Cómo querés llamar a la nueva categoría?\n\n"
+        "Enviá el nombre en el siguiente mensaje.\n"
+        "Ej: <i>Mascotas</i>, <i>Gimnasio</i>, <i>Regalos</i>",
+        parse_mode="HTML"
+    )
+
 
 # ==================================================================================
 #                             DELETE AND UNDELETE
@@ -221,5 +247,5 @@ CALLBACK_ROUTES = {
     "cat_confirm": on_cat_confirm_click,
     "cat_list": on_cat_list_click,
     "cat_select": on_cat_select_click,
-    # "edit": on_edit_click,  <-- Future feature
+    "cat_new": on_cat_new_click,
 }
