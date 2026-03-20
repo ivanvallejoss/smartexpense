@@ -4,7 +4,7 @@ from django.conf import settings
 
 def generate_magic_link_token(telegram_id:int) -> str:
     """
-    Genera un token JWT firmado con la SECRET_KEY de Django.
+    Genera un token JWT firmado con la JWT_SECRET_KEY de Django.
     Contiene el ID del usuario y expira en 10 minutos por seguridad. 
     """
     payload = {
@@ -14,6 +14,6 @@ def generate_magic_link_token(telegram_id:int) -> str:
         'iat': datetime.now(timezone.utc), # 'iat' (Issued At)
         'exp': datetime.now(timezone.utc) + timedelta(minutes=10)
     }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm='HS256')
 
     return token

@@ -29,7 +29,7 @@ def get_auth_headers(user):
         "sub": str(user.telegram_id),
         "exp": datetime.now(timezone.utc) + timedelta(days=1)
     }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
     return {"Authorization": f"Bearer {token}"}
 
 

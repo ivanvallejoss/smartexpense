@@ -24,6 +24,8 @@ DEBUG = env('DEBUG', default=False, cast=bool)
 # --------------------------
 SECRET_KEY = env("SECRET_KEY")
 
+JWT_SECRET_KEY = env("JWT_SECRET_KEY")
+
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
 TELEGRAM_WEBHOOK_TOKEN = env('TELEGRAM_WEBHOOK_TOKEN')
 

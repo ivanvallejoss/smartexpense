@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class GlobalAuth(HttpBearer):
     async def authenticate(self, request, token):
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
 
             # Recibimos string y devolvemos convertirlo a entero
             telegram_id = int(payload.get("sub"))
