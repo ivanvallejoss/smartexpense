@@ -1,6 +1,10 @@
 from ninja import Router
 from typing import List, Optional
+
 from apps.api.schemas import ExpenseOut, ExpenseIn
+
+from apps.core.models import Category
+
 from services.selectors import get_expenses
 from services.expenses import create_expense, delete_expense, update_expense
 
@@ -41,7 +45,7 @@ async def create_expense_endpoint(request, payload: ExpenseIn):
     Espera un JSON con amount, description y category_id
     """
     user = request.auth
-    category = Category.objects.aget(id=payload.category_id)
+    category = await Category.objects.aget(id=payload.category_id)
 
     expense = await create_expense(
         user=user,

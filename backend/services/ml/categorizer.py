@@ -363,7 +363,7 @@ class ExpenseCategorizer:
                         category = self._create_user_category(
                             name=category_name,
                             keywords=keywords,
-                            color=DEFAULT_COLORS.get(category_name, "#6B7280"),
+                            color=CATEGORY_COLORS.get(category_name, "#6B7280"),
                         )
 
                         self._keyword_map = None

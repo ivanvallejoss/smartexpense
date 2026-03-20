@@ -54,6 +54,8 @@ def update_expense(user, expense_id: int, amount: float, description: str, categ
 
     if filas_actualizadas == 0:
         raise ObjectDoesNotExist("El gasto no existe o no tienes permisos.")
+    
+    expense = Expense.objects.select_related("category").get(id=expense.id, user=user)
 
     return expense
 
