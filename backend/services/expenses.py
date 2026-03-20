@@ -25,16 +25,18 @@ def create_expense(
     description:str, 
     category=None, 
     date=None, 
-    raw_message=None
+    raw_message=None,
+    status=None
     ):
-    """Helper sincrónico para crear expense con categoría."""
+    """Crear expense con categoría."""
     if not date:
         date = timezone.now()
-    
     # I will keep like this just for now,
     # not sure how to fix this for the web cases.
     if not raw_message:
         raw_message = description
+    if not status:
+        status = Expense.STATUS_CONFIRMED
     
     with transaction.atomic():
         expense = Expense.objects.create(
@@ -43,7 +45,8 @@ def create_expense(
             description=description,
             category=category,
             date=date,
-            raw_message=raw_message
+            raw_message=raw_message,
+            status=status,
         )
     return expense
 

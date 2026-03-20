@@ -8,7 +8,7 @@ from telegram.ext import ContextTypes
 
 from services.expenses import delete_expense, restore_expense
 from services.users import get_user_by_telegram_id
-from .helpers import get_undo_keyboard_markup, get_keyboard_markup
+from .helpers import get_undo_keyboard_markup, get_delete_keyboard_markup
 from apps.bot.utils import format_expense_confirmation
 
 import logging
@@ -61,7 +61,7 @@ async def on_restore_click(update: Update, context: ContextTypes.DEFAULT_TYPE, p
         # Llamamos a nuestro servicio de restauracion
         expense = await restore_expense(user=user, deleted_object_id=deleted_object_id)
 
-        reply_markup = get_keyboard_markup(expense_id=expense.id)
+        reply_markup = get_delete_keyboard_markup(expense_id=expense.id)
         message = format_expense_confirmation(expense)
 
         await query.answer("✅ Gasto restaurado")   

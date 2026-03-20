@@ -16,15 +16,16 @@ from services.ml.categorizer import ExpenseCategorizer
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
 from services.users import get_or_create_user_by_telegram
-from services.selectors import get_expenses, get_month_stats
+from services.selectors import get_expenses, get_month_stats, get_user_categories
 from services.auth import generate_magic_link_token
 
 from apps.core.models import Expense
 from apps.bot.errors import error_parsing_expenses
-from apps.bot.utils import format_expense_confirmation, format_stats_message, format_expense_list
+from apps.bot.utils import format_expense_confirmation, format_stats_message, format_expense_list, format_expense_needs_confirmation, format_expense_pending
 
-from .helpers import get_keyboard_markup
+from .helpers import get_delete_keyboard_markup, get_correction_keyboard_markup, get_category_selection_keyboard_markup
 from django.conf import settings
+
 
 
 logger = logging.getLogger(__name__)
@@ -142,44 +143,70 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Handler para mensajes normales (no comandos).
-    Parsea el mensaje con auto-categorización como expense, lo guarda y envía confirmación.
+    Handler para mensajes normales.
+    Tres caminos según el nivel de confianza del categorizador:
+    >= 0.8 → auto-categoriza, confirma al usuario (comportamiento actual)
+    >= 0.5 → guarda con categoría sugerida, pide confirmación
+    <  0.5 → guarda como pendiente, pide al usuario que elija categoría
     """
-
     telegram_user = update.effective_user
     message_text = update.message.text
 
     try:
-        # Getting the user
         user, _ = await get_or_create_user_by_telegram(telegram_user)
 
-        # Parsear mensaje con ExpenseParser (sync operation)
         parser = ExpenseParser()
         message_parsed = parser.parse(message_text)
 
-        # Throw Error if parsing fails 
         if not message_parsed["success"]:
             await error_parsing_expenses(update, context)
             return
 
-        # ML => Category Suggestion related 
         suggestion = await get_category_suggestion(user, message_parsed["description"])
-        auto_categorized = await is_autocategorized(suggestion, user)
 
-        expense = await create_expense(
-            user=user,
-            amount=message_parsed["amount"],
-            description=message_parsed["description"],
-            category=suggestion.category,
-        )
+        # --- CAMINO 1: Alta confianza → auto-categoriza ---
+        if suggestion.confidence >= 0.8:
+            expense = await create_expense(
+                user=user,
+                amount=message_parsed["amount"],
+                description=message_parsed["description"],
+                category=suggestion.category,
+            )
+            confirmation = format_expense_confirmation(expense, auto_categorized=True)
+            reply_markup = get_delete_keyboard_markup(expense_id=expense.id)
+            await update.message.reply_text(confirmation, reply_markup=reply_markup)
 
-        # Format confirmation message
-        confirmation = format_expense_confirmation(expense, auto_categorized=auto_categorized)
-        
-        # Get the MarkUps for the inline buttons
-        reply_markup = get_keyboard_markup(expense_id=expense.id)
-        
-        await update.message.reply_text(confirmation, reply_markup=reply_markup)
+        # --- CAMINO 2: Confianza media → guarda y pide confirmación ---
+        elif suggestion.confidence >= 0.5:
+            expense = await create_expense(
+                user=user,
+                amount=message_parsed["amount"],
+                description=message_parsed["description"],
+                category=suggestion.category,
+            )
+            message = format_expense_needs_confirmation(
+                expense,
+                suggested_category_name=suggestion.category.name if suggestion.category else "Sin categoría"
+            )
+            reply_markup = get_correction_keyboard_markup(expense_id=expense.id)
+            await update.message.reply_text(message, reply_markup=reply_markup)
+
+        # --- CAMINO 3: Confianza baja → guarda pendiente, pide categoría ---
+        else:
+            expense = await create_expense(
+                user=user,
+                amount=message_parsed["amount"],
+                description=message_parsed["description"],
+                category=None,
+                status=Expense.STATUS_PENDING,
+            )
+            categories = await get_user_categories(user)
+            message = format_expense_pending(expense)
+            reply_markup = get_category_selection_keyboard_markup(
+                expense_id=expense.id,
+                categories=categories
+            )
+            await update.message.reply_text(message, reply_markup=reply_markup)
 
     except Exception as e:
         logger.error(
@@ -191,7 +218,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             },
             exc_info=True,
         )
-        await update.message.reply_text("Ocurrió un error al guardar tu gasto. " "Por favor, intentá de nuevo.")
+        await update.message.reply_text(
+            "Ocurrió un error al guardar tu gasto. Por favor, intentá de nuevo."
+        )
 
 
 
