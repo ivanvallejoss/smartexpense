@@ -45,7 +45,9 @@ async def create_expense_endpoint(request, payload: ExpenseIn):
     Espera un JSON con amount, description y category_id
     """
     user = request.auth
-    category = await Category.objects.aget(id=payload.category_id)
+    category = await Category.objects.aget(
+        Q(id=category_id, user=user) | Q(id=category_id, is_default=True)
+    )
 
     expense = await create_expense(
         user=user,
