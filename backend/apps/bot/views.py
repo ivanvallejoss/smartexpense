@@ -26,6 +26,11 @@ async def get_redis_pool():
 @csrf_exempt
 @require_POST
 async def webhook(request):
+
+    secret = settings.TELEGRAM_WEBHOOK_TOKEN
+    if request.headers.get("X-Telegram-Bot-Api-Secret-Token") != secret:
+        return HttpResponse("Forbidden", status=403)
+    
     try:
         json_data = request.body.decode('UTF-8')
         payload = json.loads(json_data)

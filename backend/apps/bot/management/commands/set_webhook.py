@@ -18,7 +18,10 @@ class Command(BaseCommand):
         telegram_token = settings.TELEGRAM_TOKEN
         api_url = f"https://api.telegram.org/bot{telegram_token}/setWebhook"
         
-        data = urllib.parse.urlencode({'url': webhook_path}).encode('utf-8')
+        data = urllib.parse.urlencode({
+            'url': webhook_path,
+            'secret_token': settings.TELEGRAM_WEBHOOK_TOKEN
+            }).encode('utf-8')
         req = urllib.request.Request(api_url, data=data)
 
         try:
