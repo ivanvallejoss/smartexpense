@@ -205,3 +205,42 @@ def get_category_emoji(category_name: str | None, category_color: str | None) ->
         return HEX_TO_EMOJI[category_color]
     
     return DEFAULT_EMOJI
+
+
+def format_expense_pending(expense) -> str:
+    """
+    Mensaje para gastos con confianza baja.
+    El gasto está guardado pero pendiente de categorización.
+    """
+    date_str = expense.date.astimezone(
+        ZoneInfo("America/Argentina/Buenos_Aires")
+    ).strftime("%d %b %Y, %H:%M")
+
+    message = (
+        "💾 Gasto guardado — categoría pendiente\n\n"
+        f"💵 Monto: {format_amount(expense.amount)}\n"
+        f"📝 Descripción: {expense.description}\n"
+        f"📅 {date_str}\n\n"
+        "¿A qué categoría pertenece este gasto?"
+    )
+    return message
+
+
+def format_expense_needs_confirmation(expense, suggested_category_name: str) -> str:
+    """
+    Mensaje para gastos con confianza media.
+    El gasto está guardado con la categoría sugerida, pero se ofrece corrección.
+    """
+    date_str = expense.date.astimezone(
+        ZoneInfo("America/Argentina/Buenos_Aires")
+    ).strftime("%d %b %Y, %H:%M")
+
+    message = (
+        "✅ Guardado correctamente\n\n"
+        f"💵 Monto: {format_amount(expense.amount)}\n"
+        f"📝 Descripción: {expense.description}\n"
+        f"📂 Categoría sugerida: {suggested_category_name}\n"
+        f"📅 {date_str}\n\n"
+        "¿La categoría es correcta?"
+    )
+    return message

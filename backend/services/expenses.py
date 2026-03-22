@@ -6,6 +6,8 @@ Logic that creates or deletes expenses
 from apps.core.models import Expense, Category, DeletedObject
 from .selectors import get_category_by_id
 
+from services.ml.categorizer import ExpenseCategorizer
+
 from asgiref.sync import sync_to_async
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -17,15 +19,24 @@ from decimal import Decimal
 from typing import Optional
 
 @sync_to_async
-def create_expense(user, amount:float, description:str, category=None, date=None, raw_message=None):
-    """Helper sincrónico para crear expense con categoría."""
+def create_expense(
+    user, 
+    amount:float, 
+    description:str, 
+    category=None, 
+    date=None, 
+    raw_message=None,
+    status=None
+    ):
+    """Crear expense con categoría."""
     if not date:
         date = timezone.now()
-    
     # I will keep like this just for now,
     # not sure how to fix this for the web cases.
     if not raw_message:
         raw_message = description
+    if not status:
+        status = Expense.STATUS_CONFIRMED
     
     with transaction.atomic():
         expense = Expense.objects.create(
@@ -34,26 +45,43 @@ def create_expense(user, amount:float, description:str, category=None, date=None
             description=description,
             category=category,
             date=date,
-            raw_message=raw_message
+            raw_message=raw_message,
+            status=status,
         )
     return expense
 
 
 
 @sync_to_async
-def update_expense(user, expense_id: int, amount: float, description: str, category=None):
+def update_expense(
+    user,
+    expense, 
+    amount: float, 
+    description: str, 
+    category=None
+    ):
     """
-    Actualiza un gasto asegurado que le pertenezca al usuario.
+    Actualiza los gastos del usuario.
+    Si existe previous_category significa una correcion de categoria y se debe registrar en el feedback del ML.
     """
-    
-    filas_actualizadas = Expense.objects.filter(id=expense_id, user=user).update(
-        amount=amount,
-        description=description,
-        category=category
-    )
+    with transaction.atomic():    
+        previous_category = expense.category
+        
+        expense.amount = amount
+        expense.description = description
+        expense.category = category
+        # realizamos la actualizacion solo en las columnas necesarias
+        expense.save(update_fields=['amount', 'description', 'category', 'updated_at'])
 
-    if filas_actualizadas == 0:
-        raise ObjectDoesNotExist("El gasto no existe o no tienes permisos.")
+        # Reportamos a ML si nueva_categoria != previous_categoria para alimentarlo
+        if previous_category != category:
+            categorizer = ExpenseCategorizer(user)
+            categorizer.record_feedback(
+                expense=expense,
+                suggested_category=previous_category,
+                accepted=False,
+                final_category=category,
+            )
 
     return expense
 

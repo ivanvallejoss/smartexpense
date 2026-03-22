@@ -1,88 +1,86 @@
 """
 Helper functions for machine learning.
 """
-
-from apps.core.models import Expense
-from .categorizer import ExpenseCategorizer
 from asgiref.sync import sync_to_async
+from apps.core.models import Category
+from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 @sync_to_async
-def record_categorization_feedback(expense, suggested_category, accepted):
-    """Helper sincrónico para guardar feedback de categorización."""
+def get_category_suggestion(user, description):
+    """
+    Obtiene sugerencia de categoría para una descripción.
+    Si la sugerencia implica crear una categoría nueva, la crea aquí.
+    Este es el único lugar donde esa decisión se toma.
+    """
+    categorizer = ExpenseCategorizer(user)
+    suggestion = categorizer.suggest(description)
 
+    # Si el categorizador sugiere un nombre pero no tiene objeto Category,
+    # es porque la categoría no existe aún para este usuario.
+    # La creamos aquí, una sola vez, explícitamente.
+    if suggestion.category is None and suggestion.suggested_category_name:
+        suggestion.category = create_category_for_user(
+            user=user,
+            name=suggestion.suggested_category_name
+        )
+
+    logger.info(
+        "Category suggestion",
+        extra={
+            "user_id": user.id,
+            "category": suggestion.category.name if suggestion.category else None,
+            "confidence": suggestion.confidence,
+            "reason": suggestion.reason,
+            "matched_keyword": suggestion.matched_keyword,
+        }
+    )
+
+    return suggestion
+
+
+@sync_to_async
+def is_autocategorized(suggestion, user) -> bool:
+    """
+    Determina si la confianza es suficiente para auto-categorizar.
+    """
+    if suggestion.confidence >= 0.8:
+        logger.info(
+            "Auto-categorized expense",
+            extra={
+                "user_id": user.id,
+                "category": suggestion.category.name if suggestion.category else None,
+                "confidence": suggestion.confidence,
+            },
+        )
+        return True
+    return False
+
+
+@sync_to_async
+def record_categorization_feedback(expense, suggested_category, accepted: bool, final_category=None):
+    """
+    Registra feedback de categorización para aprendizaje futuro.
+    Debe llamarse en toda corrección de categoría, desde cualquier superficie.
+    """
     categorizer = ExpenseCategorizer(expense.user)
     categorizer.record_feedback(
         expense=expense,
         suggested_category=suggested_category,
         accepted=accepted,
-        final_category=suggested_category if accepted else None,
+        final_category=final_category if not accepted else suggested_category,
     )
 
-
-@sync_to_async
-def get_category_suggestion(user, description):
-    """Helper sincrónico para obtener sugerencia de categoría."""
-
-    categorizer = ExpenseCategorizer(user)
-
-    # # DEBUG: Ver qué categorías tiene el usuario
-    # categories = categorizer._get_user_categories()
-    # print(f"[DEBUG] Usuario {user.username} tiene {len(categories)} categorías")
-    # for cat in categories:
-    #     print(f"  - {cat.name}: keywords={cat.keywords}")
-
-    # # DEBUG: Ver keyword map
-    # keyword_map = categorizer._get_keyword_map()
-    # print(f"[DEBUG] Keyword map tiene {len(keyword_map)} keywords")
-    # print(f"[DEBUG] Primeros 10 keywords: {list(keyword_map.keys())}")
-
-    suggestion = categorizer.suggest(description)
-
-    # DEBUG: Ver resultado
-    logging.info(
-        "[DEBUG] Sugerencia de categorias",
+    logger.info(
+        "Categorization feedback recorded",
         extra={
-            "category": suggestion.category.name if suggestion.category else None,
-            "confidence": suggestion.confidence,
-            "reason": suggestion.reason,
-            "matched_keyword": suggestion.matched_keyword
+            "expense_id": expense.id,
+            "user_id": expense.user.id,
+            "accepted": accepted,
+            "suggested": suggested_category.name if suggested_category else None,
+            "final": final_category.name if final_category else None,
         }
     )
-    
-    return suggestion
-
-@sync_to_async
-def is_autocategorized(suggestion, user):
-    # Determinar categoría basándose en confidence
-    auto_categorized = False
-
-    if suggestion.confidence >= 0.8:
-        # Alta confianza: auto-categorizar sin preguntar
-        category = suggestion.category
-        auto_categorized = True
-        logger.info(
-            "Auto-categorized expense",
-            extra={
-                "user_id": user.id,
-                "category": category.name,
-                "confidence": suggestion.confidence,
-                "reason": suggestion.reason,
-            },
-        )
-    # else..
-    # Still working on this logic
-
-    # TODO: Guardar feedback si se auto-categorizó
-    # TODO: Necesito obtener tmb la expense para guardar el feedback
-    # if auto_categorized:
-    #     await record_categorization_feedback(
-    #         expense=expense,
-    #         suggested_category=suggestion.category,
-    #         accepted=True,
-    #     )
-    
-    return auto_categorized
