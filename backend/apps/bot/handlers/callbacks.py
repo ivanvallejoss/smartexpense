@@ -106,7 +106,7 @@ async def on_cat_select_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         # Actualizamos categoría y confirmamos el gasto si estaba pendiente
         expense.category = new_category
         expense.status = Expense.STATUS_CONFIRMED
-        await expense.asave()
+        await expense.asave(update_fields=['category', 'status', 'updated_at'])
 
         # Registramos el feedback solo si hubo cambio real
         if previous_category != new_category:

@@ -1,9 +1,10 @@
 from ninja import Router
 from typing import List, Optional
 
-from apps.api.schemas import ExpenseOut, ExpenseIn
+from django.db.models import Q
 
-from apps.core.models import Category
+from apps.core.models import Expense, Category
+from apps.api.schemas import ExpenseOut, ExpenseIn
 
 from services.selectors import get_expenses
 from services.expenses import create_expense, delete_expense, update_expense
@@ -65,14 +66,22 @@ async def update_expense_endpoint(request, expense_id: int, payload: ExpenseIn):
     La URL debe contener el ID del gasto (ej: /api/expenses/6)
     """
     user = request.auth
-    category = Category.objects.aget(id=payload.category_id)
+
+    # Enviamos la expense actual completa al servcicio update
+    current_expense = await Expense.objects.select_related('category').aget(
+        id=expense_id,
+        user=user
+    )
+    new_category = await Category.objects.aget(
+        Q(id=payload.category_id, user=user) | Q(id=payload.category_id, is_default=True)
+    )
 
     expense = await update_expense(
         user=user,
-        expense_id=expense_id,
+        expense=current_expense,
         amount=payload.amount,
         description=payload.description,
-        category=category
+        category=new_category
     )
     return expense
 

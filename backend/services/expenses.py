@@ -54,40 +54,33 @@ def create_expense(
 
 @sync_to_async
 def update_expense(
-    user, 
-    expense_id: int, 
+    expense, 
     amount: float, 
     description: str, 
-    category=None,
-    previous_category=None
+    category=None
     ):
     """
     Actualiza los gastos del usuario.
     Si existe previous_category significa una correcion de categoria y se debe registrar en el feedback del ML.
     """
-    try:
-        expense = Expense.objects.select_related('category').get(
-            id=expense_id,
-            user=user
-        )
-    except Expense.DoesNotExist:
-        raise ObjectDoesNotExist("El gasto no existe o no tienes permisos.")
+    with transaction.atomic():    
+        previous_category = expense.category
+        
+        expense.amount = amount
+        expense.description = description
+        expense.category = category
+        # realizamos la actualizacion solo en las columnas necesarias
+        expense.save(update_fields=['amount', 'description', 'category', 'updated_at'])
 
-    expense.amount = amount
-    expense.description = description
-    expense.category = category
-    expense.save()
-
-    # Si nos pasaron la categoría anterior, es una corrección
-    # El feedback lo registramos sincrónicamente porque ya estamos en un contexto sync
-    if previous_category is not None:
-        categorizer = ExpenseCategorizer(user)
-        categorizer.record_feedback(
-            expense=expense,
-            suggested_category=previous_category,
-            accepted=False,
-            final_category=category,
-        )
+        # Reportamos a ML si nueva_categoria != previous_categoria para alimentarlo
+        if previous_category != category:
+            categorizer = ExpenseCategorizer(user)
+            categorizer.record_feedback(
+                expense=expense,
+                suggested_category=previous_category,
+                accepted=False,
+                final_category=category,
+            )
 
     return expense
 
