@@ -189,9 +189,6 @@ async def handle_new_category_input(
                 final_category=new_category,
             )
 
-        # Limpiamos el estado
-        await clear_pending_category_state(update.effective_user.id)
-
         reply_markup = get_delete_keyboard_markup(expense_id=expense.id)
         await update.message.reply_text(
             format_expense_confirmation(expense, auto_categorized=False),
@@ -199,7 +196,6 @@ async def handle_new_category_input(
         )
 
     except Expense.DoesNotExist:
-        await clear_pending_category_state(update.effective_user.id)
         await update.message.reply_text("⚠️ No se encontró el gasto. El estado fue limpiado.")
 
 
@@ -218,8 +214,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     try:
         user, _ = await get_or_create_user_by_telegram(telegram_user)
 
-        # Verificamos si el usuario está en medio de crear una categoría
-        pending_expense_id = await get_pending_category_state(telegram_user.id)
+        try:
+            # Verificamos si el usuario está en medio de crear una categoría
+            pending_expense_id = await get_pending_category_state(telegram_user.id)
+        except Exception as e:
+            logger.warning(f"Redis unavailable, skipping state check {e}")
+            pending_expense_id = None
+            
         if pending_expense_id:
             await handle_new_category_input(update, context, user, pending_expense_id)
             return

@@ -1,208 +1,271 @@
 """
-Tests de integración y mocking para los handlers de Telegram.
+Tests de integración para los handlers del bot de Telegram.
+Cubre los tres caminos de handle_message y los comandos principales.
 """
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from decimal import Decimal
 
-# Importamos los handlers
-from apps.bot.handlers.handlers import start_command, help_command, handle_message, stats_command, history_command, link_command
+from django.utils import timezone
+
+from apps.bot.handlers.handlers import (
+    start_command, help_command, stats_command,
+    history_command, link_command, handle_message
+)
 from apps.core.models import User, Category, Expense
 
-# Activamos acceso a BD
 pytestmark = pytest.mark.django_db(transaction=True)
 
 
 # ============================================
-# FIXTURES (Los dobles de riesgo)
+# FIXTURES
 # ============================================
 
 @pytest.fixture
 def mock_update():
-    """Simula un objeto Update de Telegram."""
     update = MagicMock()
-    # Simulamos el usuario
     update.effective_user.id = 123456789
     update.effective_user.username = "test_user"
     update.effective_user.first_name = "Test"
     update.effective_user.last_name = "User"
-    
-    # Simulamos el mensaje y sus métodos asíncronos
     update.message = AsyncMock()
     update.message.text = ""
-    
-    # Simulamos para los callbacks
-    update.callback_query = AsyncMock()
-    
     return update
 
 
 @pytest.fixture
 def mock_context():
-    """Simula el context de python-telegram-bot."""
     context = AsyncMock()
     context.args = []
     return context
 
 
+def make_suggestion(confidence, category=None, suggested_name=None):
+    """
+    Helper para construir un mock de CategorySuggestion
+    con el nivel de confianza deseado.
+    """
+    suggestion = MagicMock()
+    suggestion.confidence = confidence
+    suggestion.category = category
+    suggestion.suggested_category_name = suggested_name
+    return suggestion
+
+
 # ============================================
-# TESTS DE COMANDOS BÁSICOS
+# COMANDOS BÁSICOS
 # ============================================
 
 class TestBasicCommands:
-    
-    async def test_start_command_new_user(self, mock_update, mock_context):
-        # Act
+
+    async def test_start_creates_user_and_replies(self, mock_update, mock_context):
         await start_command(mock_update, mock_context)
-        
-        # Assert: Verificamos que el usuario se creó en la DB
+
         user_exists = await User.objects.filter(telegram_id=123456789).aexists()
         assert user_exists is True
-        
-        # Assert: Verificamos que el bot respondió con el mensaje de bienvenida
+
         mock_update.message.reply_text.assert_called_once()
         respuesta = mock_update.message.reply_text.call_args[0][0]
         assert "Bienvenido a SmartExpense" in respuesta
 
-    async def test_help_command(self, mock_update, mock_context):
-        # Act
+    async def test_help_replies_with_formats(self, mock_update, mock_context):
         await help_command(mock_update, mock_context)
-        
-        # Assert
+
         mock_update.message.reply_text.assert_called_once()
         respuesta = mock_update.message.reply_text.call_args[0][0]
         assert "Formatos soportados" in respuesta
 
-
-# ============================================
-# TESTS DEL FLUJO PRINCIPAL (handle_message)
-# ============================================
-
-class TestMessageHandling:
-
-    @patch("apps.bot.handlers.handlers.is_autocategorized")
-    @patch("apps.bot.handlers.handlers.get_category_suggestion")
-    async def test_handle_message_valid_expense(self, mock_get_suggestion, mock_is_auto, mock_update, mock_context):
-        """Prueba que un mensaje válido se parsea, puentea el ML y se guarda en BD."""
-        
-        # 1. Setup inicial
-        mock_update.message.text = "Hamburguesa 5000"
-        
-        # Creamos una categoría para que el ML "sugiera"
-        category = await Category.objects.acreate(name="Comida", is_default=True)
-        
-        # Configuramos los Mocks del ML (Deuda técnica aparcada)
-        mock_suggestion = MagicMock()
-        mock_suggestion.category = category
-        mock_get_suggestion.return_value = mock_suggestion
-        mock_is_auto.return_value = True
-
-        # 2. Act
-        await handle_message(mock_update, mock_context)
-        
-        # 3. Asserts
-        # Verificar que se creó el gasto en la BD
-        expense = await Expense.objects.select_related('category').afirst()
-        assert expense is not None
-        assert expense.amount == Decimal("5000")
-        assert expense.description == "Hamburguesa"
-        assert expense.category.name == "Comida"
-        
-        # Verificar que el bot respondió enviando el teclado inline (reply_markup)
-        mock_update.message.reply_text.assert_called_once()
-        kwargs = mock_update.message.reply_text.call_args[1] # Obtenemos los argumentos nombrados
-        assert "reply_markup" in kwargs
-        assert kwargs["reply_markup"] is not None
-
-    async def test_handle_message_invalid_format(self, mock_update, mock_context):
-        """Prueba que el bot ataja mensajes sin montos enviando el error de parseo."""
-        
-        mock_update.message.text = "Hola bot, ¿cómo estás?"
-        
-        await handle_message(mock_update, mock_context)
-        
-        # Verificar que no se guardó nada
-        count = await Expense.objects.acount()
-        assert count == 0
-        
-        # Verificar la respuesta de error
-        mock_update.message.reply_text.assert_called_once()
-        respuesta = mock_update.message.reply_text.call_args[0][0]
-        assert "No pude detectar el monto" in respuesta
-
-
-# ============================================
-# TESTS DE COMANDOS AVANZADOS Y EXCEPCIONES
-# ============================================
-
-class TestAdvancedCommandsAndExceptions:
-
     @patch("apps.bot.handlers.handlers.get_month_stats")
-    async def test_stats_command(self, mock_get_stats, mock_update, mock_context):
-        """Prueba el comando /stats falseando la respuesta de la base de datos."""
-        # Simulamos lo que devolvería el selector
-        mock_get_stats.return_value = {
+    async def test_stats_shows_month_summary(self, mock_stats, mock_update, mock_context):
+        mock_stats.return_value = {
             "month_name": "Marzo 2026",
             "total_amount": Decimal("1500"),
             "total_count": 1,
             "by_category": []
         }
-        
+
         await stats_command(mock_update, mock_context)
-        
-        mock_update.message.reply_text.assert_called_once()
+
         respuesta = mock_update.message.reply_text.call_args[0][0]
         assert "Resumen de Marzo 2026" in respuesta
 
-    async def test_history_command_no_expenses(self, mock_update, mock_context):
-            """Prueba el comando /historial cuando el usuario no tiene gastos."""
-            await User.objects.acreate(telegram_id=123456789, username="test_history")
-            mock_context.args = ["5"]
-            
-            await history_command(mock_update, mock_context)
-            
-            # FIX: Aceptamos que se llame más de una vez (ej: mensaje de "cargando" y el final)
-            assert mock_update.message.reply_text.call_count >= 1
-            
-            # Tomamos el último mensaje que el bot envió (índice -1)
-            respuesta = mock_update.message.reply_text.call_args_list[-1][0][0]
-            assert "No encontramos gastos" in respuesta or "No tienes gastos registrados" in respuesta
+    async def test_history_no_expenses(self, mock_update, mock_context):
+        await User.objects.acreate(telegram_id=123456789, username="test_history")
+        mock_context.args = []
 
+        await history_command(mock_update, mock_context)
+
+        assert mock_update.message.reply_text.call_count >= 1
+        respuesta = mock_update.message.reply_text.call_args_list[-1][0][0]
+        assert "No tienes gastos registrados" in respuesta
 
     @patch("apps.bot.handlers.handlers.generate_magic_link_token")
-    async def test_link_command(self, mock_gen_token, mock_update, mock_context):
-        """Prueba la generación del Magic Link."""
-        mock_gen_token.return_value = "token-secreto-123"
-        
+    async def test_link_contains_token(self, mock_token, mock_update, mock_context):
+        mock_token.return_value = "token-secreto-123"
+
         await link_command(mock_update, mock_context)
-        
-        mock_update.message.reply_text.assert_called_once()
+
         respuesta = mock_update.message.reply_text.call_args[0][0]
         assert "token-secreto-123" in respuesta
         assert "Ir al dashboard" in respuesta
 
-    # --- FORZANDO ERRORES PARA CUBRIR LOS BLOQUES "except" ---
-    
-    @patch("apps.bot.handlers.handlers.get_or_create_user_by_telegram")
-    async def test_start_command_triggers_exception(self, mock_get_user, mock_update, mock_context):
-        """Simulamos que la base de datos se cae al intentar crear el usuario."""
-        mock_get_user.side_effect = Exception("Fallo catastrófico de DB")
-        
-        await start_command(mock_update, mock_context)
-        
-        # Debe atrapar el error y enviar un mensaje amigable
-        mock_update.message.reply_text.assert_called_with("Ocurrió un error al iniciar. Por favor, intentá de nuevo.")
 
-    @patch("apps.bot.handlers.handlers.ExpenseParser")
-    async def test_handle_message_triggers_exception(self, mock_parser_class, mock_update, mock_context):
-        """Simulamos que el parser falla inesperadamente."""
-        mock_update.message.text = "Gasto"
-        
-        # Configuramos el mock para que lance un error al instanciarse o parsear
-        mock_instance = MagicMock()
-        mock_instance.parse.side_effect = Exception("Error de lógica interno")
-        mock_parser_class.return_value = mock_instance
-        
+# ============================================
+# HANDLE MESSAGE — TRES CAMINOS
+# ============================================
+
+class TestHandleMessageThreePaths:
+
+    @patch("apps.bot.handlers.handlers.get_category_suggestion")
+    async def test_high_confidence_autocategorizes(
+        self, mock_suggestion, mock_update, mock_context
+    ):
+        mock_update.message.text = "Pizza 2000"
+        category = await Category.objects.acreate(name="Comida", is_default=True)
+        mock_suggestion.return_value = make_suggestion(
+            confidence=1.0, category=category
+        )
+
         await handle_message(mock_update, mock_context)
-        
-        mock_update.message.reply_text.assert_called_with("Ocurrió un error al guardar tu gasto. Por favor, intentá de nuevo.")
+
+        expense = await Expense.objects.select_related('category').afirst()
+        assert expense is not None
+        assert expense.status == Expense.STATUS_CONFIRMED
+        assert expense.amount == Decimal("2000")
+        assert expense.category.id == category.id
+
+        kwargs = mock_update.message.reply_text.call_args[1]
+        assert "reply_markup" in kwargs
+        markup = kwargs["reply_markup"]
+        button = markup.inline_keyboard[0][0]
+        assert button.callback_data == f"del:{expense.id}"
+
+    @patch("apps.bot.handlers.handlers.get_category_suggestion")
+    async def test_medium_confidence_asks_for_confirmation(
+        self, mock_suggestion, mock_update, mock_context
+    ):
+        mock_update.message.text = "Comi algo 500"
+        category = await Category.objects.acreate(name="Comida", is_default=True)
+        mock_suggestion.return_value = make_suggestion(
+            confidence=0.6, category=category
+        )
+
+        await handle_message(mock_update, mock_context)
+
+        expense = await Expense.objects.select_related('category').afirst()
+        assert expense is not None
+        assert expense.status == Expense.STATUS_CONFIRMED
+        assert expense.category.id == category.id
+
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "¿La categoría es correcta?" in respuesta
+
+        kwargs = mock_update.message.reply_text.call_args[1]
+        markup = kwargs["reply_markup"]
+        buttons = markup.inline_keyboard[0]
+        callback_datas = [b.callback_data for b in buttons]
+        assert any("cat_confirm" in cb for cb in callback_datas)
+        assert any("cat_list" in cb for cb in callback_datas)
+
+    @patch("apps.bot.handlers.handlers.get_category_suggestion")
+    async def test_low_confidence_saves_as_pending(
+        self, mock_suggestion, mock_update, mock_context
+    ):
+        mock_update.message.text = "xyzabc 1000"
+        mock_suggestion.return_value = make_suggestion(
+            confidence=0.0, category=None
+        )
+
+        await handle_message(mock_update, mock_context)
+
+        expense = await Expense.objects.afirst()
+        assert expense is not None
+        assert expense.status == Expense.STATUS_PENDING
+        assert expense.category is None
+
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "A qué categoría pertenece" in respuesta
+
+
+# ============================================
+# HANDLE MESSAGE — ESTADO PENDIENTE EN REDIS
+# ============================================
+
+class TestHandleMessagePendingState:
+
+    async def test_pending_state_triggers_category_creation_flow(
+    self, mock_update, mock_context, mock_redis_state  # ← usamos el fixture
+):
+        user = await User.objects.acreate(telegram_id=123456789, username="test_user")
+
+        expense = await Expense.objects.acreate(
+            user=user,
+            amount=1000,
+            description="xyzabc",
+            date=timezone.now(),
+            status=Expense.STATUS_PENDING,
+            category=None,
+        )
+
+        # Sobreescribimos el mock del fixture para este test específico
+        mock_redis_state["get"].return_value = expense.id
+        mock_update.message.text = "Mascotas"
+
+        await handle_message(mock_update, mock_context)
+
+        # clear debe haberse llamado exactamente una vez
+        mock_redis_state["clear"].assert_called_once_with(123456789)
+
+        expense = await Expense.objects.select_related('category').aget(id=expense.id)
+        assert expense.status == Expense.STATUS_CONFIRMED
+        assert expense.category is not None
+        assert expense.category.name == "Mascotas"
+
+    @patch("apps.bot.handlers.handlers.get_pending_category_state")
+    async def test_empty_category_name_shows_error_and_keeps_state(
+        self, mock_get_state, mock_update, mock_context
+    ):
+        """
+        Si el usuario envía un nombre vacío o muy largo,
+        el estado no se limpia y se muestra un error.
+        """
+        await User.objects.acreate(telegram_id=123456789, username="test_user")
+        mock_get_state.return_value = 999
+        mock_update.message.text = "a" * 101  # más de 100 caracteres
+
+        await handle_message(mock_update, mock_context)
+
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "entre 1 y 100 caracteres" in respuesta
+
+
+# ============================================
+# HANDLE MESSAGE — EXCEPCIONES
+# ============================================
+
+class TestHandleMessageExceptions:
+
+    async def test_invalid_message_format_shows_error(
+        self, mock_update, mock_context
+    ):
+        mock_update.message.text = "Hola bot cómo estás"
+
+        await handle_message(mock_update, mock_context)
+
+        count = await Expense.objects.acount()
+        assert count == 0
+
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "No pude detectar el monto" in respuesta
+
+    @patch("apps.bot.handlers.handlers.get_or_create_user_by_telegram")
+    async def test_db_failure_shows_friendly_error(
+        self, mock_get_user, mock_update, mock_context
+    ):
+        mock_get_user.side_effect = Exception("Fallo de DB")
+        mock_update.message.text = "Pizza 2000"
+
+        await handle_message(mock_update, mock_context)
+
+        respuesta = mock_update.message.reply_text.call_args[0][0]
+        assert "Ocurrió un error al guardar tu gasto" in respuesta

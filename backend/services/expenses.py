@@ -54,6 +54,7 @@ def create_expense(
 
 @sync_to_async
 def update_expense(
+    user,
     expense, 
     amount: float, 
     description: str, 

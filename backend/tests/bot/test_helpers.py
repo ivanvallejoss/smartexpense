@@ -1,11 +1,11 @@
 """
 Tests para los helpers del bot de Telegram.
 """
-from apps.bot.handlers.helpers import get_keyboard_markup
+from apps.bot.handlers.helpers import get_delete_keyboard_markup
 
 def test_get_keyboard_markup_creates_valid_button():
     # Act
-    markup = get_keyboard_markup(expense_id=55)
+    markup = get_delete_keyboard_markup(expense_id=55)
     
     # Assert
     # inline_keyboard es una lista de listas (filas y columnas de botones)
