@@ -2,10 +2,8 @@ import json
 import logging
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST 
 from arq import create_pool
 from arq.connections import RedisSettings
-from telegram import Update
 
 from django.conf import settings
 
