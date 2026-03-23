@@ -6,6 +6,8 @@ Logic to show data related to expenses
 from apps.core.models import Expense, Category
 from django.core.exceptions import ObjectDoesNotExist
 
+from services.constants import SPANISH_MONTHS
+
 from asgiref.sync import sync_to_async
 
 from django.utils import timezone
@@ -67,6 +69,7 @@ def get_single_expense(
             f"The expense ID: {expense_id} does not belong to any of your expenses."
             )
 
+
 @sync_to_async
 def get_balance(user, month: int=None, year: int=None) -> float:
     """
@@ -122,6 +125,7 @@ def get_month_stats(user):
     
     # We use the local month name
     local_month_name = local_now.strftime("%B %Y")
+    local_month_name = f"{SPANISH_MONTHS[local_now.month]} {local_now.year}"
 
     return {
         "total_amount": total_amount, 
