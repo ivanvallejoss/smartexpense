@@ -11,7 +11,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
-from services.ml.helper import is_autocategorized, get_category_suggestion, record_categorization_feedback
+from services.ml.helper import get_category_suggestion, record_categorization_feedback
 from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
