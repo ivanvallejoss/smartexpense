@@ -16,7 +16,7 @@ from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
 from services.users import get_or_create_user_by_telegram
-from services.selectors import get_expenses, get_month_stats, get_user_categories
+from services.selectors import get_expenses, get_month_stats, get_user_categories_or_defaults
 from services.auth import generate_magic_link_token
 
 from apps.core.models import Expense
@@ -271,7 +271,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 category=None,
                 status=Expense.STATUS_PENDING,
             )
-            categories = await get_user_categories(user)
+            categories = await get_user_categories_or_defaults(user)
             message = format_expense_pending(expense)
             reply_markup = get_category_selection_keyboard_markup(
                 expense_id=expense.id,

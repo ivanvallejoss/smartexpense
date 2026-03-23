@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from services.ml.helper import record_categorization_feedback
-from services.selectors import get_user_categories
+from services.selectors import get_user_categories_or_defaults
 from services.expenses import delete_expense, restore_expense
 from services.users import get_user_by_telegram_id
 
@@ -70,7 +70,7 @@ async def on_cat_list_click(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     expense_id = int(payload)
     user = await get_user_by_telegram_id(update.effective_user.id)
 
-    categories = await get_user_categories(user)
+    categories = await get_user_categories_or_defaults(user)
 
     await query.answer()
     await query.edit_message_reply_markup(
