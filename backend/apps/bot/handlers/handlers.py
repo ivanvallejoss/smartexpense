@@ -62,7 +62,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "Comandos disponibles:\n" 
             "/help - Ver esta ayuda\n" 
             "/stats - Resumen del mes\n" 
-            "/historial - Ver ultimos gastos subidos (max. 22)"
+            "/history - Ver ultimos gastos subidos (max. 22)"
         )
 
         await update.message.reply_text(welcome_message)
