@@ -1,4 +1,5 @@
 from apps.core.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 async def get_user_by_telegram_id(telegram_id: int):
     """
@@ -8,7 +9,9 @@ async def get_user_by_telegram_id(telegram_id: int):
     try:
         return await User.objects.aget(telegram_id=telegram_id)
     except User.DoesNotExist:
-        return None
+        raise ObjectDoesNotExist(
+            f"El usuario con id {telegram_id}. no existe"
+        )
 
 
 async def get_or_create_user_by_telegram(telegram_user):

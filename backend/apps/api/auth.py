@@ -12,7 +12,7 @@ class GlobalAuth(HttpBearer):
         try:
             payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
 
-            # Recibimos string y devolvemos convertirlo a entero
+            # Recibimos en STRING (por requerimientos de PyJWT) y lo convertimos a entero.
             telegram_id = int(payload.get("sub"))
 
             user = await get_user_by_telegram_id(telegram_id=telegram_id)
