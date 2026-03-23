@@ -28,11 +28,11 @@ def create_expense(
     raw_message=None,
     status=None
     ):
-    """Crear expense con categoría."""
+    """
+    Create a new Expense for the user.
+    """
     if not date:
         date = timezone.now()
-    # I will keep like this just for now,
-    # not sure how to fix this for the web cases.
     if not raw_message:
         raw_message = description
     if not status:
@@ -61,8 +61,8 @@ def update_expense(
     category=None
     ):
     """
-    Actualiza los gastos del usuario.
-    Si existe previous_category significa una correcion de categoria y se debe registrar en el feedback del ML.
+    Update the user's expense.
+    If previous_category is not None, it means we have to register the change with the ML object.
     """
     with transaction.atomic():    
         previous_category = expense.category
@@ -90,10 +90,11 @@ def update_expense(
 @sync_to_async
 def delete_expense(user, expense_id):
     """
-    Realiza un soft-delete de la expense.
-    Eliminamos la expense de la tabla original y lo mandamos a la papelera (DeletedObject).
+    Soft-delete the expense
+    Sends the expense to DeletedObject (as a JSON) table 
+    and Hard Delete the expense from the original table
     return:
-        object_id -> permite deshacer la eliminacion del objeto
+        object_id -> with this ID we can restore the delete
     """
     with transaction.atomic():
         try:
@@ -111,7 +112,7 @@ def delete_expense(user, expense_id):
             "raw_message": expense.raw_message
         }
 
-        # Creamos el registro en la papeleara usando GenericForeignKey
+        # Creamos el registro en la papelera usando GenericForeignKey
         content_type = ContentType.objects.get_for_model(Expense)
         deleted_obj = DeletedObject.objects.create(
             content_type=content_type,
@@ -129,7 +130,8 @@ def delete_expense(user, expense_id):
 @sync_to_async
 def restore_expense(user, deleted_object_id: int):
     """
-    Restaura un gasto desde la papelera a la tabla original.
+    Restore an expense from being deleted
+    Sends the expense from DeletedObject to the expense table
     """
     with transaction.atomic():
         try:

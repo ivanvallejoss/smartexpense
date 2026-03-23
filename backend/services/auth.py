@@ -9,10 +9,10 @@ def generate_magic_link_token(telegram_id:int) -> str:
     """
     payload = {
         # DEBEMOS CONVERTIRLO A string PARA CUMPLIR CON LAS NUEVAS NORMAS DE PyJWT
-        # sino obtendremos error jwt.InvalidSubjectError: Subject must be a string
+        # sino obtendremos error "jwt.InvalidSubjectError: Subject must be a string"
         'sub': str(telegram_id),
         'iat': datetime.now(timezone.utc), # 'iat' (Issued At)
-        'exp': datetime.now(timezone.utc) + timedelta(minutes=10)
+        'exp': datetime.now(timezone.utc) + timedelta(minutes=15)
     }
     token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm='HS256')
 
