@@ -35,7 +35,7 @@ def auth_headers():
 
 class TestWebhook:
 
-    @patch("apps.bot.views.get_redis_pool")
+    @patch("services.infraestructure.redis_client.get_redis")
     async def test_valid_request_enqueues_job_and_returns_200(
         self, mock_pool, client
     ):

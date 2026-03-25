@@ -3,14 +3,17 @@ import os
 import logging
 import django
 
-# Configuramos el entorno
+# Setting the worker environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-# Importamos la configuracion despues de configurar el entorno
+# After setting the environment we can import the rest
 from django.conf import settings
 from arq.connections import RedisSettings
 from telegram import Update
+
+from services.infraestructure.redis_client import close_all
+
 from apps.bot.setup import build_ptb_application
 
 logger = logging.getLogger(__name__)
@@ -42,7 +45,8 @@ async def shutdown(ctx):
     ptb_app = ctx.get('ptb_app')
     
     if ptb_app:
-        await ctx['ptb_app'].shutdown()
+        await ptb_app.shutdown()
+    await close_all()
 
 
 async def process_telegram_message(ctx, payload):
