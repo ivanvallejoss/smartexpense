@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
-from services.infraestructure.redis_client import get_redis
+from services.infrastructure.redis_client import get_redis
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ async def webhook(request):
     try:
         json_data = request.body.decode('UTF-8')
         payload = json.loads(json_data)
-        
+
         redis = await get_redis("jobs")
         await redis.enqueue_job('process_telegram_message', payload)
 

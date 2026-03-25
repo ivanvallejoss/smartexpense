@@ -6,7 +6,7 @@ import logging
 
 from django.conf import settings
 
-from services.infraestructure.redis_client import get_redis
+from services.infrastructure.redis_client import get_redis
 
 logger = logging.getLogger(__name__)
 

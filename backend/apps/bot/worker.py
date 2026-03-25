@@ -12,7 +12,7 @@ from django.conf import settings
 from arq.connections import RedisSettings
 from telegram import Update
 
-from services.infraestructure.redis_client import close_all
+from services.infrastructure.redis_client import close_all
 
 from apps.bot.setup import build_ptb_application
 
