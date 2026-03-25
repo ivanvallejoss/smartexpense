@@ -1,4 +1,4 @@
-from config import settings
+from django.config import settings
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from .handlers.handlers import start_command, handle_message, help_command, stats_command, history_command, link_command
 from .handlers.callbacks import central_callback_handler
