@@ -289,7 +289,10 @@ class ExpenseCategorizer:
         return feedback
 
     def get_accuracy_stats(self) -> Dict:
-        """Retorna estadísticas de accuracy del categorizador."""
+        """
+        Retorna estadísticas de accuracy del categorizador.
+        Estadisticas generales del usuario y por categoria.
+        """
         feedbacks = CategorySuggestionFeedback.objects.filter(expense__user=self.user)
 
         total = feedbacks.count()
