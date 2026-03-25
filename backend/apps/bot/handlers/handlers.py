@@ -11,7 +11,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 
-from services.ml.helper import is_autocategorized, get_category_suggestion, record_categorization_feedback
+from services.ml.helper import get_category_suggestion, record_categorization_feedback
 from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 from services.parser.expense_parser import ExpenseParser
 from services.expenses import create_expense
@@ -62,7 +62,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "Comandos disponibles:\n" 
             "/help - Ver esta ayuda\n" 
             "/stats - Resumen del mes\n" 
-            "/historial - Ver ultimos gastos subidos (max. 22)"
+            "/history - Ver ultimos gastos subidos (max. 22)"
         )
 
         await update.message.reply_text(welcome_message)

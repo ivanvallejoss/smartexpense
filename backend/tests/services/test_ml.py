@@ -218,3 +218,131 @@ class TestCreateCategoryForUser:
         assert cat1.id == cat2.id
         count = await Category.objects.filter(user=user, name="Comida").acount()
         assert count == 1
+
+
+# ============================================
+# GET_ACCUCACY_STATS FROM USER
+# ============================================
+
+class TestGetAccuracyStats:
+
+    async def test_returns_zero_accuracy_when_no_feedback(self):
+        """
+        Un usuario nuevo sin historial de feedback debe recibir
+        0.0 de accuracy — no un error ni un division by zero.
+        """
+        user = await sync_to_async(UserFactory)()
+
+        categorizer = await sync_to_async(ExpenseCategorizer)(user)
+        stats = await sync_to_async(categorizer.get_accuracy_stats)()
+
+        assert stats["total_suggestions"] == 0
+        assert stats["accepted"] == 0
+        assert stats["rejected"] == 0
+        assert stats["accuracy"] == 0.0
+        assert stats["by_category"] == []
+
+    async def test_calculates_global_accuracy_correctly(self):
+        """
+        2 aceptados de 3 totales → accuracy 0.67.
+        Verificamos el cálculo matemático explícitamente.
+        """
+        user = await sync_to_async(UserFactory)()
+        category = await sync_to_async(CategoryFactory)(
+            name="Comida", user=user, is_default=False
+        )
+
+        # Creamos 3 feedbacks: 2 aceptados, 1 rechazado
+        for accepted in [True, True, False]:
+            expense = await sync_to_async(ExpenseFactory)(
+                user=user, category=category
+            )
+            await sync_to_async(CategorySuggestionFeedback.objects.create)(
+                expense=expense,
+                suggested_category=category,
+                was_accepted=accepted,
+                final_category=category,
+            )
+
+        categorizer = await sync_to_async(ExpenseCategorizer)(user)
+        stats = await sync_to_async(categorizer.get_accuracy_stats)()
+
+        assert stats["total_suggestions"] == 3
+        assert stats["accepted"] == 2
+        assert stats["rejected"] == 1
+        assert stats["accuracy"] == 0.67
+
+    async def test_rejected_is_always_total_minus_accepted(self):
+        """
+        Invariante: rejected = total - accepted.
+        Si este invariante falla, las estadísticas son inconsistentes.
+        """
+        user = await sync_to_async(UserFactory)()
+        category = await sync_to_async(CategoryFactory)(
+            name="Transporte", user=user, is_default=False
+        )
+
+        for accepted in [True, False, False, True]:
+            expense = await sync_to_async(ExpenseFactory)(
+                user=user, category=category
+            )
+            await sync_to_async(CategorySuggestionFeedback.objects.create)(
+                expense=expense,
+                suggested_category=category,
+                was_accepted=accepted,
+                final_category=category,
+            )
+
+        categorizer = await sync_to_async(ExpenseCategorizer)(user)
+        stats = await sync_to_async(categorizer.get_accuracy_stats)()
+
+        assert stats["rejected"] == stats["total_suggestions"] - stats["accepted"]
+
+    async def test_by_category_reflects_per_category_stats(self):
+        """
+        Las estadísticas por categoría son independientes entre sí.
+        Comida con 1/1 y Transporte con 0/1 deben aparecer separadas.
+        """
+        user = await sync_to_async(UserFactory)()
+        cat_comida = await sync_to_async(CategoryFactory)(
+            name="Comida", user=user, is_default=False
+        )
+        cat_transporte = await sync_to_async(CategoryFactory)(
+            name="Transporte", user=user, is_default=False
+        )
+
+        # Comida: 1 aceptado → accuracy 1.0
+        expense_a = await sync_to_async(ExpenseFactory)(
+            user=user, category=cat_comida
+        )
+        await sync_to_async(CategorySuggestionFeedback.objects.create)(
+            expense=expense_a,
+            suggested_category=cat_comida,
+            was_accepted=True,
+            final_category=cat_comida,
+        )
+
+        # Transporte: 1 rechazado → accuracy 0.0
+        expense_b = await sync_to_async(ExpenseFactory)(
+            user=user, category=cat_transporte
+        )
+        await sync_to_async(CategorySuggestionFeedback.objects.create)(
+            expense=expense_b,
+            suggested_category=cat_transporte,
+            was_accepted=False,
+            final_category=cat_comida,
+        )
+
+        categorizer = await sync_to_async(ExpenseCategorizer)(user)
+        stats = await sync_to_async(categorizer.get_accuracy_stats)()
+
+        by_category = {
+            item["category_name"]: item
+            for item in stats["by_category"]
+        }
+
+        assert by_category["Comida"]["accuracy"] == 1.0
+        assert by_category["Comida"]["total"] == 1
+
+        assert by_category["Transporte"]["accuracy"] == 0.0
+        assert by_category["Transporte"]["total"] == 1

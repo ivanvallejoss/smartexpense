@@ -56,3 +56,11 @@ HEX_TO_EMOJI = {
 
 # Emoji de último recurso
 DEFAULT_EMOJI = "📂"
+
+# Mapeo de número de mes → nombre en español
+# Usado por: selectors.get_month_stats, cualquier superficie que formatee fechas
+SPANISH_MONTHS = {
+    1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+    5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+    9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+}

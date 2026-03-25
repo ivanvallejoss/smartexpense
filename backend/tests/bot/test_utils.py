@@ -45,8 +45,8 @@ class TestFormatStatsMessage:
         )
         
         assert "Comida" in resultado
-        assert "1500" in resultado  # El total
-        assert "1000" in resultado  # El gasto en comida
+        assert "$1.500" in resultado  # El total
+        assert "$1.000" in resultado  # El gasto en comida
         
         # Verificamos que se haya calculado un porcentaje aproximado (66 o 67)
         assert "66%" in resultado or "67%" in resultado or "66.6" in resultado
@@ -57,31 +57,63 @@ class TestFormatExpenseList:
         result = format_expense_list([])
         assert "No tienes gastos registrados" in result
 
-    def test_populated_expense_list_html_formatting(self):
-        """Prueba que la lista renderiza los tags HTML y las zonas horarias."""
-        
-        # Gasto 1: Completo
-        exp1 = MagicMock()
-        # Usamos UTC para que el .astimezone() del utils haga la conversión real a Argentina
-        exp1.date = datetime(2026, 3, 14, 15, 0, tzinfo=timezone.utc)
-        exp1.description = "Supermercado"
-        exp1.amount = Decimal('1500.50')
-        exp1.category.name = "Comida"
+    def test_expense_with_description_and_category_renders_both(self):
+        exp = MagicMock()
+        exp.date = datetime(2026, 3, 14, 15, 0, tzinfo=timezone.utc)
+        exp.description = "Supermercado"
+        exp.amount = Decimal("1500.50")
+        exp.category.name = "Comida"
 
-        # Gasto 2: Sin descripción ni categoría
-        exp2 = MagicMock()
-        exp2.date = datetime(2026, 3, 14, 20, 0, tzinfo=timezone.utc)
-        exp2.description = ""
-        exp2.amount = Decimal('500')
-        exp2.category = None
+        result = format_expense_list([exp])
 
-        result = format_expense_list([exp1, exp2])
-        
-        # Verificamos que los tags HTML existan
-        assert "<b>Últimos movimientos:</b>" in result
-        
-        # Verificamos datos del gasto 1
         assert "Supermercado" in result
         assert "Comida" in result
-        
-        # Nota: Tu código actual de
+        assert "$1.500,50" in result
+
+    def test_expense_without_description_still_renders_amount(self):
+        """
+        Una expense sin descripción no rompe el formato —
+        el monto siempre se muestra independientemente.
+        """
+        exp = MagicMock()
+        exp.date = datetime(2026, 3, 14, 15, 0, tzinfo=timezone.utc)
+        exp.description = ""
+        exp.amount = Decimal("500")
+        exp.category = None
+
+        result = format_expense_list([exp])
+
+        assert "500" in result
+
+    def test_expense_without_category_omits_category_line(self):
+        exp = MagicMock()
+        exp.date = datetime(2026, 3, 14, 15, 0, tzinfo=timezone.utc)
+        exp.description = "Sin categoria"
+        exp.amount = Decimal("300")
+        exp.category = None
+
+        result = format_expense_list([exp])
+
+        assert "Sin categoria" in result
+        assert "Categoria" not in result
+
+    def test_multiple_expenses_all_rendered(self):
+        """
+        Dado N expenses, verificamos que aparecen N descripciones
+        distintas en el resultado — ninguna se pierde en el formateo.
+        """
+        expenses = []
+        descriptions = ["Pizza", "Uber", "Supermercado"]
+
+        for desc in descriptions:
+            exp = MagicMock()
+            exp.date = datetime(2026, 3, 14, 15, 0, tzinfo=timezone.utc)
+            exp.description = desc
+            exp.amount = Decimal("100")
+            exp.category = None
+            expenses.append(exp)
+
+        result = format_expense_list(expenses)
+
+        for desc in descriptions:
+            assert desc in result

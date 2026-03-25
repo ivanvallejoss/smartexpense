@@ -6,6 +6,8 @@ Logic to show data related to expenses
 from apps.core.models import Expense, Category
 from django.core.exceptions import ObjectDoesNotExist
 
+from services.constants import SPANISH_MONTHS
+
 from asgiref.sync import sync_to_async
 
 from django.utils import timezone
@@ -62,8 +64,11 @@ def get_single_expense(
             user=user, id=expense_id
         )
         return expense
-    except Expense.ObjectDoesNotExist:
-        return "El objeto no existe o no se encuentra disponible para el usuario"
+    except Expense.DoesNotExist:
+        raise ObjectDoesNotExist(
+            f"The expense ID: {expense_id} does not belong to any of your expenses."
+            )
+
 
 @sync_to_async
 def get_balance(user, month: int=None, year: int=None) -> float:
@@ -120,6 +125,7 @@ def get_month_stats(user):
     
     # We use the local month name
     local_month_name = local_now.strftime("%B %Y")
+    local_month_name = f"{SPANISH_MONTHS[local_now.month]} {local_now.year}"
 
     return {
         "total_amount": total_amount, 
@@ -138,8 +144,10 @@ def get_category_by_id(category_id):
     """
     try:
         return Category.objects.get(id=category_id)
-    except ObjectDoesNotExist:
-        raise ObjectDoesNotExist(f"La categoria con id {category_id} no existe.")
+    except Category.DoesNotExist:
+        raise ObjectDoesNotExist(
+            f"La categoria con id {category_id} no existe."
+            )
 
 
 @sync_to_async
@@ -165,6 +173,7 @@ def get_category_by_id_or_default(user, category_id):
         return Category.objects.get(
             Q(id=category_id, user=user) | Q(id=category_id, is_default=True)
             )
-    except Category.ObjectDoesNotExist:
-        return ("El objeto no existe para el usuario o no le pertenece")
-        
+    except Category.DoesNotExist:
+        raise ObjectDoesNotExist(
+            f"The ID category: {category_id} does not belong to any known category or it belongs to another user"
+        )

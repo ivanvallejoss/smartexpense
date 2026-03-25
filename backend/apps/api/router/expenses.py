@@ -7,6 +7,7 @@ from apps.core.models import Expense, Category
 from apps.api.schemas import ExpenseOut, ExpenseIn
 
 from services.expenses import create_expense, delete_expense, update_expense
+from services.selectors import get_expenses, get_single_expense, get_category_by_id_or_default
 
 # Enrutador especifico para gastos
 router = Router(tags=["Gastos"])

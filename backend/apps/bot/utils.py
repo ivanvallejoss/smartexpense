@@ -103,18 +103,18 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
     """
     if total_count == 0:
         return (
-            f"📊 Resumen de {month_name}\n\n" 
-            "No tenés gastos registrados este mes todavía.\n" 
+            f"📊 Resumen de {month_name} \n\n" 
+            "No tenés gastos registrados este mes todavía. \n" 
             "¡Empezá a trackear tus expenses!")
 
     message = (
-        f"📊 Resumen de {month_name}\n\n" 
-        f"💰 Total gastado: {format_amount(total_amount)}\n" 
-        f"📦 Gastos registrados: {total_count}\n"
+        f"📊 Resumen de {month_name} \n\n" 
+        f"💰 Total gastado: {format_amount(total_amount)} \n" 
+        f"📦 Gastos registrados: {total_count} \n"
     )
 
     if by_category:
-        message += "\nPor categoría:\n"
+        message += "\n Por categoría: \n"
 
         for cat in by_category:
             cat_name = cat["category__name"]
@@ -156,20 +156,17 @@ def format_expense_list(expenses):
         # Emoji for category
         icon = "💸" 
         
-        # Build the line: "📅 30/01 20:45 · 💸 Supermercado: $1500"
-        line = f"<code>{date_str}</code>\n" 
+        # Build the line: "📅 30/01 20:45 "
+        line = f"<code> {date_str} </code>\n" 
         
-        # I'll keep like this for now, butttt..
-        # Later I do not want to be checking if it has description or not
-        # Because It must always have a description.
         if exp.description:
-            line += f" {icon} {exp.description}: <b>${exp.amount:,.2f} \n</b>"
+            line += f" {icon} {exp.description}: <b> ${format_amount(exp.amount)} \n</b>"
         else:
-            line += f" {icon} <b>${exp.amount:,.2f}</b>"
+            line += f" {icon} <b> ${exp.amount:,.2f} </b>"
         
         # Add description if exists
         if exp.category:
-            line += f" ↳ Categoria:<i>{exp.category.name} \n</i>"
+            line += f" ↳ Categoria: <i>{exp.category.name} \n</i>"
 
         lines.append(line)
 
