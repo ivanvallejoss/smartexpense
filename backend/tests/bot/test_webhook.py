@@ -1,5 +1,3 @@
-# tests/bot/test_webhook.py
-
 import json
 import pytest
 from unittest.mock import AsyncMock, patch
@@ -35,7 +33,7 @@ def auth_headers():
 
 class TestWebhook:
 
-    @patch("services.infraestructure.redis_client.get_redis")
+    @patch("services.infrastructure.redis_client.get_redis")
     async def test_valid_request_enqueues_job_and_returns_200(
         self, mock_pool, client
     ):
@@ -89,7 +87,7 @@ class TestWebhook:
         )
         assert response.status_code == 400
 
-    @patch("apps.bot.views.get_redis_pool")
+    @patch("services.infrastructure.redis_client.get_redis")
     async def test_redis_failure_still_returns_200(
         self, mock_pool, client
     ):

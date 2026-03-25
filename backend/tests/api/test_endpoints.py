@@ -1,5 +1,3 @@
-# tests/api/test_endpoints.py
-
 import jwt
 import pytest
 from datetime import datetime, timedelta, timezone
@@ -7,13 +5,14 @@ from decimal import Decimal
 from asgiref.sync import sync_to_async
 
 from django.conf import settings
-from ninja.testing import TestAsyncClient
 
-from apps.api.views import api
+from tests.conftest import ninja_client
+
 from apps.core.models import Expense, CategorySuggestionFeedback, DeletedObject
 from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db(transaction=True)
+
 
 
 # ============================================
@@ -28,8 +27,6 @@ def get_auth_headers(user):
     token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
     return {"Authorization": f"Bearer {token}"}
 
-client = TestAsyncClient(api)
-
 
 # ============================================
 # AUTENTICACIÓN GLOBAL
@@ -37,8 +34,8 @@ client = TestAsyncClient(api)
 
 class TestGlobalAuth:
 
-    async def test_unauthorized_request_is_rejected(self):
-        response = await client.get("/expenses/")
+    async def test_unauthorized_request_is_rejected(self, ninja_client):
+        response = await ninja_client.get("/expenses/")
         assert response.status_code == 401
 
 
@@ -48,7 +45,7 @@ class TestGlobalAuth:
 
 class TestListExpenses:
 
-    async def test_returns_only_own_confirmed_expenses(self):
+    async def test_returns_only_own_confirmed_expenses(self, ninja_client):
         """
         Aislamiento por usuario y por status en un solo test.
         Razón: son dos filtros del mismo queryset — testearlos juntos
@@ -78,12 +75,12 @@ class TestListExpenses:
             status=Expense.STATUS_CONFIRMED
         )
 
-        response = await client.get("/expenses/", headers=get_auth_headers(user))
+        response = await ninja_client.get("/expenses/", headers=get_auth_headers(user))
 
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-    async def test_filter_by_month_and_year(self):
+    async def test_filter_by_month_and_year(self, ninja_client):
         """
         Fechas explícitas para evitar flakiness por timezone.
         """
@@ -104,7 +101,7 @@ class TestListExpenses:
             date=february_date, status=Expense.STATUS_CONFIRMED
         )
 
-        response = await client.get(
+        response = await ninja_client.get(
             "/expenses/?month=3&year=2026",
             headers=get_auth_headers(user)
         )
@@ -113,7 +110,7 @@ class TestListExpenses:
         data = response.json()
         assert len(data) == 1
 
-    async def test_pagination_limit_and_offset(self):
+    async def test_pagination_limit_and_offset(self, ninja_client):
         """
         Crea 5 gastos y verifica que limit y offset recorten correctamente.
         """
@@ -127,12 +124,12 @@ class TestListExpenses:
             )
 
         # Página 1: primeros 2
-        response_p1 = await client.get(
+        response_p1 = await ninja_client.get(
             "/expenses/?limit=2&offset=0",
             headers=get_auth_headers(user)
         )
         # Página 2: siguientes 2
-        response_p2 = await client.get(
+        response_p2 = await ninja_client.get(
             "/expenses/?limit=2&offset=2",
             headers=get_auth_headers(user)
         )
@@ -152,7 +149,7 @@ class TestListExpenses:
 
 class TestCreateExpense:
 
-    async def test_creates_expense_and_returns_201(self):
+    async def test_creates_expense_and_returns_201(self, ninja_client):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(is_default=True, user=None)
 
@@ -162,7 +159,7 @@ class TestCreateExpense:
             "category_id": category.id
         }
 
-        response = await client.post(
+        response = await ninja_client.post(
             "/expenses/",
             json=payload,
             headers=get_auth_headers(user)
@@ -178,7 +175,7 @@ class TestCreateExpense:
         count = await Expense.objects.filter(user=user).acount()
         assert count == 1
 
-    async def test_rejects_amount_zero_or_negative(self):
+    async def test_rejects_amount_zero_or_negative(self, ninja_client):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(is_default=True, user=None)
 
@@ -188,7 +185,7 @@ class TestCreateExpense:
                 "description": "Test",
                 "category_id": category.id
             }
-            response = await client.post(
+            response = await ninja_client.post(
                 "/expenses/",
                 json=payload,
                 headers=get_auth_headers(user)
@@ -204,7 +201,7 @@ class TestCreateExpense:
 
 class TestUpdateExpense:
 
-    async def test_updates_expense_correctly(self):
+    async def test_updates_expense_correctly(self, ninja_client):
         user = await sync_to_async(UserFactory)()
         cat_old = await sync_to_async(CategoryFactory)(name="Comida", user=None, is_default=True)
         cat_new = await sync_to_async(CategoryFactory)(name="Transporte", user=None, is_default=True)
@@ -219,7 +216,7 @@ class TestUpdateExpense:
             "category_id": cat_new.id
         }
 
-        response = await client.put(
+        response = await ninja_client.put(
             f"/expenses/{expense.id}/",
             json=payload,
             headers=get_auth_headers(user)
@@ -231,7 +228,7 @@ class TestUpdateExpense:
         assert data["description"] == "Actualizado"
         assert data["category"]["id"] == cat_new.id
 
-    async def test_category_change_records_feedback(self):
+    async def test_category_change_records_feedback(self, ninja_client):
         """
         Verifica el side effect más importante del update:
         que el cambio de categoría alimenta al categorizador.
@@ -252,7 +249,7 @@ class TestUpdateExpense:
             "category_id": cat_new.id
         }
 
-        await client.put(
+        await ninja_client.put(
             f"/expenses/{expense.id}/",
             json=payload,
             headers=get_auth_headers(user)
@@ -268,7 +265,7 @@ class TestUpdateExpense:
         assert feedback.final_category.id == cat_new.id
         assert feedback.was_accepted is False
 
-    async def test_cannot_update_other_users_expense(self):
+    async def test_cannot_update_other_users_expense(self, ninja_client):
         owner = await sync_to_async(UserFactory)()
         intruder = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(is_default=True, user=None)
@@ -280,7 +277,7 @@ class TestUpdateExpense:
             "category_id": category.id
         }
 
-        response = await client.put(
+        response = await ninja_client.put(
             f"/expenses/{expense.id}/",
             json=payload,
             headers=get_auth_headers(intruder)
@@ -295,11 +292,11 @@ class TestUpdateExpense:
 
 class TestDeleteExpense:
 
-    async def test_returns_204_and_removes_from_main_table(self):
+    async def test_returns_204_and_removes_from_main_table(self, ninja_client):
         user = await sync_to_async(UserFactory)()
         expense = await sync_to_async(ExpenseFactory)(user=user)
 
-        response = await client.delete(
+        response = await ninja_client.delete(
             f"/expenses/{expense.id}/",
             headers=get_auth_headers(user)
         )
@@ -308,7 +305,7 @@ class TestDeleteExpense:
         count = await Expense.objects.filter(id=expense.id).acount()
         assert count == 0
 
-    async def test_soft_delete_creates_deleted_object(self):
+    async def test_soft_delete_creates_deleted_object(self, ninja_client):
         """
         El gasto no desaparece del sistema — queda en la papelera.
         Este test verifica que el contrato de restauración sea posible.
@@ -319,7 +316,7 @@ class TestDeleteExpense:
         )
         expense_id = expense.id
 
-        await client.delete(
+        await ninja_client.delete(
             f"/expenses/{expense_id}/",
             headers=get_auth_headers(user)
         )
@@ -329,12 +326,12 @@ class TestDeleteExpense:
         ).aexists()
         assert deleted is True
 
-    async def test_cannot_delete_other_users_expense(self):
+    async def test_cannot_delete_other_users_expense(self, ninja_client):
         owner = await sync_to_async(UserFactory)()
         intruder = await sync_to_async(UserFactory)()
         expense = await sync_to_async(ExpenseFactory)(user=owner)
 
-        response = await client.delete(
+        response = await ninja_client.delete(
             f"/expenses/{expense.id}/",
             headers=get_auth_headers(intruder)
         )

@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 api = NinjaAPI(
     title="SmartExpense API", 
     version="1.0.0",
-    auth=GlobalAuth()
+    auth=GlobalAuth(),
+    urls_namespace="smartexpense-api"
     )
 
 api.add_router("/expenses/", expense_router)

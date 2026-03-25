@@ -9,9 +9,8 @@ async def get_user_by_telegram_id(telegram_id: int):
     try:
         return await User.objects.aget(telegram_id=telegram_id)
     except User.DoesNotExist:
-        raise ObjectDoesNotExist(
-            f"El usuario con id {telegram_id}. no existe"
-        )
+        # Retornamos None para evitar romper el sistema en caso de que el usuario no exista
+        return None
 
 
 async def get_or_create_user_by_telegram(telegram_user):

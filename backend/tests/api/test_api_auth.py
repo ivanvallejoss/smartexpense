@@ -1,20 +1,17 @@
-# tests/api/test_auth.py
-
 import jwt
 import pytest
 from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, AsyncMock
+
 from django.conf import settings
-from ninja.testing import TestAsyncClient
 
 from apps.api.auth import GlobalAuth
-from apps.api.views import api
+
+
 from tests.factories import UserFactory
 from asgiref.sync import sync_to_async
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
-client = TestAsyncClient(api)
 
 
 def make_token(telegram_id, exp_delta=timedelta(days=1), secret=None):
