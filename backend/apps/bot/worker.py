@@ -63,9 +63,15 @@ async def process_telegram_message(ctx, payload):
 
     except Exception as e:
         logger.error(
-            f"Error procesando el mensaje en el worker: {e}",
+            "Error procesando mensaje en el worker",
+            extra={
+                "job_id": ctx.get("job_id"),
+                "job_try": ctx.get("job_try"),
+                "payload": payload, 
+            },
             exc_info=True
         )
+        raise
 
 class WorkerSettings:
     # URL de Redis
@@ -78,3 +84,4 @@ class WorkerSettings:
 
     max_jobs = 10
     job_timeout = 60
+    max_tries = 3
