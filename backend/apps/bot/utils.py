@@ -160,9 +160,9 @@ def format_expense_list(expenses):
         line = f"<code> {date_str} </code>\n" 
         
         if exp.description:
-            line += f" {icon} {exp.description}: <b> ${format_amount(exp.amount)} \n</b>"
+            line += f" {icon} {exp.description}: <b> {format_amount(exp.amount)} \n</b>"
         else:
-            line += f" {icon} <b> ${exp.amount:,.2f} </b>"
+            line += f" {icon} <b> {format_amount(exp.amount)} </b>"
         
         # Add description if exists
         if exp.category:

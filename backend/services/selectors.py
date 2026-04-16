@@ -60,7 +60,8 @@ def get_single_expense(
     Get a single expense + select_related to Category
     """
     try:
-        expense = Expense.objects.get(
+        # select_related helps getting the whole category object for this expense when needed it
+        expense = Expense.objects.select_related("category").get(
             user=user, id=expense_id
         )
         return expense

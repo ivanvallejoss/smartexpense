@@ -21,8 +21,9 @@ class CategoryFactory(factory.django.DjangoModelFactory):
         model = Category
 
     name = factory.Sequence(lambda n: f"Categoría {n}")
-    is_default = True
+    is_default = False
     color = "#FF5733"
+    user = factory.SubFactory(UserFactory)
 
 
 class ExpenseFactory(factory.django.DjangoModelFactory):
