@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 from django.test import RequestFactory
 from django.conf import settings
 
-from apps.bot.views  import webhook
+from apps.bot.views import webhook
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -20,49 +20,39 @@ VALID_PAYLOAD = {
 
 
 @pytest.fixture
-def factory():
+def request_factory():
     return RequestFactory()
 
-def make_request(factory, method="post", data=None, secret=None):
-    """
-    Helper para construir requests con los headers correctos.
-    """
+
+def make_request(rf, method="post", data=None, secret=None):
     headers = {}
     if secret is not False:
         headers["HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN"] = (
             secret or settings.TELEGRAM_WEBHOOK_TOKEN
         )
-    
+
     body = json.dumps(data or VALID_PAYLOAD)
 
     if method == "post":
-        return factory.post(
+        return rf.post(
             WEBHOOK_URL,
             data=body,
             content_type="application/json",
             **headers
         )
-    return factory.get(WEBHOOK_URL, **headers)
+    return rf.get(WEBHOOK_URL, **headers)
 
-
-# ============================================
-# TESTS
-# ============================================
 
 class TestWebhook:
 
-    @patch("services.infrastructure.redis_client.get_redis")
+    @patch("apps.bot.views.get_redis")
     async def test_valid_request_enqueues_job_and_returns_200(
-        self, mock_pool, client
+        self, mock_pool, request_factory
     ):
-        """
-        Camino feliz: secret correcto, JSON válido, Redis disponible.
-        Verifica el contrato de llamada a Redis sin depender de infraestructura.
-        """
         mock_redis = AsyncMock()
         mock_pool.return_value = mock_redis
 
-        request = make_request(factory)
+        request = make_request(request_factory)
         response = await webhook(request)
 
         assert response.status_code == 200
@@ -70,23 +60,23 @@ class TestWebhook:
             "process_telegram_message", VALID_PAYLOAD
         )
 
-    async def test_wrong_http_method_returns_405(self, client):
-        request = make_request(factory, method="get")
+    async def test_wrong_http_method_returns_405(self, request_factory):
+        request = make_request(request_factory, method="get")
         response = await webhook(request)
         assert response.status_code == 405
 
-    async def test_missing_secret_token_returns_403(self, client):
-        request = make_request(factory, secret=False)
+    async def test_missing_secret_token_returns_403(self, request_factory):
+        request = make_request(request_factory, secret=False)
         response = await webhook(request)
         assert response.status_code == 403
 
-    async def test_wrong_secret_token_returns_403(self, client):
-        request = make_request(factory, secret="token-equivocado")
+    async def test_wrong_secret_token_returns_403(self, request_factory):
+        request = make_request(request_factory, secret="token-equivocado")
         response = await webhook(request)
         assert response.status_code == 403
 
-    async def test_malformed_json_returns_400(self, client):
-        request = factory.post(
+    async def test_malformed_json_returns_400(self, request_factory):
+        request = request_factory.post(
             WEBHOOK_URL,
             data="esto no es json {{{",
             content_type="application/json",
@@ -97,7 +87,7 @@ class TestWebhook:
 
     @patch("apps.bot.views.get_redis")
     async def test_redis_failure_still_returns_200(
-        self, mock_get_redis, factory
+        self, mock_get_redis, request_factory
     ):
         """
         Cuando Redis falla, el webhook devuelve 200 igual.
@@ -107,7 +97,7 @@ class TestWebhook:
         mock_redis.enqueue_job.side_effect = Exception("Redis connection refused")
         mock_get_redis.return_value = mock_redis
 
-        request = make_request(factory)
+        request = make_request(request_factory)
         response = await webhook(request)
 
         assert response.status_code == 200
