@@ -17,6 +17,14 @@ VALID_PAYLOAD = {
         "text": "Pizza 2000"
     }
 }
+PAYLOAD_WITHOUT_UPDATE_ID = {
+    "message": {
+        "message_id": 1,
+        "from": {"id": 111, "first_name": "Ivan"},
+        "text": "Pizza 2000"
+        # sin update_id
+    }
+}
 
 
 @pytest.fixture
@@ -50,6 +58,7 @@ class TestWebhook:
         self, mock_pool, request_factory
     ):
         mock_redis = AsyncMock()
+        mock_redis.get.return_value = None
         mock_pool.return_value = mock_redis
 
         request = make_request(request_factory)
@@ -59,6 +68,39 @@ class TestWebhook:
         mock_redis.enqueue_job.assert_called_once_with(
             "process_telegram_message", VALID_PAYLOAD
         )
+    
+    async def test_payload_without_update_id_is_rejected(
+        self, request_factory
+    ):
+        """
+        Payloaads sin update_id son rechazados con 400.
+        Telegram siempre incluye update_id - su ausencia indica
+        un request malformado o de origen no esperado.    
+        """
+        request = make_request(request_factory, data=PAYLOAD_WITHOUT_UPDATE_ID)
+        response = await webhook(request)
+
+        assert response.status_code == 400
+
+    @patch("apps.bot.views.get_redis")
+    async def test_duplicate_update_is_discarded(
+        self, mock_pool, request_factory
+    ):
+        """
+        El segundo request con el mismo update_id no debe encolarse.
+        Redis ya tiene la clave del primer procesamiento.
+        """
+        mock_redis = AsyncMock()
+        mock_pool.return_value = mock_redis
+
+        # Simulamos que Redis ya tiene la clave — el update fue procesado antes
+        mock_redis.get.return_value = b"1"
+
+        request = make_request(request_factory)
+        response = await webhook(request)
+
+        assert response.status_code == 200
+        mock_redis.enqueue_job.assert_not_called()
 
     async def test_wrong_http_method_returns_405(self, request_factory):
         request = make_request(request_factory, method="get")
@@ -101,3 +143,4 @@ class TestWebhook:
         response = await webhook(request)
 
         assert response.status_code == 200
+    
