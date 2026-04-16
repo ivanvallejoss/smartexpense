@@ -1,4 +1,4 @@
-from ninja import Router
+from ninja import Router, Query
 from typing import List, Optional
 
 from django.db.models import Q
@@ -16,10 +16,10 @@ router = Router(tags=["Gastos"])
 @router.get("/", response=List[ExpenseOut])
 async def list_expenses(
     request, 
-    limit: int=15,
-    offset: int=0,
-    month: Optional[int]=None,
-    year: Optional[int]=None
+    limit: int = Query(default=15, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    month: Optional[int] = Query(default=None, ge=1, le=12),
+    year: Optional[int] = Query(default=None, ge=2025, le=2100),
     ):
     """
     Lista los gastos del usuario autenticado.

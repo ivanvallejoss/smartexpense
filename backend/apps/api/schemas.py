@@ -20,7 +20,7 @@ class ExpenseIn(Schema):
     No necesitamos la fecha ni el ID del gasto porque los genera la base de datos.
     """
     amount: float = Field(gt=0, description="Monto del gasto, debe ser mayor a 0")
-    description: str
+    description: str = Field(min_length=1, max_length=150)
     category_id: int
 
 class ExpenseOut(Schema):
