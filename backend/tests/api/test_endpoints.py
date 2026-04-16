@@ -6,8 +6,6 @@ from asgiref.sync import sync_to_async
 
 from django.conf import settings
 
-from tests.conftest import ninja_client
-
 from apps.core.models import Expense, CategorySuggestionFeedback, DeletedObject
 from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
 

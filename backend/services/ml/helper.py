@@ -60,20 +60,17 @@ def is_autocategorized(suggestion, user) -> bool:
     return False
 
 
-@sync_to_async
-def record_categorization_feedback(expense, suggested_category, accepted: bool, final_category=None):
+def _record_feedback_sync(expense, suggested_category, accepted, final_category=None):
     """
-    Registra feedback de categorización para aprendizaje futuro.
-    Debe llamarse en toda corrección de categoría, desde cualquier superficie.
+    Función sync pura — fuente de verdad para registrar feedback.
     """
     categorizer = ExpenseCategorizer(expense.user)
     categorizer.record_feedback(
         expense=expense,
         suggested_category=suggested_category,
         accepted=accepted,
-        final_category=final_category if not accepted else suggested_category,
+        final_category=final_category,
     )
-
     logger.info(
         "Categorization feedback recorded",
         extra={
@@ -84,3 +81,8 @@ def record_categorization_feedback(expense, suggested_category, accepted: bool, 
             "final": final_category.name if final_category else None,
         }
     )
+
+@sync_to_async
+def record_categorization_feedback(expense, suggested_category, accepted, final_category=None):
+    """Puerto async para los handlers del bot."""
+    _record_feedback_sync(expense, suggested_category, accepted, final_category)

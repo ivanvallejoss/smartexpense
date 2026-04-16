@@ -6,7 +6,7 @@ Logic that creates or deletes expenses
 from apps.core.models import Expense, Category, DeletedObject
 from .selectors import get_category_by_id
 
-from services.ml.categorizer import ExpenseCategorizer
+from services.ml.helper import _record_feedback_sync
 
 from asgiref.sync import sync_to_async
 from django.contrib.contenttypes.models import ContentType
@@ -16,7 +16,6 @@ from django.utils import timezone
 from datetime import datetime
 
 from decimal import Decimal
-from typing import Optional
 
 @sync_to_async
 def create_expense(
@@ -73,10 +72,9 @@ def update_expense(
         # realizamos la actualizacion solo en las columnas necesarias
         expense.save(update_fields=['amount', 'description', 'category', 'updated_at'])
 
-        # Reportamos a ML si nueva_categoria != previous_categoria para alimentarlo
+        # Reportamos a ML mediante el helper sync que reporta el cambio.
         if previous_category != category:
-            categorizer = ExpenseCategorizer(user)
-            categorizer.record_feedback(
+            _record_feedback_sync(
                 expense=expense,
                 suggested_category=previous_category,
                 accepted=False,
