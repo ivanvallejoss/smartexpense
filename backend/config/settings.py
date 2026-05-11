@@ -15,7 +15,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ================================================
 
 env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
+
+_env_file = os.path.join(BASE_DIR.parent, ".env")
+if os.path.exists(_env_file):
+    environ.Env.read_env(_env_file)
 
 DEBUG = env('DEBUG', default=False, cast=bool)
 
