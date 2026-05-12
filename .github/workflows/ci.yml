@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services: 
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: ci_user
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: ci_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SECRET_KEY: "ci-secret-key-not-used-in-production"
+      JWT_SECRET_KEY: "ci-jwt-secret-key-not-used-in-production"
+      TELEGRAM_BOT_TOKEN: "0000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      TELEGRAM_WEBHOOK_TOKEN: "ci-webhook-token"
+      DATABASE_URL: "postgresql://ci_user:ci_password@localhost:5432/ci_db"
+      REDIS_URL: "redis://localhost:6379/0"
+      FRONTEND_URL: "http://localhost:5173"
+      FRONTEND_TEST: "http://localhost:5173"
+      DEBUG: "True"
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run migration
+        working directory: backend
+        run: python manage.py migrate
+      
+      - name: Run tests
+        working directory: backend
+        run: pytest tests/ -v
