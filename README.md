@@ -17,7 +17,7 @@
 
 ---
 
-## ⚙️ Key Engineering Decisions
+## Key Decisions
 
 These are the non-obvious design choices that shaped the system.
 Full decision records are available in [`docs/decisions/`](docs/decisions/).
@@ -71,7 +71,7 @@ over time.
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```mermaid
 sequenceDiagram
@@ -88,7 +88,7 @@ sequenceDiagram
     Redis->>Worker: Pop job
     Worker->>Worker: Parse & categorize
     Worker->>DB: Save expense
-    Worker-->>User: "Saved: Coffee $1500 ✅"
+    Worker-->>User: "Saved: Coffee $1500"
 ```
 
 **Infrastructure is partitioned across Redis databases** to isolate concerns
@@ -103,7 +103,7 @@ and prevent cross-contamination between workloads:
 A single `services/infrastructure/redis_client.py` module manages all
 connections — the only place in the codebase that knows how to connect
 to Redis.
-## 🧪 Test Suite
+## Test Suite
 
 The test suite covers **151 tests** across all system layers, designed
 around explicit contracts rather than implementation details.
@@ -129,7 +129,7 @@ pytest tests/ -v
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```plaintext
 smartexpense/
@@ -162,7 +162,7 @@ smartexpense/
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### Prerequisites
 - Python 3.12+ (recommended via `pyenv`)
@@ -215,7 +215,7 @@ python manage.py set_webhook https://<YOUR_NGROK_URL>.ngrok-free.app
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Description |
 |---|---|
@@ -226,7 +226,7 @@ python manage.py set_webhook https://<YOUR_NGROK_URL>.ngrok-free.app
 
 ---
 
-## 🔭 Roadmap
+## Future changes
 
 - **Go API Gateway:** extract the webhook receiver into a Go microservice
   that absorbs Telegram traffic and writes to Redis Streams — freeing
