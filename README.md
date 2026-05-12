@@ -14,7 +14,7 @@
 ![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-151%20passing-brightgreen)
-
+[![CI](https://github.com/ivanvallejoss/smartexpense/actions/workflows/ci.yml/badge.svg)](https://github.com/ivanvallejoss/smartexpense/actions/workflows/ci.yml)
 ---
 
 ## Key Decisions
