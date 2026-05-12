@@ -6,7 +6,7 @@
 >
 > Originally built for educational purposes, this project has evolved into
 > my primary day-to-day finance tool.
-> Try the live version: [@smartexpense_bot](https://web.telegram.org/a/#8478720243)
+> Try the live version: [@smartexpense_bot](https://t.me/your_smartexpense_bot?start=/start)
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django_5-092E20?logo=django&logoColor=white)
