@@ -19,7 +19,7 @@ The problem has two distinct origins requiring separate solutions:
 | Source | Frequency | Solution |
 | --- | --- | --- |
 | Telegram webhook redelivery | High (network timeouts) | Idempotency at webhook level |
-| ARQ re-enqueue on worker crash | Low (production crash) | Documented as future work |
+| ARQ re-enqueue on worker crash | Low (production crash) | Documented in [ARQ RETRY](arq_retry.md) |
 
 The webhook defense was implemented first — it covers the most frequent case
 and the most impactful one for real users.
