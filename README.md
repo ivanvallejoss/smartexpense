@@ -21,7 +21,7 @@
 ## Key Decisions
 
 These are the non-obvious design choices that shaped the system.
-Full decision records are available in [`docs/decisions/`](docs/decisions/).
+Full decision records are available in [`docs/decisions/`](docs/decision_records/).
 
 ### Asynchronous Producer/Consumer Pattern
 
