@@ -150,22 +150,9 @@ async def history_command(event: ChannelEvent, user, sender: Sender) -> None:
 async def link_command(event: ChannelEvent, user, sender: Sender) -> None:
     """
     Magic link de acceso al dashboard.
-
-    Depende de User.telegram_id porque es el 'sub' del JWT. El guard es
-    inalcanzable hoy (canal único) y desaparece cuando auth migre a User.id.
     """
-    if user.telegram_id is None:
-        logger.warning(
-            "Magic link solicitado por un usuario sin telegram_id",
-            extra={"user_id": user.id, "channel": event.channel},
-        )
-        await sender.reply(
-            event.conversation_id,
-            "El acceso al dashboard todavía no está disponible en este canal.",
-        )
-        return
 
-    token = generate_magic_link_token(telegram_id=user.telegram_id)
+    token = generate_magic_link_token(user_id=user.id)
     magic_link = f"{settings.FRONTEND_URL}/login?token={token}"
 
     mensaje = (

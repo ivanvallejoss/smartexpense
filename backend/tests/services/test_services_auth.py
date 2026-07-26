@@ -13,7 +13,7 @@ pytestmark = pytest.mark.django_db(transaction=True)
 class TestGenerateMagicLinkToken:
 
     def test_returns_decodable_string(self):
-        token = generate_magic_link_token(telegram_id=12345)
+        token = generate_magic_link_token(user_id=12345)
 
         payload = jwt.decode(
             token,
@@ -23,8 +23,8 @@ class TestGenerateMagicLinkToken:
 
         assert payload is not None
 
-    def test_payload_contains_telegram_id_as_string(self):
-        token = generate_magic_link_token(telegram_id=12345)
+    def test_payload_contains_user_id_as_string(self):
+        token = generate_magic_link_token(user_id=12345)
 
         payload = jwt.decode(
             token,
@@ -35,9 +35,17 @@ class TestGenerateMagicLinkToken:
         assert payload["sub"] == "12345"
         assert isinstance(payload["sub"], str)
 
+    def test_payload_marca_el_esquema(self):
+        """Sin 'typ', apps/api/auth.py no puede distinguir tokens viejos."""
+        token = generate_magic_link_token(user_id=12345)
+
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
+
+        assert payload["typ"] == "magic_link_v2"
+
     def test_token_expires_in_15_minutes(self):
         before = datetime.now(timezone.utc)
-        token = generate_magic_link_token(telegram_id=12345)
+        token = generate_magic_link_token(user_id=12345)
         after = datetime.now(timezone.utc)
 
         payload = jwt.decode(

@@ -44,18 +44,6 @@ class TestGetOrCreate:
         assert identity.user_id == user.id
         assert identity.display_name == "Ivan V"
 
-    async def test_writes_telegram_id_for_backward_compat(self):
-        """
-        El magic link JWT usa User.telegram_id como 'sub'.
-        Mientras services/auth.py no migre, la escritura dual es obligatoria.
-        """
-        user, _ = await get_or_create_user_by_channel(TG, "999", {})
-        assert user.telegram_id == 999
-
-    async def test_does_not_write_telegram_id_for_other_channels(self):
-        user, _ = await get_or_create_user_by_channel(WA, "5491122334455", {})
-        assert user.telegram_id is None
-
     async def test_returns_existing_user_without_duplicating(self):
         first, created_first = await get_or_create_user_by_channel(TG, "999", {})
         second, created_second = await get_or_create_user_by_channel(TG, "999", {})

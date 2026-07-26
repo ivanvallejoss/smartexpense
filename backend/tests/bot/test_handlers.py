@@ -114,17 +114,7 @@ class TestBasicCommands:
         respuesta = sender.last_reply["text"]
         assert "token-secreto-123" in respuesta
         assert "Ir al dashboard" in respuesta
-
-    async def test_link_sin_telegram_id_avisa(self, make_event, sender):
-        """
-        Guard inalcanzable hoy (canal único). Fija el comportamiento para
-        cuando exista un usuario de WhatsApp sin telegram_id.
-        """
-        wa_user = await User.objects.acreate(username="wa_user", telegram_id=None)
-
-        await link_command(make_event("/link"), wa_user, sender)
-
-        assert "no está disponible en este canal" in sender.last_reply["text"]
+        assert mock_token.call_args.kwargs == {"user_id": user.id}
 
 
 # ============================================

@@ -52,9 +52,6 @@ def _create_user_with_identity(channel: str, external_id: str, profile: dict):
             username=username,
             first_name=profile.get("first_name") or "",
             last_name=profile.get("last_name") or "",
-            # Escritura dual: el JWT del magic link todavía depende de esto.
-            telegram_id=int(external_id) if channel == ChannelIdentity.CHANNEL_TELEGRAM else None,
-            telegram_username=profile.get("username") or None,
         )
         ChannelIdentity.objects.create(
             user=user,
