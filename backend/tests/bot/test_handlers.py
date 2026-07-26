@@ -210,7 +210,7 @@ class TestHandleMessagePendingState:
         await handle_message(make_event("Mascotas"), user, sender)
 
         # El estado se limpia con el id del canal, ya como string
-        mock_redis_state["clear"].assert_called_once_with(EXTERNAL_USER_ID)
+        mock_redis_state["clear"].assert_called_once_with("telegram", EXTERNAL_USER_ID)
 
         expense = await Expense.objects.select_related("category").aget(id=expense.id)
         assert expense.status == Expense.STATUS_CONFIRMED

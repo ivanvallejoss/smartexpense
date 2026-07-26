@@ -199,7 +199,7 @@ async def handle_new_category_input(
         )
         return
 
-    await clear_pending_category_state(event.external_user_id)
+    await clear_pending_category_state(event.channel, event.external_user_id)
 
     try:
         new_category = await sync_to_async(create_category_for_user)(
@@ -247,7 +247,9 @@ async def handle_message(event: ChannelEvent, user, sender: Sender) -> None:
 
     try:
         try:
-            pending_expense_id = await get_pending_category_state(event.external_user_id)
+            pending_expense_id = await get_pending_category_state(
+                event.channel, event.external_user_id
+            )
         except Exception as e:
             logger.warning(f"Redis unavailable, skipping state check {e}")
             pending_expense_id = None

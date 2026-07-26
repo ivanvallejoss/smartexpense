@@ -119,7 +119,8 @@ async def on_cat_new_click(event: ChannelEvent, user, sender: Sender, payload: s
     expense_id = int(payload)
 
     await set_pending_category_state(
-        telegram_user_id=event.external_user_id,
+        channel=event.channel,
+        external_user_id=event.external_user_id,
         expense_id=expense_id,
     )
 

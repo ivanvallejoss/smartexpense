@@ -343,7 +343,8 @@ class TestCatNew:
 
         # El id llega como string desde el evento canónico
         mock_set_state.assert_called_once_with(
-            telegram_user_id=EXTERNAL_USER_ID,
+            channel="telegram",
+            external_user_id=EXTERNAL_USER_ID,
             expense_id=expense.id,
         )
         assert sender.last_ack["text"] == ""
