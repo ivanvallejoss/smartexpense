@@ -1,13 +1,9 @@
-# tests/services/test_auth.py
-
 import jwt
 import pytest
 from datetime import datetime, timezone, timedelta
 from django.conf import settings
 
 from services.auth import generate_magic_link_token
-
-pytestmark = pytest.mark.django_db(transaction=True)
 
 
 class TestGenerateMagicLinkToken:

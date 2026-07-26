@@ -12,7 +12,7 @@ def generate_magic_link_token(user_id:int) -> str:
     payload = {
         # DEBEMOS CONVERTIRLO A string PARA CUMPLIR CON LAS NUEVAS NORMAS DE PyJWT
         # sino obtendremos error "jwt.InvalidSubjectError: Subject must be a string"
-        'sub': str(user.id),
+        'sub': str(user_id),
         'typ': 'magic_link_v2',
         'iat': datetime.now(timezone.utc), # 'iat' (Issued At)
         'exp': datetime.now(timezone.utc) + timedelta(minutes=15)
