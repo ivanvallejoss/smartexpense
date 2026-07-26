@@ -14,10 +14,11 @@ pytestmark = pytest.mark.django_db(transaction=True)
 
 
 
-def make_token(telegram_id, exp_delta=timedelta(days=1), secret=None):
+def make_token(user_id, exp_delta=timedelta(days=1), secret=None, typ="magic_link_v2"):
     """Helper para generar tokens con parámetros controlados."""
     payload = {
-        "sub": str(telegram_id),
+        "sub": str(user_id),
+        "typ": typ,
         "exp": datetime.now(timezone.utc) + exp_delta,
     }
     return jwt.encode(
@@ -31,13 +32,13 @@ class TestGlobalAuth:
 
     async def test_valid_token_returns_user(self):
         user = await sync_to_async(UserFactory)()
-        token = make_token(user.telegram_id)
+        token = make_token(user.user_id)
 
         auth = GlobalAuth()
         result = await auth.authenticate(None, token)
 
         assert result is not None
-        assert result.telegram_id == user.telegram_id
+        assert result.id == user.id
 
     async def test_expired_token_returns_none(self):
         """
@@ -45,7 +46,7 @@ class TestGlobalAuth:
         El sistema registra el error en logs pero no expone detalles al cliente.
         """
         user = await sync_to_async(UserFactory)()
-        token = make_token(user.telegram_id, exp_delta=-timedelta(minutes=1))
+        token = make_token(user.id, exp_delta=-timedelta(minutes=1))
 
         auth = GlobalAuth()
         result = await auth.authenticate(None, token)
@@ -54,7 +55,7 @@ class TestGlobalAuth:
 
     async def test_invalid_signature_returns_none(self):
         user = await sync_to_async(UserFactory)()
-        token = make_token(user.telegram_id, secret="clave-incorrecta")
+        token = make_token(user.id, secret="clave-incorrecta")
 
         auth = GlobalAuth()
         result = await auth.authenticate(None, token)
@@ -66,7 +67,20 @@ class TestGlobalAuth:
         Un token criptográficamente válido pero cuyo usuario fue eliminado
         debe ser rechazado. El token no es suficiente — el usuario debe existir.
         """
-        token = make_token(telegram_id=999999999)  # ID que no existe en DB
+        token = make_token(user_id=999999999)  # ID que no existe en DB
+
+        auth = GlobalAuth()
+        result = await auth.authenticate(None, token)
+
+        assert result is None
+
+    async def test_token_del_esquema_viejo_se_rechaza(self):
+        """
+        Tokens con sub=telegram_id y sin 'typ'. Sin este guard se leerian
+        como User.id y podrian resolver a otro usuario.
+        """
+        user = await sync_to_async(UserFactory)()
+        token = make_token(user.id, typ=None)
 
         auth = GlobalAuth()
         result = await auth.authenticate(None, token)

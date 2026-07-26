@@ -119,3 +119,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 
+# Volcados de Redis - no van al repo
+dump.rdb
+**/dump.rdb

@@ -1,58 +1,37 @@
+"""
+Mensajes de error al usuario.
+
+El error_handler de PTB desaparece: su rol lo cumple el try/except del
+router en la Fase 4b.
+"""
 import logging
-import traceback
-from telegram import Update
-from telegram.ext import ContextTypes
-from asgiref.sync import sync_to_async
+
+from services.channels.events import ChannelEvent
+from services.channels.senders import Sender
 
 logger = logging.getLogger(__name__)
 
+MENSAJE_ERROR_GENERICO = "Ocurrió un error al procesar tu mensaje. Por favor, intentá de nuevo."
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Log the error and send a telegram message to notify the developer.
-    """
-    logger.error(msg="Exception while handling an update", exc_info=context.error)
-    
-    # Getting the error traceback
-    tb_list = traceback.format_exception(type(context.error), context.error, context.error.__traceback__)
-    tb_str = "".join(tb_list)
-    
-    # Showing the error in the logs
-    logger.error(
-        "Unhandled exception in bot",
-        extra={
-            "error_detail": str(context.error),
-            "update_info": str(update) if update else None,
-            "traceback": tb_str,
-        },
-        exc_info=context.error,
+
+async def error_parsing_expenses(event: ChannelEvent, sender: Sender) -> None:
+    """El parser no encontró un monto en el mensaje."""
+    error_message = (
+        "No pude detectar el monto en tu mensaje.\n\n"
+        "Formato correcto:\n"
+        '• "Pizza 2000"\n'
+        '• "$500 café"\n'
+        '• "1500 uber"\n\n'
+        "Probá de nuevo o enviá /help para más info."
     )
-
-
-    # Just in case a user is involved
-    if isinstance(update, Update) and update.effective_message:
-        text = "Ocurrió un error al procesar tu mensaje. Por favor, intentá de nuevo."
-        await update.effective_message.reply_text(text)
-    
-    # Send a text to the developer
-    # dev_text = tb_str
-
-
-async def error_parsing_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Log the error and send a telegram message to the user.
-    """
-    # Mensaje de error amigable
-    error_message = "No pude detectar el monto en tu mensaje.\n\n" "Formato correcto:\n" '• "Pizza 2000"\n' '• "$500 café"\n' '• "1500 uber"\n\n' "Probá de nuevo o enviá /help para más info."
 
     logger.warning(
         "Failed to parse expense",
         extra={
-            "user_id": update.effective_user.id,
-            "telegram_id": update.effective_user.id,
-            "message_text": update.message.text or None,
+            "channel": event.channel,
+            "external_user_id": event.external_user_id,
+            "message_text": event.text,
         },
     )
 
-    await update.message.reply_text(error_message)
-    return
+    await sender.reply(event.conversation_id, error_message)

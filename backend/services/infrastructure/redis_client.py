@@ -6,8 +6,9 @@ Cada `purpose` mapea a una database distinta para aislamiento operacional.
 
 Databases:
     0 - jobs:  Cola de ARQ (mensajes de Telegram entrantes)
-    1 - state: Estado de conversación del bot (cat_state:{user_id})
-    2 - cache: Disponible para rate limiting y cache futuro
+    1 - state: Estado de conversación del bot (cat_state:{channel}:{external_user_id})
+    2 - cache: Idempotencia de webhooks (idempotency:{channel}:{message_id}) 
+                y rate limiting fuutro
 """
 import logging
 from arq import create_pool

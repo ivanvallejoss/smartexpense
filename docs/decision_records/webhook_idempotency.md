@@ -90,3 +90,37 @@ Telegram → webhook
 → YES: log info + return 200 (no enqueue)
 → NO:  set processed_update:{update_id} TTL=24h
 enqueue_job → return 200
+
+## Amendment — Two-layer idempotency and channel namespacing (Fase 5, multi-canal)
+
+Three changes came with the multi-channel refactor.
+
+**Atomicity.** The original `GET` then `SET` was not atomic: two simultaneous
+deliveries of the same update could both pass the `GET` before either wrote.
+Replaced with a single `SET(nx=True, ex=TTL)`. The ordering guarantee is
+unchanged — the key is still written before enqueuing (at-most-once).
+
+**Second layer via `_job_id`.** Jobs are now enqueued with
+`_job_id=f"{channel}:{message_id}"`. Verified against arq 0.28: `enqueue_job`
+performs `WATCH` + `exists(job_key, result_key)` inside a transaction and
+returns `None` if the id is already present.
+
+The two layers have different windows and neither replaces the other:
+
+| Layer | Window | Covers |
+| --- | --- | --- |
+| Explicit key | 24h (Telegram's retry ceiling) | Late redelivery |
+| `_job_id` | ~1h (arq `keep_result`, default 3600s) | Immediate redelivery, atomically |
+
+**Key location and naming.** Moved from db0 to db2, aligning with the Redis
+partition scheme and with the Go Gateway's ADR 003. Renamed from
+`processed_updated:{update_id}` to `idempotency:{channel}:{message_id}` —
+which also resolves a long-standing mismatch, since this document always
+said `processed_update:` while the code said `processed_updated:`.
+
+For Telegram, `message_id` is the `update_id`: `message.message_id` is unique
+per chat, not globally, and would collide across chats as a dedup key.
+
+Migration cost: keys written under the old name expire on their own within
+24h. During that window a late redelivery would not find its marker — covered
+in practice by the `_job_id` layer, since Telegram retries within seconds.

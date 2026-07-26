@@ -267,3 +267,71 @@ class DeletedObject(models.Model):
         deletion_date = self.deleted_at + timedelta(days=30)
         days_left = (deletion_date - timezone.now()).days
         return max(0, days_left)
+
+
+class ChannelIdentity(models.Model):
+    """
+    Identidad de un User en un canal de mensajería concreto.
+
+    Reemplaza el acoplamiento a User.telegram_id: un mismo User puede
+    tener identidades en múltiples canales sin agregar columnas.
+
+    external_id es CharField (no BigInteger) porque el denominador común
+    entre canales es una cadena: Telegram usa enteros, WhatsApp usa wa_id
+    en formato E.164 sin '+'.
+    """
+
+    CHANNEL_TELEGRAM = "telegram"
+    CHANNEL_WHATSAPP = "whatsapp"
+    CHANNEL_CHOICES = [
+        (CHANNEL_TELEGRAM, "Telegram"),
+        (CHANNEL_WHATSAPP, "WhatsApp"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="channel_identities",
+        help_text="Usuario dueño de esta identidad",
+    )
+    channel = models.CharField(
+        max_length=32,
+        choices=CHANNEL_CHOICES,
+        db_index=True,
+        help_text="Canal de mensajería",
+    )
+    external_id = models.CharField(
+        max_length=64,
+        help_text="ID nativo del usuario en el canal (from.id en Telegram, wa_id en WhatsApp)",
+    )
+    external_username = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Username en el canal, si el canal lo provee",
+    )
+    display_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Nombre visible reportado por el canal",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "channel_identities"
+        verbose_name = "Identidad de canal"
+        verbose_name_plural = "Identidades de canal"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["channel", "external_id"],
+                name="unique_identity_per_channel",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "channel"], name="idx_user_channel"),
+        ]
+
+    def __str__(self):
+        return f"{self.channel}:{self.external_id} → {self.user.username}"

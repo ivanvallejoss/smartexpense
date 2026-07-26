@@ -75,7 +75,6 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
             "Expense created successfully",
             extra={
                 "user_id": expense.user.id,
-                "telegram_id": expense.user.telegram_id,
                 "expense_id": expense.id,
                 "amount": str(expense.amount),
                 "description": expense.description,

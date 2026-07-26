@@ -1,80 +1,40 @@
 """
-Helpers for handlers
-En este momento solo estan los helpers del handler /stats pero planeo tener una separacion mas clara a medida que crezcan los handlers
+Construcción de opciones para los mensajes del bot.
+
+Antes emitía InlineKeyboardMarkup de Telegram; ahora emite Option neutrales.
+El layout de filas se preserva exactamente — ver test_grid_mas_row_preserva_el_layout.
 """
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from services.channels.senders import Option, Rows, grid, row
 
 
-# ---------------------------------------
-#            KEYBOARD MARK UP
-# ---------------------------------------
-
-def get_delete_keyboard_markup(expense_id):                                             
-    """                                                                                 
-    Helper to orchestrate the inline buttons for messages                               
-    """                                                                                                                                                                         
-    keyboard = [                                                                        
-            [InlineKeyboardButton("Eliminar", callback_data=f"del:{expense_id}"),]      
-        ]                                                                               
-    markup = InlineKeyboardMarkup(keyboard)                                             
-                                                                                        
-    return markup                                                                       
+def delete_options(expense_id: int) -> Rows:
+    return row(Option(f"del:{expense_id}", "Eliminar"))
 
 
+def undo_options(deleted_object_id: int) -> Rows:
+    return row(Option(f"undo:{deleted_object_id}", "↩️ Deshacer borrado"))
 
-def get_undo_keyboard_markup(deleted_object_id):
+
+def correction_options(expense_id: int) -> Rows:
+    """Confianza media: confirmar o corregir la categoría sugerida."""
+    return row(
+        Option(f"cat_confirm:{expense_id}", "✅ Correcta"),
+        Option(f"cat_list:{expense_id}", "✏️ Cambiar"),
+    )
+
+
+def category_selection_options(expense_id: int, categories: list) -> Rows:
     """
-    Genera el boton de deshacer apuntando el ID de la papelera de reciclaje
+    Categorías de a dos por fila, y '➕ Nueva categoría' siempre sola al final.
+
+    El row() final es explícito a propósito: con una lista plana y regla
+    'de a dos', un número impar de categorías aparearía la última con
+    'Nueva categoría' y cambiaría el layout visible.
     """
-    keyboard = [
-        [InlineKeyboardButton("↩️ Deshacer borrado", callback_data=f"undo:{deleted_object_id}"),]
+    opciones = [
+        Option(f"cat_select:{expense_id}:{c.id}", c.name)
+        for c in categories
     ]
-
-    return InlineKeyboardMarkup(keyboard)
-
-
-def get_correction_keyboard_markup(expense_id: int):
-    """
-    Teclado para gastos con confianza media.
-    Permite confirmar o corregir la categoría sugerida.
-    """
-    keyboard = [
-        [
-            InlineKeyboardButton("✅ Correcta", callback_data=f"cat_confirm:{expense_id}"),
-            InlineKeyboardButton("✏️ Cambiar", callback_data=f"cat_list:{expense_id}"),
-        ]
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-
-def get_category_selection_keyboard_markup(expense_id: int, categories: list):
-    """
-    Teclado para seleccionar categoría de una lista.
-    Usado tanto para confianza baja como para corrección.
-    Cada botón lleva: cat_select:{expense_id}:{category_id}
-    """
-    keyboard = []
-
-    # Dos categorías por fila para no abrumar al usuario
-    row = []
-    for i, category in enumerate(categories):
-        row.append(
-            InlineKeyboardButton(
-                category.name,
-                callback_data=f"cat_select:{expense_id}:{category.id}"
-            )
-        )
-        if len(row) == 2:
-            keyboard.append(row)
-            row = []
-
-    # Si quedó una categoría sola en la última fila
-    if row:
-        keyboard.append(row)
-
-    # Botón para crear categoría nueva al final
-    keyboard.append([
-        InlineKeyboardButton("➕ Nueva categoría", callback_data=f"cat_new:{expense_id}")
-    ])
-
-    return InlineKeyboardMarkup(keyboard)
+    return grid(opciones, columns=2) + row(
+        Option(f"cat_new:{expense_id}", "➕ Nueva categoría")
+    )

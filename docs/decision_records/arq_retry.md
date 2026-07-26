@@ -133,3 +133,24 @@ async def process_telegram_message(ctx, payload):
 ## Related
 
 - Worker-level idempotency — extending the at-most-once guarantee to cover ARQ re-enqueue scenarios after worker crashes (backlog)
+
+## Amendment — Retry semantics split by stage (Fase 4b, multi-canal)
+
+The original decision assumed `process_telegram_message` failures would be
+retried. In practice they were not: PTB's `error_handler` caught every
+handler exception, replied to the user, and never re-raised — so the
+worker's `raise` was effectively unreachable.
+
+Removing PTB's dispatcher forced this to be made explicit. Retries are now
+split by whether side effects have occurred:
+
+- **Before dispatch** (event parsing, sender lookup, identity resolution):
+  nothing has been written. Exceptions propagate and ARQ retries. This is
+  the transient-failure case the original decision targeted.
+- **Inside dispatch**: the handler may have already created an Expense
+  before failing. Retrying would duplicate it. Exceptions are absorbed,
+  logged with full context, and surfaced to the user.
+
+This is the same reasoning that rejected the DLQ in Option B — the task is
+not idempotent — applied consistently to retries. Worker-level idempotency
+remains the prerequisite for widening retry coverage.
