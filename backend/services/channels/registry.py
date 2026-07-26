@@ -31,3 +31,15 @@ def normalize(channel: str, payload: dict[str, Any], **kwargs) -> ChannelEvent |
     except KeyError:
         raise UnknownChannel(f"Sin normalizador para el canal {channel!r}") from None
     return normalizer(payload, **kwargs)
+
+
+def build_default_senders() -> None:
+    """
+    Registra los senders disponibles. Se llama una vez en el startup del worker.
+
+    Agregar WhatsApp = dos líneas acá. El worker no se entera.
+    """
+    from services.channels.senders import register
+    from services.channels.telegram.outbound import build_sender as build_telegram
+
+    register(build_telegram())
