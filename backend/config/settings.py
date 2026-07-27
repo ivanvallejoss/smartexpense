@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     "corsheaders",
     # Local apps
     "apps.core",
-    "apps.api",
     "apps.bot",
 ]
 
