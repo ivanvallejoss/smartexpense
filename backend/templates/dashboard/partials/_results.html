@@ -1,0 +1,66 @@
+<div id="results" class="results">
+
+  <section class="hero-balance" aria-label="Balance del periodo">
+    <p class="hero-balance__periodo">Gastado · {{ periodo_label }}</p>
+    <p class="hero-balance__monto">${{ balance|floatformat:2 }}</p>
+    <p class="hero-balance__detalle">{{ total_gastos }} gasto{{ total_gastos|pluralize:"s" }}</p>
+  </section>
+
+  <section class="filtros" aria-label="Filtros">
+    <ul class="filtros__chips">
+      {% for chip in chips %}
+        <li>
+          <a class="chip{% if chip.activa %} chip--activo{% endif %}"
+             href="{{ chip.url }}"
+             {% if chip.activa %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
+            {{ chip.categoria.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <form class="filtros__rango" method="get" action="">
+      {% for cat_id in filtros.categorias %}
+        <input type="hidden" name="cat" value="{{ cat_id }}">
+      {% endfor %}
+      <label for="rango">Periodo</label>
+      <select name="rango" id="rango">
+        {% for opcion in opciones_rango %}
+          <option value="{{ opcion.value }}"{% if opcion.selected %} selected{% endif %}>{{ opcion.label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Aplicar</button>
+    </form>
+  </section>
+
+  <ul id="expense-list" class="expense-list">
+    {% for gasto in gastos %}
+      <li class="expense-item" id="expense-{{ gasto.id }}">
+        <span class="expense-item__descripcion">{{ gasto.description }}</span>
+        <span class="expense-item__meta">
+          {{ gasto.date|date:"j M" }}
+          {% if gasto.category %}· {{ gasto.category.name }}{% endif %}
+        </span>
+        <span class="expense-item__monto">${{ gasto.amount|floatformat:2 }}</span>
+      </li>
+    {% empty %}
+      <li class="estado-vacio">
+        {% if filtros.esta_desnudo %}
+          Todavia no registraste gastos. Cargalos desde el bot.
+        {% else %}
+          Ningun gasto en este rango.
+          <a href="{{ url_desnuda }}">Limpiar filtros</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  {% if num_pages > 1 %}
+    <nav class="paginacion" aria-label="Paginacion">
+      {% if url_anterior %}<a href="{{ url_anterior }}">Anterior</a>{% endif %}
+      <span>Pagina {{ page }} de {{ num_pages }}</span>
+      {% if url_siguiente %}<a href="{{ url_siguiente }}">Siguiente</a>{% endif %}
+    </nav>
+  {% endif %}
+
+</div>
