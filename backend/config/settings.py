@@ -151,13 +151,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # --------------------------
 #     DATABASE AND CORS
 # --------------------------
+# La politica de TLS (sslmode) NO vive aca: viaja como query param en
+# DATABASE_URL. Depende de donde corre el Postgres, no de si DEBUG esta
+# prendido — y ademas sslmode es un parametro de libpq que SQLite no acepta,
+# por lo que aplicarlo incondicionalmente rompia el fallback a sqlite.
+# Ver .env.example.
 if DEBUG:
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'disable'}
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     DATABASES['default']['CONN_MAX_AGE'] = 600
     DATABASES['default']['CONN_HEALTH_CHECKS'] = True
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
     CORS_ALLOW_ALL_ORIGINS = False
 
 
