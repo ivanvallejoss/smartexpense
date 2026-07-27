@@ -64,3 +64,31 @@ SPANISH_MONTHS = {
     5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
 }
+
+# ---------------------------------------------------------------
+#   ZONA HORARIA Y RANGOS TEMPORALES (Fase C — dashboard web)
+# ---------------------------------------------------------------
+
+from zoneinfo import ZoneInfo  # noqa: E402
+
+# Zona horaria del usuario. Los datos se guardan en UTC; los bordes de los
+# rangos se calculan en esta zona para que "julio" sea julio en Buenos Aires
+# y no en UTC. Mismo criterio que get_month_stats().
+USER_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
+
+# Rangos relativos del dashboard (B4-S1, enum extendido con "mes").
+# valor -> cantidad de meses calendario hacia atras, incluyendo el actual.
+RANGOS = {
+    "mes": 1,
+    "3m": 3,
+    "6m": 6,
+    "12m": 12,
+}
+RANGO_DEFAULT = "mes"
+
+RANGO_LABELS = {
+    "mes": "Este mes",
+    "3m": "Últimos 3 meses",
+    "6m": "Últimos 6 meses",
+    "12m": "Últimos 12 meses",
+}
