@@ -8,7 +8,7 @@ from apps.bot.views import webhook
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
-WEBHOOK_URL = "/bot/webhook/"
+WEBHOOK_URL = "/bot/telegram/webhook/"
 
 VALID_PAYLOAD = {
     "update_id": 123456789,

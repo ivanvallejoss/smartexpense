@@ -8,12 +8,16 @@ class Command(BaseCommand):
     help = 'Configura la URL del Webhook en Telegram'
 
     def add_arguments(self, parser):
-        parser.add_argument('url', type=str, help='La URL base de Ngrok (ej: https://a1b2.ngrok.app)')
+        parser.add_argument(
+            'url',
+            type=str,
+            help='URL base publica (ej: https://a1b2.ngrok.app o https://tu-dominio.ar)',
+        )
 
     def handle(self, *args, **kwargs):
-        ngrok_url = kwargs['url'].rstrip('/')
-        # Asegúrate de que esta ruta coincida con tu urls.py
-        webhook_path = f"{ngrok_url}/bot/webhook/" 
+        base_url = kwargs['url'].rstrip('/')
+        # Debe coincidir con apps/bot/urls.py (name="telegram-webhook")
+        webhook_path = f"{base_url}/bot/telegram/webhook/"
         
         telegram_token = settings.TELEGRAM_TOKEN
         api_url = f"https://api.telegram.org/bot{telegram_token}/setWebhook"
