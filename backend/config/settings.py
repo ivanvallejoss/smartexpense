@@ -166,14 +166,19 @@ else:
 
 
 # -------------
-#    RAILWAY
+#    ENTORNO
 # -------------
-IS_PRODUCTION = env.bool('RAILWAY_ENVIRONMENT_NAME', default=False)
+# Nombre explicito del entorno donde corre el proceso. No se deriva de DEBUG:
+# DEBUG es un flag de comportamiento de Django, no una descripcion de la
+# infraestructura. Tampoco se deriva de variables del proveedor de hosting.
+ENVIRONMENT = env("ENVIRONMENT", default="dev")
 
-if IS_PRODUCTION:
-    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
-else:
-    ALLOWED_HOSTS = ["*"]
+# El default abierto aplica solo en desarrollo real (dev + DEBUG). En cualquier
+# otro caso la lista vacia es intencional: Django rechaza los requests hasta
+# que ALLOWED_HOSTS se configure explicitamente. Fallar ruidosamente es
+# preferible a aceptar cualquier Host header en silencio.
+_hosts_abiertos = DEBUG and ENVIRONMENT == "dev"
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"] if _hosts_abiertos else [])
 
 
 
