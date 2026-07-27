@@ -12,8 +12,8 @@
         <li>
           <a class="chip{% if chip.activa %} chip--activo{% endif %}"
              href="{{ chip.url }}"
-             {% if chip.activa %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
-            {{ chip.categoria.name }}
+             {% if chip.activa %}aria-current="true" title="Quitar el filtro {{ chip.categoria.name }}"{% else %}title="Filtrar por {{ chip.categoria.name }}"{% endif %}>
+            {{ chip.categoria.name }}{% if chip.activa %} ✕{% endif %}
           </a>
         </li>
       {% endfor %}
@@ -34,33 +34,7 @@
   </section>
 
   <ul id="expense-list" class="expense-list">
-    {% for gasto in gastos %}
-      <li class="expense-item" id="expense-{{ gasto.id }}">
-        <span class="expense-item__descripcion">{{ gasto.description }}</span>
-        <span class="expense-item__meta">
-          {{ gasto.date|date:"j M" }}
-          {% if gasto.category %}· {{ gasto.category.name }}{% endif %}
-        </span>
-        <span class="expense-item__monto">${{ gasto.amount|floatformat:2 }}</span>
-      </li>
-    {% empty %}
-      <li class="estado-vacio">
-        {% if filtros.esta_desnudo %}
-          Todavia no registraste gastos. Cargalos desde el bot.
-        {% else %}
-          Ningun gasto en este rango.
-          <a href="{{ url_desnuda }}">Limpiar filtros</a>
-        {% endif %}
-      </li>
-    {% endfor %}
+    {% include "dashboard/partials/_expense_items.html" %}
   </ul>
-
-  {% if num_pages > 1 %}
-    <nav class="paginacion" aria-label="Paginacion">
-      {% if url_anterior %}<a href="{{ url_anterior }}">Anterior</a>{% endif %}
-      <span>Pagina {{ page }} de {{ num_pages }}</span>
-      {% if url_siguiente %}<a href="{{ url_siguiente }}">Siguiente</a>{% endif %}
-    </nav>
-  {% endif %}
 
 </div>

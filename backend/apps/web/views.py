@@ -60,8 +60,13 @@ def _build_context(filtros, data):
     }
 
 
-class DashboardView(View):
-    template_name = "dashboard/index.html"
+class _DashboardBaseView(View):
+    """
+    Guard + carga de datos. Lo unico que distingue a las dos vistas es que
+    template renderizan: la completa devuelve el documento, la parcial devuelve
+    los <li>. Comparten filtros y selector, como pide B2.
+    """
+    template_name = None
 
     async def get(self, request):
         user = await request.auser()
@@ -76,3 +81,12 @@ class DashboardView(View):
             page=filtros.page,
         )
         return render(request, self.template_name, _build_context(filtros, data))
+
+
+class DashboardView(_DashboardBaseView):
+    template_name = "dashboard/index.html"
+
+
+class DashboardExpensesView(_DashboardBaseView):
+    """Endpoint de partial dedicado (B2): una URL propia por region swappable."""
+    template_name = "dashboard/partials/_expense_items.html"
