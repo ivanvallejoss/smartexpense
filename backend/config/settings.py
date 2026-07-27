@@ -32,7 +32,6 @@ JWT_SECRET_KEY = env("JWT_SECRET_KEY")
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
 TELEGRAM_WEBHOOK_TOKEN = env('TELEGRAM_WEBHOOK_TOKEN')
 
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
 # ----------------------------

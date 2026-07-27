@@ -42,8 +42,8 @@ jobs:
       TELEGRAM_WEBHOOK_TOKEN: "ci-webhook-token"
       DATABASE_URL: "postgresql://ci_user:ci_password@localhost:5432/ci_db"
       REDIS_URL: "redis://localhost:6379/0"
-      FRONTEND_URL: "http://localhost:5173"
       DEBUG: "True"
+      ENVIRONMENT: "dev"
     
     steps:
       - uses: actions/checkout@v4

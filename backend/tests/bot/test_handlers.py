@@ -105,16 +105,18 @@ class TestBasicCommands:
         await history_command(make_event("/history"), user, sender)
         assert sender.last_reply["parse_mode"] == "HTML"
 
-    @patch("apps.bot.handlers.handlers.generate_magic_link_token")
-    async def test_link_contains_token(self, mock_token, make_event, user, sender):
-        mock_token.return_value = "token-secreto-123"
-
+    async def test_link_announces_dashboard_under_construction(
+        self, make_event, user, sender
+    ):
+        """
+        El dashboard esta deshabilitado hasta la Fase B. El comando responde,
+        pero no emite ningun token: no existe todavia quien lo valide.
+        """
         await link_command(make_event("/link"), user, sender)
 
         respuesta = sender.last_reply["text"]
-        assert "token-secreto-123" in respuesta
-        assert "Ir al dashboard" in respuesta
-        assert mock_token.call_args.kwargs == {"user_id": user.id}
+        assert "construccion" in respuesta.lower()
+        assert "token=" not in respuesta
 
 
 # ============================================
