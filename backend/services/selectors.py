@@ -6,7 +6,9 @@ Logic to show data related to expenses
 from apps.core.models import Expense, Category
 from django.core.exceptions import ObjectDoesNotExist
 
-from services.constants import SPANISH_MONTHS
+from django.core.paginator import Paginator
+
+from services.constants import RANGO_DEFAULT, RANGOS, SPANISH_MONTHS, USER_TZ
 
 from asgiref.sync import sync_to_async
 
@@ -183,9 +185,6 @@ def get_category_by_id_or_default(user, category_id):
 #           DASHBOARD WEB (Fase C)
 # ---------------------------------------------------------------
 
-from django.core.paginator import Paginator
-
-from services.constants import RANGO_DEFAULT, RANGOS, USER_TZ
 
 DASHBOARD_PAGE_SIZE = 20
 

@@ -58,7 +58,7 @@ def parse_dashboard_filters(request) -> DashboardFilters:
         try:
             valor = int(crudo)
         except (TypeError, ValueError):
-            avisos.append("Se ignoro un filtro de categoria invalido.")
+            avisos.append("Se ignoró un filtro de categoría inválido.")
             continue
         if valor > 0 and valor not in categorias:
             categorias.append(valor)

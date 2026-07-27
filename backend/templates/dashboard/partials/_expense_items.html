@@ -11,7 +11,7 @@
           hx-post="{% url 'dashboard-gasto-eliminar' gasto.id %}{{ url_actual }}"
           hx-target="#results"
           hx-swap="outerHTML"
-          hx-confirm="Borrar {{ gasto.description }}?">
+          hx-confirm="¿Borrar {{ gasto.description }}?">
       {% csrf_token %}
       <button type="submit">Borrar</button>
     </form>
@@ -20,9 +20,9 @@
   {% if filtros.page == 1 %}
     <li class="estado-vacio">
       {% if filtros.esta_desnudo %}
-        Todavia no registraste gastos. Cargalos desde el bot.
+        Todavía no registraste gastos. Cargalos desde el bot.
       {% else %}
-        Ningun gasto en este rango.
+        Ningún gasto en este rango.
         <a href="{{ url_desnuda }}">Limpiar filtros</a>
       {% endif %}
     </li>
@@ -34,6 +34,6 @@
       hx-get="{% url 'dashboard-gastos' %}{{ url_siguiente }}"
       hx-trigger="revealed"
       hx-swap="outerHTML">
-    <a href="{% url 'dashboard' %}{{ url_siguiente }}">Cargar mas</a>
+    <a href="{% url 'dashboard' %}{{ url_siguiente }}">Cargar más</a>
   </li>
 {% endif %}

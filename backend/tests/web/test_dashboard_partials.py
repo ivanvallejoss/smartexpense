@@ -9,24 +9,10 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from django.test import Client
-
 from apps.core.models import Category, Expense, User
 from services.selectors import DASHBOARD_PAGE_SIZE, rango_bounds
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def ivan():
-    return User.objects.create_user(username="ivan", password="secreta")
-
-
-@pytest.fixture
-def client_logueado(ivan):
-    client = Client()
-    client.force_login(ivan)
-    return client
 
 
 def cargar_gastos(user, cantidad, misma_fecha=False):
@@ -85,7 +71,7 @@ def test_sin_centinela_cuando_entra_todo_en_una_pagina(client_logueado, ivan):
 
 def test_el_estado_vacio_no_se_repite_en_paginas_siguientes(client_logueado, ivan):
     cuerpo = client_logueado.get("/dashboard/gastos/?page=2").content.decode()
-    assert "Todavia no registraste gastos" not in cuerpo
+    assert "Todavía no registraste gastos" not in cuerpo
 
 
 def test_paginacion_estable_con_gastos_de_la_misma_fecha(client_logueado, ivan):

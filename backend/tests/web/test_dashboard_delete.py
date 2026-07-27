@@ -10,26 +10,12 @@ from decimal import Decimal
 
 import pytest
 from django.contrib.contenttypes.models import ContentType
-from django.test import Client
-
 from apps.core.models import Category, DeletedObject, Expense, User
 from services.selectors import rango_bounds
 
 pytestmark = pytest.mark.django_db
 
 HTMX = {"HTTP_HX_REQUEST": "true"}
-
-
-@pytest.fixture
-def ivan():
-    return User.objects.create_user(username="ivan", password="secreta")
-
-
-@pytest.fixture
-def client_logueado(ivan):
-    client = Client()
-    client.force_login(ivan)
-    return client
 
 
 @pytest.fixture
@@ -45,15 +31,12 @@ def datos(ivan):
     return {"comida": comida, "verduleria": verduleria, "kiosco": kiosco}
 
 
-def monto(valor) -> str:
-    return f"${Decimal(valor):.2f}".replace(".", ",")
-
 
 def url_borrar(expense_id, cola=""):
     return f"/dashboard/gastos/{expense_id}/eliminar/{cola}"
 
 
-def test_borra_y_el_mismo_response_ya_trae_el_balance_nuevo(client_logueado, datos):
+def test_borra_y_el_mismo_response_ya_trae_el_balance_nuevo(client_logueado, datos, monto):
     respuesta = client_logueado.post(url_borrar(datos["verduleria"].id), **HTMX)
     cuerpo = respuesta.content.decode()
 
@@ -85,7 +68,7 @@ def test_sin_htmx_redirige_conservando_los_filtros(client_logueado, datos):
     assert respuesta["Location"] == f"/dashboard/{cola}"
 
 
-def test_el_swap_respeta_los_filtros_activos(client_logueado, ivan, datos):
+def test_el_swap_respeta_los_filtros_activos(client_logueado, ivan, datos, monto):
     otra = Category.objects.create(name="Transporte", user=ivan)
     desde_mes, _ = rango_bounds("mes")
     Expense.objects.create(user=ivan, amount=Decimal("900"), description="Subte",
@@ -142,3 +125,13 @@ def test_el_form_de_borrado_viaja_en_la_lista(client_logueado, datos):
     assert url_borrar(datos["verduleria"].id) in cuerpo
     assert "csrfmiddlewaretoken" in cuerpo
     assert "hx-confirm" in cuerpo
+
+
+def test_get_al_endpoint_de_borrado_devuelve_405(client_logueado, datos):
+    """
+    Heredar de la familia de lectura le daba un get() que no aceptaba el
+    argumento de URL: 500 en vez de 405. El borrado solo acepta POST.
+    """
+    respuesta = client_logueado.get(url_borrar(datos["verduleria"].id))
+    assert respuesta.status_code == 405
+    assert Expense.objects.filter(id=datos["verduleria"].id).exists()

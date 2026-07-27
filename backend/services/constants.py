@@ -7,6 +7,8 @@ Regla: cualquier lugar del sistema que necesite un color o emoji
 de categoría debe importar desde acá. No hardcodear en otro lado.
 """
 
+from zoneinfo import ZoneInfo
+
 # Mapeo nombre → color HEX
 # Usado por: seed_data.py, ExpenseCategorizer._check_and_create_from_defaults
 CATEGORY_COLORS = {
@@ -69,7 +71,6 @@ SPANISH_MONTHS = {
 #   ZONA HORARIA Y RANGOS TEMPORALES (Fase C — dashboard web)
 # ---------------------------------------------------------------
 
-from zoneinfo import ZoneInfo  # noqa: E402
 
 # Zona horaria del usuario. Los datos se guardan en UTC; los bordes de los
 # rangos se calculan en esta zona para que "julio" sea julio en Buenos Aires

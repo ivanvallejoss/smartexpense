@@ -65,27 +65,45 @@ def _build_context(filtros, data):
     }
 
 
-class _DashboardBaseView(View):
+class _SesionRequerida(View):
     """
-    Guard + carga de datos. Lo unico que distingue a las dos vistas es que
-    template renderizan: la completa devuelve el documento, la parcial devuelve
-    los <li>. Comparten filtros y selector, como pide B2.
+    Guard de sesion para views async. Es lo unico que comparten la familia de
+    lectura y la de mutacion, asi que es lo unico que se hereda: la vista de
+    borrado heredaba antes un get() que no aceptaba su argumento de URL y
+    devolvia 500 en vez de 405.
+    """
+
+    async def usuario(self, request):
+        user = await request.auser()
+        return user if user.is_authenticated else None
+
+
+async def _render_dashboard(request, template_name, user, filtros):
+    """Carga los datos del estado y renderiza. Unico camino a get_dashboard_data."""
+    data = await get_dashboard_data(
+        user,
+        category_ids=filtros.categorias,
+        rango=filtros.rango,
+        page=filtros.page,
+    )
+    return render(request, template_name, _build_context(filtros, data))
+
+
+class _DashboardBaseView(_SesionRequerida):
+    """
+    Familia de lectura. Lo unico que distingue a las tres vistas es que template
+    renderizan: la completa devuelve el documento, las parciales devuelven su
+    region. Comparten filtros y selector, como pide B2.
     """
     template_name = None
 
     async def get(self, request):
-        user = await request.auser()
-        if not user.is_authenticated:
+        user = await self.usuario(request)
+        if user is None:
             return redirect_to_login(request.get_full_path())
 
         filtros = parse_dashboard_filters(request)
-        data = await get_dashboard_data(
-            user,
-            category_ids=filtros.categorias,
-            rango=filtros.rango,
-            page=filtros.page,
-        )
-        respuesta = render(request, self.template_name, _build_context(filtros, data))
+        respuesta = await _render_dashboard(request, self.template_name, user, filtros)
         return self.finalizar(respuesta, filtros)
 
     def finalizar(self, respuesta, filtros):
@@ -117,7 +135,7 @@ class DashboardResultsView(_DashboardBaseView):
         return respuesta
 
 
-class DashboardDeleteExpenseView(_DashboardBaseView):
+class DashboardDeleteExpenseView(_SesionRequerida):
     """
     Borrado inline. Es POST y no DELETE porque el baseline sin JS es un <form>,
     y los forms HTML solo hablan GET y POST.
@@ -130,11 +148,13 @@ class DashboardDeleteExpenseView(_DashboardBaseView):
     template_name = "dashboard/partials/_results.html"
 
     async def post(self, request, expense_id):
-        user = await request.auser()
-        if not user.is_authenticated:
+        user = await self.usuario(request)
+        if user is None:
             return redirect_to_login(request.get_full_path())
 
-        filtros = parse_dashboard_filters(request)
+        # Volver a la pagina 1 no es un detalle del render: la URL del redirect
+        # sale del mismo objeto, asi que las dos no pueden contradecirse.
+        filtros = parse_dashboard_filters(request).con_pagina(1)
         es_htmx = request.headers.get("HX-Request") == "true"
 
         try:
@@ -145,13 +165,7 @@ class DashboardDeleteExpenseView(_DashboardBaseView):
         if not es_htmx:
             return redirect(reverse("dashboard") + filtros.querystring())
 
-        data = await get_dashboard_data(
-            user,
-            category_ids=filtros.categorias,
-            rango=filtros.rango,
-            page=1,
-        )
-        return render(request, self.template_name, _build_context(filtros, data))
+        return await _render_dashboard(request, self.template_name, user, filtros)
 
     def _error(self, request, es_htmx, filtros):
         """
@@ -165,7 +179,7 @@ class DashboardDeleteExpenseView(_DashboardBaseView):
         respuesta = render(
             request,
             "shared/_avisos.html",
-            {"avisos": ["Ese gasto ya no existe. Se actualizo la vista."]},
+            {"avisos": ["Ese gasto ya no existe. Se actualizó la vista."]},
             status=404,
         )
         respuesta["HX-Retarget"] = "#avisos"

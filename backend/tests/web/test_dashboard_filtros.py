@@ -8,24 +8,10 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from django.test import Client
-
 from apps.core.models import Category, Expense, User
 from services.selectors import rango_bounds
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def ivan():
-    return User.objects.create_user(username="ivan", password="secreta")
-
-
-@pytest.fixture
-def client_logueado(ivan):
-    client = Client()
-    client.force_login(ivan)
-    return client
 
 
 @pytest.fixture
@@ -43,9 +29,6 @@ def datos(ivan):
     return {"comida": comida, "transporte": transporte}
 
 
-def monto(valor) -> str:
-    return f"${Decimal(valor):.2f}".replace(".", ",")
-
 
 def test_devuelve_el_wrapper_y_no_el_documento(client_logueado, datos):
     cuerpo = client_logueado.get("/dashboard/resultados/").content.decode()
@@ -57,7 +40,7 @@ def test_exige_sesion(client):
     assert client.get("/dashboard/resultados/").status_code == 302
 
 
-def test_un_solo_swap_trae_balance_chips_y_lista(client_logueado, datos):
+def test_un_solo_swap_trae_balance_chips_y_lista(client_logueado, datos, monto):
     cuerpo = client_logueado.get(f"/dashboard/resultados/?cat={datos['comida'].id}").content.decode()
     assert monto("10000") in cuerpo
     assert 'class="chip chip--activo"' in cuerpo
@@ -85,7 +68,7 @@ def test_el_chip_activo_apunta_a_la_url_desnuda(client_logueado, datos):
     assert 'hx-get="/dashboard/resultados/"' in cuerpo
 
 
-def test_categoria_y_rango_se_combinan(client_logueado, datos):
+def test_categoria_y_rango_se_combinan(client_logueado, datos, monto):
     url = f"/dashboard/resultados/?cat={datos['comida'].id}&rango=3m"
     cuerpo = client_logueado.get(url).content.decode()
     assert monto("109999") in cuerpo

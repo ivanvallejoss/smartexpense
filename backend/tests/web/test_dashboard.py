@@ -9,23 +9,10 @@ from decimal import Decimal
 
 import pytest
 from django.test import Client
-
 from apps.core.models import Category, Expense, User
 from services.selectors import rango_bounds
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def ivan():
-    return User.objects.create_user(username="ivan", password="secreta")
-
-
-@pytest.fixture
-def client_logueado(ivan):
-    client = Client()
-    client.force_login(ivan)
-    return client
 
 
 @pytest.fixture
@@ -49,10 +36,6 @@ def datos(ivan):
     return {"comida": comida, "transporte": transporte, "desde_mes": desde_mes}
 
 
-def monto(valor) -> str:
-    """El locale es es-ar: los decimales van con coma."""
-    return f"${Decimal(valor):.2f}".replace(".", ",")
-
 
 def test_anonimo_redirige_al_login(client):
     respuesta = client.get("/dashboard/")
@@ -60,7 +43,7 @@ def test_anonimo_redirige_al_login(client):
     assert respuesta["Location"] == "/admin/login/?next=/dashboard/"
 
 
-def test_balance_es_el_del_mes_en_curso(client_logueado, datos):
+def test_balance_es_el_del_mes_en_curso(client_logueado, datos, monto):
     cuerpo = client_logueado.get("/dashboard/").content.decode()
     assert monto("12500") in cuerpo
     assert "99999" not in cuerpo
@@ -80,26 +63,26 @@ def test_borde_del_mes_se_calcula_en_hora_de_buenos_aires(client_logueado, datos
     assert "Borde 23hs" not in cuerpo
 
 
-def test_filtro_por_categoria_recalcula_lista_y_balance(client_logueado, datos):
+def test_filtro_por_categoria_recalcula_lista_y_balance(client_logueado, datos, monto):
     cuerpo = client_logueado.get(f"/dashboard/?cat={datos['comida'].id}").content.decode()
     assert monto("10000") in cuerpo
     assert "Verduleria" in cuerpo
     assert "Subte" not in cuerpo
 
 
-def test_multiples_categorias_se_suman(client_logueado, datos):
+def test_multiples_categorias_se_suman(client_logueado, datos, monto):
     url = f"/dashboard/?cat={datos['comida'].id}&cat={datos['transporte'].id}"
     cuerpo = client_logueado.get(url).content.decode()
     assert monto("12500") in cuerpo
     assert "Verduleria" in cuerpo and "Subte" in cuerpo
 
 
-def test_rango_amplio_incluye_meses_previos(client_logueado, datos):
+def test_rango_amplio_incluye_meses_previos(client_logueado, datos, monto):
     cuerpo = client_logueado.get("/dashboard/?rango=3m").content.decode()
     assert monto("113276") in cuerpo
 
 
-def test_rango_invalido_cae_al_default_con_aviso(client_logueado, datos):
+def test_rango_invalido_cae_al_default_con_aviso(client_logueado, datos, monto):
     cuerpo = client_logueado.get("/dashboard/?rango=basura").content.decode()
     assert "Ese rango no existe" in cuerpo
     assert monto("12500") in cuerpo
@@ -121,13 +104,13 @@ def test_paginacion_parte_la_lista(client_logueado, ivan, datos):
 
 def test_estado_vacio_absoluto(client_logueado):
     cuerpo = client_logueado.get("/dashboard/").content.decode()
-    assert "Todavia no registraste gastos" in cuerpo
+    assert "Todavía no registraste gastos" in cuerpo
 
 
 def test_estado_vacio_por_filtro_ofrece_limpiar(client_logueado, ivan, datos):
     vacia = Category.objects.create(name="Vacia", user=ivan)
     cuerpo = client_logueado.get(f"/dashboard/?cat={vacia.id}").content.decode()
-    assert "Ningun gasto en este rango" in cuerpo
+    assert "Ningún gasto en este rango" in cuerpo
     assert "Limpiar filtros" in cuerpo
 
 
