@@ -25,11 +25,6 @@ known_django = "django"
 known_first_party = ["apps", "config"]
 sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings"
-python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "--cov=backend --cov-report=html --cov-report=term-missing"
-testpaths = ["backend/tests"]
 
 [tool.coverage.run]
 omit = [

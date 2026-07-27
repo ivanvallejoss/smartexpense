@@ -2,8 +2,6 @@
 Django settings for SmartExpense project.
 """
 import os
-import dj_database_url
-from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -32,10 +30,7 @@ JWT_SECRET_KEY = env("JWT_SECRET_KEY")
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
 TELEGRAM_WEBHOOK_TOKEN = env('TELEGRAM_WEBHOOK_TOKEN')
 
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
-
-FRONTEND_TEST = env('FRONTEND_TEST', default='http://localhost:5173')
 
 # ----------------------------
 #   DataBase configuration
@@ -55,10 +50,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party apps
     "django_extensions",
-    "corsheaders",
     # Local apps
     "apps.core",
-    "apps.api",
     "apps.bot",
 ]
 
@@ -66,8 +59,6 @@ AUTH_USER_MODEL = "core.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # CORS
-    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -149,35 +140,34 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ======================================================
 
 # --------------------------
-#     DATABASE AND CORS
+#          DATABASE
 # --------------------------
-if DEBUG:
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'disable'}
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
+# La politica de TLS (sslmode) NO vive aca: viaja como query param en
+# DATABASE_URL. Depende de donde corre el Postgres, no de si DEBUG esta
+# prendido — y ademas sslmode es un parametro de libpq que SQLite no acepta,
+# por lo que aplicarlo incondicionalmente rompia el fallback a sqlite.
+# Ver .env.example.
+if not DEBUG:
     DATABASES['default']['CONN_MAX_AGE'] = 600
     DATABASES['default']['CONN_HEALTH_CHECKS'] = True
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
-    CORS_ALLOW_ALL_ORIGINS = False
 
 
 
 # -------------
-#    RAILWAY
+#    ENTORNO
 # -------------
-IS_PRODUCTION = env.bool('RAILWAY_ENVIRONMENT_NAME', default=False)
+# Nombre explicito del entorno donde corre el proceso. No se deriva de DEBUG:
+# DEBUG es un flag de comportamiento de Django, no una descripcion de la
+# infraestructura. Tampoco se deriva de variables del proveedor de hosting.
+ENVIRONMENT = env("ENVIRONMENT", default="dev")
 
-if IS_PRODUCTION:
-    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
-else:
-    ALLOWED_HOSTS = ["*"]
+# El default abierto aplica solo en desarrollo real (dev + DEBUG). En cualquier
+# otro caso la lista vacia es intencional: Django rechaza los requests hasta
+# que ALLOWED_HOSTS se configure explicitamente. Fallar ruidosamente es
+# preferible a aceptar cualquier Host header en silencio.
+_hosts_abiertos = DEBUG and ENVIRONMENT == "dev"
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"] if _hosts_abiertos else [])
 
-
-
-# -------------
-#     CORS
-# -------------
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL, FRONTEND_TEST]
 
 
 

@@ -7,9 +7,7 @@ ContextTypes, sin import de telegram.
 import logging
 
 from asgiref.sync import sync_to_async
-from django.conf import settings
 
-from services.auth import generate_magic_link_token
 from services.channels.events import ChannelEvent
 from services.channels.senders import Sender
 from services.expenses import create_expense
@@ -79,7 +77,7 @@ async def help_command(event: ChannelEvent, user, sender: Sender) -> None:
         "/stats - Ver estadísticas del mes\n"
         "/history - Ver tus ultimos 10 gastos\n"
         "/help - Esta ayuda\n"
-        "/link - Obtener el link para ver todos tus gastos en un dashboard"
+        "/link - Acceso al dashboard (en construccion)"
     )
 
     logger.info("Help command executed", extra={"user_id": user.id})
@@ -149,17 +147,19 @@ async def history_command(event: ChannelEvent, user, sender: Sender) -> None:
 
 async def link_command(event: ChannelEvent, user, sender: Sender) -> None:
     """
-    Magic link de acceso al dashboard.
-    """
+    Acceso al dashboard. Deshabilitado temporalmente.
 
-    token = generate_magic_link_token(user_id=user.id)
-    magic_link = f"{settings.FRONTEND_URL}/login?token={token}"
+    El magic link apuntaba al frontend React, que se abandono junto con la
+    API JSON que validaba el token. El emisor del token
+    (services.auth.generate_magic_link_token) sigue intacto y es la pieza que
+    va a reusar el login web de la Fase B — pero mientras no exista quien lo
+    valide, generar un token seria mandar al usuario a una URL muerta.
+    """
 
     mensaje = (
         "<b>Acceso a tu Dashboard</b>\n\n"
-        "Haz clic en el enlace de abajo para entrar.\n"
-        "<i>Este link es personal, seguro y caduca en 15 minutos.</i>\n\n"
-        f'<a href="{magic_link}">Ir al dashboard</a>'
+        "El dashboard web esta en construccion.\n"
+        "<i>Mientras tanto podes usar /stats y /history desde el chat.</i>"
     )
 
     await sender.reply(event.conversation_id, mensaje, parse_mode="HTML")
