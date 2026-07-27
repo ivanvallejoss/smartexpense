@@ -184,7 +184,7 @@ Lo que **sí** hay que revisar en Fase E:
 
 ## 5. Estado del código al cierre
 
-```
+``` bash
 backend/apps/web/          filters.py  views.py  urls.py        (~230 líneas)
 backend/templates/         base.html + dashboard/ + shared/     (~150 líneas)
 backend/services/          +rango_bounds, +get_dashboard_data, +USER_TZ, +RANGOS
