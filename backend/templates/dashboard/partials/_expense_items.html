@@ -1,0 +1,39 @@
+{% for gasto in gastos %}
+  <li class="expense-item" id="expense-{{ gasto.id }}">
+    <span class="expense-item__descripcion">{{ gasto.description }}</span>
+    <span class="expense-item__meta">
+      {{ gasto.date|date:"j M" }}
+      {% if gasto.category %}· {{ gasto.category.name }}{% endif %}
+    </span>
+    <span class="expense-item__monto">${{ gasto.amount|floatformat:2 }}</span>
+    <form class="expense-item__borrar" method="post"
+          action="{% url 'dashboard-gasto-eliminar' gasto.id %}{{ url_actual }}"
+          hx-post="{% url 'dashboard-gasto-eliminar' gasto.id %}{{ url_actual }}"
+          hx-target="#results"
+          hx-swap="outerHTML"
+          hx-confirm="¿Borrar {{ gasto.description }}?">
+      {% csrf_token %}
+      <button type="submit">Borrar</button>
+    </form>
+  </li>
+{% empty %}
+  {% if filtros.page == 1 %}
+    <li class="estado-vacio">
+      {% if filtros.esta_desnudo %}
+        Todavía no registraste gastos. Cargalos desde el bot.
+      {% else %}
+        Ningún gasto en este rango.
+        <a href="{{ url_desnuda }}">Limpiar filtros</a>
+      {% endif %}
+    </li>
+  {% endif %}
+{% endfor %}
+
+{% if url_siguiente %}
+  <li class="cargar-mas"
+      hx-get="{% url 'dashboard-gastos' %}{{ url_siguiente }}"
+      hx-trigger="revealed"
+      hx-swap="outerHTML">
+    <a href="{% url 'dashboard' %}{{ url_siguiente }}">Cargar más</a>
+  </li>
+{% endif %}

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # Local apps
     "apps.core",
     "apps.bot",
+    "apps.web",
 ]
 
 AUTH_USER_MODEL = "core.User"
@@ -86,6 +87,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
+
+# Break-glass de B1: hasta que exista el puente magic-link -> sesion, el login
+# web es el del admin. Documentado en el runbook, no se construye nada.
+LOGIN_URL = "/admin/login/"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

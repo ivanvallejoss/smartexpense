@@ -14,6 +14,7 @@ urlpatterns = [
     path("health/", health),
     path("admin/", admin.site.urls),
     path("bot/", include("apps.bot.urls")),
+    path("dashboard/", include("apps.web.urls")),
 ]
 
 # on DEBUG we serve the media through django statics
