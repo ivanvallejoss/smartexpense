@@ -1,0 +1,413 @@
+/* ============================================================
+   SMARTEXPENSE.CSS — extensiones y componentes del dashboard
+   ------------------------------------------------------------
+   CONTRATO (B0, Fase B):
+   - tokens.css y fonts.css se copian VERBATIM desde la landing
+     (ivanvallejos.dev). Si divergen, gana la landing.
+   - Todo lo local a SmartExpense vive acá, con prefijo --se-.
+   - PROMOCIÓN: un token --se-* sube a tokens.css canónico recién
+     cuando aparece un segundo consumidor (se copia, no se
+     comparte en runtime: los tres sistemas son servicios
+     separados). Al promover: renombrar quitando el prefijo.
+   - La paleta de categorías (--se-cat-*) es extensible a los
+     otros sistemas bajo ese mismo mecanismo.
+   ------------------------------------------------------------
+   Orden de carga en base.html:
+     1. tokens.css   2. fonts.css   3. smartexpense.css
+   ============================================================ */
+
+:root {
+  /* ===== PALETA DE CATEGORÍAS (datos, NO marca) ==============
+     Mecanismo: L y C compartidos, varía solo el hue.
+     Refactor de paleta completa = tocar --se-cat-l / --se-cat-c.
+     Medido (WCAG 2.1, coloraide):
+       - contraste ≥ 6.6:1 sobre la superficie más clara
+         (--mod-warm) → pasa AA texto chico (4.5:1) con margen.
+       - ΔE2000 mínimo entre todos los pares, incluyendo --amber
+         y --signal: 13.0 → distinguibles (cierra R10 con número).
+     Zonas vetadas: 60–125 (ámbar/mostaza), 135–175 (--signal).
+     El mapeo categoría→slot lo define core.Category.color_slot. */
+  --se-cat-l: 0.72;
+  --se-cat-c: 0.11;
+  --se-cat-1: oklch(var(--se-cat-l) var(--se-cat-c) 5);    /* rosa      #df879b */
+  --se-cat-2: oklch(var(--se-cat-l) var(--se-cat-c) 40);   /* terracota #de8e6c */
+  --se-cat-3: oklch(var(--se-cat-l) var(--se-cat-c) 195);  /* teal      #38bab9 */
+  --se-cat-4: oklch(var(--se-cat-l) var(--se-cat-c) 240);  /* celeste   #5faee4 */
+  --se-cat-5: oklch(var(--se-cat-l) var(--se-cat-c) 285);  /* lavanda   #9c9cea */
+  --se-cat-6: oklch(var(--se-cat-l) var(--se-cat-c) 330);  /* malva     #ca8cc8 */
+
+  /* ===== TIPOGRAFÍA ==========================================
+     Cifras SIEMPRE con tabular-nums (ver regla global abajo). */
+  --se-text-hero: clamp(2.5rem, 8vw, 4rem);
+  /* A VERIFICAR (D4-S1): alternativa más contenida.
+     --se-text-hero: clamp(2.25rem, 7vw, 3rem); */
+  --se-text-titulo: 1.125rem;
+  --se-text-body: 0.9375rem;   /* 15px */
+  --se-text-meta: 0.8125rem;   /* 13px */
+
+  /* ===== ESPACIADO (escala de 4) ============================= */
+  --se-space-1: 4px;
+  --se-space-2: 8px;
+  --se-space-3: 12px;
+  --se-space-4: 16px;
+  --se-space-5: 24px;
+  --se-space-6: 32px;
+
+  /* Fila del ledger: densidad CÓMODA (a verificar en uso).
+     Alternativa compacta: 10px. */
+  --se-row-pad-y: 14px;
+
+  --se-content-max: 640px;  /* una sola columna de datos: más
+                               angosto que --container (1100px),
+                               que es medida de landing */
+}
+
+/* ============================================================
+   OVERRIDES del base heredado — ADAPTACIONES A DASHBOARD
+   Cada una con su porqué (material para el case study).
+   ============================================================ */
+
+/* tokens.css trae un gradiente con background-attachment: fixed.
+   En una lista larga con scroll infinito repinta en cada frame y
+   compite con los datos. Dashboard: fondo sólido y quieto. */
+body {
+  background: var(--bg-solid);
+}
+
+/* scroll-behavior: smooth global interfiere con los swaps de
+   HTMX que ajustan scroll, y molesta a quien pidió menos
+   movimiento. Solo si el usuario no lo desactivó. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
+
+/* Regla dura de la fase: toda cifra en tabular-nums, incluso si
+   algún monto termina renderizado en sans. */
+.hero-balance__monto,
+.expense-item__monto {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   LAYOUT BASE
+   ============================================================ */
+
+.contenido {
+  max-width: var(--se-content-max);
+  margin: 0 auto;
+  padding: var(--se-space-5) var(--pad-x) var(--se-space-6);
+}
+
+.titulo-vista {
+  font-family: var(--font-display);
+  font-size: var(--se-text-titulo);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  margin-bottom: var(--se-space-5);
+}
+
+/* ============================================================
+   D4-S1 — HERO BALANCE
+   Módulo quieto: sin card, sin sombra, sin acento en la cifra.
+   El monto es un dato, no un estado → --ink, no --amber.
+   ============================================================ */
+
+.hero-balance {
+  padding: var(--se-space-4) 0 var(--se-space-5);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--se-space-5);
+}
+
+.hero-balance__periodo {
+  font-family: var(--font-mono);
+  font-size: var(--se-text-meta);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--se-space-2);
+}
+
+.hero-balance__monto {
+  font-family: var(--font-display);
+  font-size: var(--se-text-hero);
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.hero-balance__detalle {
+  font-size: var(--se-text-meta);
+  color: var(--ink-3);  /* D5: --ink-4 da 4.36:1 sobre --bg-solid,
+                           falla AA texto chico. Regla del sistema:
+                           --ink-4/5 solo ≥18px o no-textual. */
+  margin-top: var(--se-space-2);
+}
+
+/* ============================================================
+   D4-S2 — FILTROS
+   El único estado "seleccionado" de la vista → trabaja --amber.
+   Esquinas duras (radius 3px del sistema): chips, no pills.
+   ============================================================ */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--se-space-3) var(--se-space-4);
+  margin-bottom: var(--se-space-5);
+}
+
+.filtros__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--se-space-2);
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px var(--se-space-3);
+  font-size: var(--se-text-body);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.chip:hover {
+  opacity: 1;                    /* pisa el a:hover genérico del base */
+  border-color: var(--ink-4);
+  color: var(--ink);
+}
+
+.chip--activo,
+.chip--activo:hover {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+
+/* ---- rango de período ---- */
+
+.filtros__rango {
+  display: flex;
+  align-items: center;
+  gap: var(--se-space-2);
+  margin-left: auto;             /* se separa de los chips en desktop;
+                                    en mobile cae abajo por el wrap */
+}
+
+.filtros__rango label {
+  font-size: var(--se-text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);  /* D5: idem regla --ink-4 */
+}
+
+.filtros__rango select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px var(--se-space-4) 6px var(--se-space-3);
+  font-family: var(--font-sans);
+  font-size: var(--se-text-body);
+  color: var(--ink);
+  background-color: var(--mod-neutral);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23a6a6a0'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.filtros__rango button {
+  padding: 6px var(--se-space-3);
+  font-family: var(--font-sans);
+  font-size: var(--se-text-body);
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.filtros__rango button:hover {
+  border-color: var(--ink-4);
+  color: var(--ink);
+}
+
+/* El canónico solo cubre a/button en focus-visible; el dashboard
+   suma controles de formulario. Candidata a promoción si la
+   landing incorpora forms. */
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   D4-S3 — LISTA / LEDGER
+   Módulo quieto: filas separadas por --line, sin cards.
+   Densidad cómoda (--se-row-pad-y: 14px).
+   ============================================================ */
+
+.expense-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.expense-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-areas:
+    "desc monto borrar"
+    "meta monto borrar";
+  column-gap: var(--se-space-4);
+  align-items: center;
+  padding: var(--se-row-pad-y) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.expense-item__descripcion {
+  grid-area: desc;
+  font-size: var(--se-text-body);
+  color: var(--ink);
+  overflow-wrap: anywhere;      /* descripciones largas no rompen el grid */
+}
+
+.expense-item__meta {
+  grid-area: meta;
+  font-size: var(--se-text-meta);
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+.expense-item__monto {
+  grid-area: monto;
+  font-family: var(--font-mono);
+  font-size: var(--se-text-body);
+  font-weight: 500;
+  color: var(--ink);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Borrar: acción destructiva de baja frecuencia → fantasma.
+   Sin rojo: el sistema no tiene token de peligro y una palabra
+   no lo justifica; la confirmación (hx-confirm / futuro dialog)
+   es la barrera real. Touch target ≥44px por padding del botón,
+   no inflando la fila. */
+.expense-item__borrar {
+  grid-area: borrar;
+  margin: 0;
+}
+
+.expense-item__borrar button {
+  padding: 12px var(--se-space-2);   /* ~44px de alto tocable */
+  font-family: var(--font-sans);
+  font-size: var(--se-text-meta);
+  color: var(--ink-3);  /* D5: idem regla --ink-4 */
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.expense-item__borrar button:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- colores de categoría ----
+   LISTOS pero sin consumidor: requieren Category.color_slot
+   (campo + migración + clase en el template). Deuda registrada
+   en el cierre de fase. Uso previsto:
+   <span class="expense-item__cat cat-{{ gasto.category.color_slot }}"> */
+.cat-1 { color: var(--se-cat-1); }
+.cat-2 { color: var(--se-cat-2); }
+.cat-3 { color: var(--se-cat-3); }
+.cat-4 { color: var(--se-cat-4); }
+.cat-5 { color: var(--se-cat-5); }
+.cat-6 { color: var(--se-cat-6); }
+
+/* ============================================================
+   D4-S4 — ESTADOS
+   ============================================================ */
+
+/* ---- vacío (sin gastos / sin resultados con filtros) ----
+   Las dos variantes comparten estilo; difieren en contenido. */
+.estado-vacio {
+  padding: var(--se-space-6) var(--se-space-4);
+  text-align: center;
+  font-size: var(--se-text-body);
+  color: var(--ink-3);
+}
+
+.estado-vacio a {
+  color: var(--amber);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- franja de avisos (retarget de errores 404) ----
+   El contenedor #avisos no lleva estilo: sin avisos no ocupa
+   ni muestra nada (evita el selector frágil :empty, que falla
+   con whitespace en el template). Cada .aviso se viste solo.
+   Aviso ≠ error fatal → ámbar sobre --mod-warm, no un rojo
+   que el sistema no tiene. */
+.franja-avisos {
+  max-width: var(--se-content-max);
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+}
+
+.aviso {
+  margin-top: var(--se-space-3);
+  padding: var(--se-space-3) var(--se-space-4);
+  font-size: var(--se-text-body);
+  color: var(--ink);
+  background: var(--mod-warm);
+  border: 1px solid var(--amber);
+  border-left-width: 3px;
+  border-radius: 3px;
+}
+
+/* ---- centinela de paginación ----
+   htmx agrega .htmx-request al elemento mientras pide la
+   página siguiente: el link baja de presencia y avisa. */
+.cargar-mas {
+  padding: var(--se-space-4) 0;
+  text-align: center;
+}
+
+.cargar-mas a {
+  display: inline-block;
+  padding: var(--se-space-2) var(--se-space-4);
+  font-size: var(--se-text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.cargar-mas a:hover {
+  opacity: 1;
+  color: var(--ink);
+  border-color: var(--ink-4);
+}
+
+.cargar-mas.htmx-request {
+  opacity: 0.5;
+}
+
+.cargar-mas.htmx-request a::after {
+  content: "…";
+}
