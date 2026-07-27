@@ -6,6 +6,15 @@
       {% if gasto.category %}· {{ gasto.category.name }}{% endif %}
     </span>
     <span class="expense-item__monto">${{ gasto.amount|floatformat:2 }}</span>
+    <form class="expense-item__borrar" method="post"
+          action="{% url 'dashboard-gasto-eliminar' gasto.id %}{{ url_actual }}"
+          hx-post="{% url 'dashboard-gasto-eliminar' gasto.id %}{{ url_actual }}"
+          hx-target="#results"
+          hx-swap="outerHTML"
+          hx-confirm="Borrar {{ gasto.description }}?">
+      {% csrf_token %}
+      <button type="submit">Borrar</button>
+    </form>
   </li>
 {% empty %}
   {% if filtros.page == 1 %}
@@ -25,6 +34,6 @@
       hx-get="{% url 'dashboard-gastos' %}{{ url_siguiente }}"
       hx-trigger="revealed"
       hx-swap="outerHTML">
-    <a href="{{ url_siguiente }}">Cargar mas</a>
+    <a href="{% url 'dashboard' %}{{ url_siguiente }}">Cargar mas</a>
   </li>
 {% endif %}

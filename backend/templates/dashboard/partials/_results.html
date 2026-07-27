@@ -11,7 +11,10 @@
       {% for chip in chips %}
         <li>
           <a class="chip{% if chip.activa %} chip--activo{% endif %}"
-             href="{{ chip.url }}"
+             href="{% url 'dashboard' %}{{ chip.url }}"
+             hx-get="{% url 'dashboard-resultados' %}{{ chip.url }}"
+             hx-target="#results"
+             hx-swap="outerHTML"
              {% if chip.activa %}aria-current="true" title="Quitar el filtro {{ chip.categoria.name }}"{% else %}title="Filtrar por {{ chip.categoria.name }}"{% endif %}>
             {{ chip.categoria.name }}{% if chip.activa %} ✕{% endif %}
           </a>
@@ -19,7 +22,11 @@
       {% endfor %}
     </ul>
 
-    <form class="filtros__rango" method="get" action="">
+    <form class="filtros__rango" method="get" action="{% url 'dashboard' %}"
+          hx-get="{% url 'dashboard-resultados' %}"
+          hx-trigger="change from:#rango"
+          hx-target="#results"
+          hx-swap="outerHTML">
       {% for cat_id in filtros.categorias %}
         <input type="hidden" name="cat" value="{{ cat_id }}">
       {% endfor %}

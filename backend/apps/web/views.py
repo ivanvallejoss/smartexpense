@@ -13,11 +13,15 @@ Por la misma razon no se usa LoginRequiredMixin: su dispatch es sync y devuelve
 un HttpResponseRedirect que Django intenta await-ear en una view async.
 """
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import redirect
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.generic import View
 
 from apps.web.filters import parse_dashboard_filters
 from services.constants import RANGO_LABELS, RANGOS, SPANISH_MONTHS
+from services.expenses import delete_expense
 from services.selectors import get_dashboard_data
 
 
@@ -52,7 +56,8 @@ def _build_context(filtros, data):
         "gastos": data["gastos"],
         "chips": chips,
         "opciones_rango": opciones_rango,
-        "url_desnuda": "?",
+        "url_desnuda": reverse("dashboard"),
+        "url_actual": filtros.querystring(),
         "url_siguiente": filtros.con_pagina(data["page"] + 1).querystring() if data["has_next"] else None,
         "url_anterior": filtros.con_pagina(data["page"] - 1).querystring() if data["has_previous"] else None,
         "page": data["page"],
@@ -80,7 +85,11 @@ class _DashboardBaseView(View):
             rango=filtros.rango,
             page=filtros.page,
         )
-        return render(request, self.template_name, _build_context(filtros, data))
+        respuesta = render(request, self.template_name, _build_context(filtros, data))
+        return self.finalizar(respuesta, filtros)
+
+    def finalizar(self, respuesta, filtros):
+        return respuesta
 
 
 class DashboardView(_DashboardBaseView):
@@ -90,3 +99,75 @@ class DashboardView(_DashboardBaseView):
 class DashboardExpensesView(_DashboardBaseView):
     """Endpoint de partial dedicado (B2): una URL propia por region swappable."""
     template_name = "dashboard/partials/_expense_items.html"
+
+
+class DashboardResultsView(_DashboardBaseView):
+    """
+    Endpoint del wrapper #results: lo pide cada cambio de filtro.
+
+    La URL canonica la escribe el server con HX-Replace-Url y no los templates.
+    Si se usara hx-replace-url en el HTML, htmx pondria en la barra la URL de
+    este endpoint interno, que no es navegable. Es replace y no push porque en
+    mobile el back es salir, no deshacer (B4-S2).
+    """
+    template_name = "dashboard/partials/_results.html"
+
+    def finalizar(self, respuesta, filtros):
+        respuesta["HX-Replace-Url"] = reverse("dashboard") + filtros.querystring()
+        return respuesta
+
+
+class DashboardDeleteExpenseView(_DashboardBaseView):
+    """
+    Borrado inline. Es POST y no DELETE porque el baseline sin JS es un <form>,
+    y los forms HTML solo hablan GET y POST.
+
+    La respuesta cambia segun el cliente, que es progressive enhancement y no
+    una rama oculta: con htmx devuelve #results recalculado (balance y lista
+    sincronizados por construccion, es el mismo render de C3); sin htmx redirige
+    con Post/Redirect/Get para que F5 no reintente el borrado.
+    """
+    template_name = "dashboard/partials/_results.html"
+
+    async def post(self, request, expense_id):
+        user = await request.auser()
+        if not user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+
+        filtros = parse_dashboard_filters(request)
+        es_htmx = request.headers.get("HX-Request") == "true"
+
+        try:
+            await delete_expense(user, expense_id)
+        except ObjectDoesNotExist:
+            return self._error(request, es_htmx, filtros)
+
+        if not es_htmx:
+            return redirect(reverse("dashboard") + filtros.querystring())
+
+        data = await get_dashboard_data(
+            user,
+            category_ids=filtros.categorias,
+            rango=filtros.rango,
+            page=1,
+        )
+        return render(request, self.template_name, _build_context(filtros, data))
+
+    def _error(self, request, es_htmx, filtros):
+        """
+        Clase 2 de B5: falla que el usuario no puede corregir. #results queda
+        intacto y el aviso va a la franja global via HX-Retarget. El 404 se
+        swappea igual porque base.html configura responseHandling (R19).
+        """
+        if not es_htmx:
+            return redirect(reverse("dashboard") + filtros.querystring())
+
+        respuesta = render(
+            request,
+            "shared/_avisos.html",
+            {"avisos": ["Ese gasto ya no existe. Se actualizo la vista."]},
+            status=404,
+        )
+        respuesta["HX-Retarget"] = "#avisos"
+        respuesta["HX-Reswap"] = "outerHTML"
+        return respuesta

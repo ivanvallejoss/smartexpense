@@ -18,13 +18,17 @@ class DashboardFilters:
     avisos: tuple = ()
 
     def querystring(self) -> str:
-        """Serializa el estado. El default se omite: la URL desnuda es valida (B4-S3)."""
+        """
+        Serializa el estado. El default se omite y el estado vacio devuelve la
+        cadena vacia: la URL desnuda de B4-S3 es /dashboard/, sin cola.
+        Los templates la concatenan a {% url 'dashboard' %}.
+        """
         params = [("cat", cat_id) for cat_id in self.categorias]
         if self.rango != RANGO_DEFAULT:
             params.append(("rango", self.rango))
         if self.page > 1:
             params.append(("page", self.page))
-        return f"?{urlencode(params)}" if params else "?"
+        return f"?{urlencode(params)}" if params else ""
 
     def toggle_categoria(self, category_id: int) -> "DashboardFilters":
         """Estado resultante de tocar un chip. Vuelve a la pagina 1: el conjunto cambio."""

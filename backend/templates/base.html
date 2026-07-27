@@ -4,12 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SmartExpense{% endblock %}</title>
+  <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"404","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
 </head>
 <body>
-  <div class="franja-avisos" id="avisos" role="status" aria-live="polite">
-    {% for aviso in avisos %}<p class="aviso">{{ aviso }}</p>{% endfor %}
-  </div>
+  {% include "shared/_avisos.html" %}
 
   <main class="contenido">
     {% block content %}{% endblock %}
