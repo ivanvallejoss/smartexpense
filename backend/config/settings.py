@@ -35,8 +35,6 @@ TELEGRAM_WEBHOOK_TOKEN = env('TELEGRAM_WEBHOOK_TOKEN')
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
-FRONTEND_TEST = env('FRONTEND_TEST', default='http://localhost:5173')
-
 # ----------------------------
 #   DataBase configuration
 # ----------------------------
@@ -55,7 +53,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party apps
     "django_extensions",
-    "corsheaders",
     # Local apps
     "apps.core",
     "apps.bot",
@@ -65,8 +62,6 @@ AUTH_USER_MODEL = "core.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # CORS
-    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -148,19 +143,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ======================================================
 
 # --------------------------
-#     DATABASE AND CORS
+#          DATABASE
 # --------------------------
 # La politica de TLS (sslmode) NO vive aca: viaja como query param en
 # DATABASE_URL. Depende de donde corre el Postgres, no de si DEBUG esta
 # prendido — y ademas sslmode es un parametro de libpq que SQLite no acepta,
 # por lo que aplicarlo incondicionalmente rompia el fallback a sqlite.
 # Ver .env.example.
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
+if not DEBUG:
     DATABASES['default']['CONN_MAX_AGE'] = 600
     DATABASES['default']['CONN_HEALTH_CHECKS'] = True
-    CORS_ALLOW_ALL_ORIGINS = False
 
 
 
@@ -179,12 +171,6 @@ ENVIRONMENT = env("ENVIRONMENT", default="dev")
 _hosts_abiertos = DEBUG and ENVIRONMENT == "dev"
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"] if _hosts_abiertos else [])
 
-
-
-# -------------
-#     CORS
-# -------------
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL, FRONTEND_TEST]
 
 
 

@@ -43,7 +43,6 @@ jobs:
       DATABASE_URL: "postgresql://ci_user:ci_password@localhost:5432/ci_db"
       REDIS_URL: "redis://localhost:6379/0"
       FRONTEND_URL: "http://localhost:5173"
-      FRONTEND_TEST: "http://localhost:5173"
       DEBUG: "True"
     
     steps:
