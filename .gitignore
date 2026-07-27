@@ -122,3 +122,5 @@ yarn-error.log*
 # Volcados de Redis - no van al repo
 dump.rdb
 **/dump.rdb
+
+*/staticfiles/

@@ -41,6 +41,9 @@ services:
       # Overrides del .env para la red interna de Docker
       - DATABASE_URL=postgresql://user_dev:password_dev@db:5432/smartexpense_db
       - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/apps
+    
     depends_on:
       db:
         condition: service_healthy
