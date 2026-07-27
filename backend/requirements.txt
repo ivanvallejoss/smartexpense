@@ -8,12 +8,10 @@ PyJWT==2.10.1
 
 # Telegram bot
 python-telegram-bot==20.7
-requests==2.32.5
 
 # async tasks Redis
 redis==5.0.1
 arq==0.27.0
-flower==2.0.1
 
 # Testing
 pytest==9.0.1
@@ -30,13 +28,10 @@ flake8==7.0.0
 pre-commit==3.6.0
 
 # Utilities
-python-decouple==3.8
 django-extensions==3.2.3
 ipython==8.19.0
 
 # PRODUCTION
-dj-database-url==3.1.0
-whitenoise==6.11.0
 gunicorn==24.0.0
 
 # ASGI

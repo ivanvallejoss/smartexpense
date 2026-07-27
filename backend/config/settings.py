@@ -2,8 +2,6 @@
 Django settings for SmartExpense project.
 """
 import os
-import dj_database_url
-from datetime import timedelta
 from pathlib import Path
 
 import environ
