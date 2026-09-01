@@ -52,18 +52,29 @@ class Sender(Protocol):
 
     async def reply(
         self,
-        external_user_id: str,
+        conversation_id: str,
         text: str,
         *,
         options: Rows | None = None,
         parse_mode: str | None = None,
+        disable_preview: bool = False,
     ) -> str | None:
-        """Envía un mensaje. Retorna el id del mensaje enviado, si el canal lo provee."""
+        """
+        Envía un mensaje. Retorna el id del mensaje enviado, si el canal lo provee.
+
+        El primer parámetro es el camino de respuesta, no la identidad de quien
+        escribió. En Telegram privado from.id y chat.id coinciden y la distinción
+        es invisible; en WhatsApp el lid del remitente y el chat_jid del chat son
+        valores distintos. Se responde al segundo.
+
+        disable_preview suprime la vista previa del link. Canales sin este
+        concepto lo ignoran en silencio, mismo criterio que ack().
+        """
         ...
 
     async def edit(
         self,
-        external_user_id: str,
+        conversation_id: str,
         edit_ref: str,
         *,
         text: str | None = None,
@@ -72,6 +83,9 @@ class Sender(Protocol):
     ) -> None:
         """
         Modifica un mensaje ya enviado.
+
+        conversation_id es el camino de respuesta, con el mismo criterio que en
+        reply(): destino, no identidad.
 
         text=None cambia solo las opciones, conservando el texto.
         Canales sin edición (WhatsApp) deben emular enviando uno nuevo.

@@ -112,6 +112,23 @@ class TestReply:
         markup = sender._bot.send_message.await_args.kwargs["reply_markup"]
         assert markup.inline_keyboard[0][0].callback_data == "del:55"
 
+    async def test_por_default_el_flag_de_preview_no_viaja(self, sender):
+        """
+        El default no puede alterar ningún llamado existente: si el flag viajara
+        siempre, este adapter estaría fijando el default de PTB en vez de dejarlo
+        donde está.
+        """
+        await sender.reply("123", "hola")
+
+        assert "disable_web_page_preview" not in sender._bot.send_message.await_args.kwargs
+
+    async def test_disable_preview_llega_a_la_api(self, sender):
+        """link_command manda un magic link; la preview lo prefetchearía."""
+        await sender.reply("123", "https://ejemplo/acceso", disable_preview=True)
+
+        kwargs = sender._bot.send_message.await_args.kwargs
+        assert kwargs["disable_web_page_preview"] is True
+
 
 class TestEdit:
 

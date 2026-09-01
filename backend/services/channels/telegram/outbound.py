@@ -35,23 +35,31 @@ class TelegramSender:
 
     async def reply(
         self,
-        external_user_id: str,
+        conversation_id: str,
         text: str,
         *,
         options: Rows | None = None,
         parse_mode: str | None = None,
+        disable_preview: bool = False,
     ) -> str | None:
+        # El flag viaja solo cuando se pide. Mandarlo siempre haría que este
+        # adapter fije el default de PTB, que es de PTB y no nuestro; además
+        # disable_web_page_preview y link_preview_options son mutuamente
+        # excluyentes, así que no ocupar el lugar sin necesidad deja libre la
+        # modernización del llamado.
+        preview = {"disable_web_page_preview": True} if disable_preview else {}
         message = await self._bot.send_message(
-            chat_id=external_user_id,
+            chat_id=conversation_id,
             text=text,
             reply_markup=_to_markup(options),
             parse_mode=parse_mode,
+            **preview,
         )
         return str(message.message_id)
 
     async def edit(
         self,
-        external_user_id: str,
+        conversation_id: str,
         edit_ref: str,
         *,
         text: str | None = None,
@@ -63,13 +71,13 @@ class TelegramSender:
                 # Cambia solo los botones, conserva el texto.
                 # Replica query.edit_message_reply_markup (on_cat_list_click).
                 await self._bot.edit_message_reply_markup(
-                    chat_id=external_user_id,
+                    chat_id=conversation_id,
                     message_id=int(edit_ref),
                     reply_markup=_to_markup(options),
                 )
             else:
                 await self._bot.edit_message_text(
-                    chat_id=external_user_id,
+                    chat_id=conversation_id,
                     message_id=int(edit_ref),
                     text=text,
                     reply_markup=_to_markup(options),
