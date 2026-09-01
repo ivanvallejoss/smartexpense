@@ -277,8 +277,14 @@ class ChannelIdentity(models.Model):
     tener identidades en múltiples canales sin agregar columnas.
 
     external_id es CharField (no BigInteger) porque el denominador común
-    entre canales es una cadena: Telegram usa enteros, WhatsApp usa wa_id
-    en formato E.164 sin '+'.
+    entre canales es una cadena: Telegram usa enteros, WhatsApp usa el LID
+    (formato xxxxxxxx@lid), que es su clave canónica de identidad y entra
+    en los 64 caracteres de acá sin migración.
+
+    El teléfono no vive en esta tabla y nunca participa del lookup: es un
+    dato nullable que sirve como evidencia para reconciliar cuentas o para
+    disparar una vinculación, pero jamás selecciona una fila. Un número
+    cambia de dueño; el LID no.
     """
 
     CHANNEL_TELEGRAM = "telegram"
