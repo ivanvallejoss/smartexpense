@@ -4,8 +4,9 @@ Tests de la vista del dashboard (Fase C, capa C1: SSR sin HTMX).
 Cubren el baseline de progressive enhancement: todo lo que se testea aca tiene
 que funcionar con JavaScript deshabilitado, porque no hay una sola linea de JS.
 """
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as tz_utc
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.test import Client
@@ -112,6 +113,39 @@ def test_estado_vacio_por_filtro_ofrece_limpiar(client_logueado, ivan, datos):
     cuerpo = client_logueado.get(f"/dashboard/?cat={vacia.id}").content.decode()
     assert "Ningún gasto en este rango" in cuerpo
     assert "Limpiar filtros" in cuerpo
+
+
+def test_el_dashboard_muestra_los_gastos_el_primer_dia_del_mes(client_logueado, ivan, monto):
+    """
+    Candado de la regresion que motivo reloj_fijo.
+
+    El 1ro a las 00:00:05 la ventana del rango "mes" mide cinco segundos. Un
+    gasto cargado dentro de esa ventana tiene que aparecer igual: si el filtro
+    se corriera aunque sea un segundo, el usuario que abre el dashboard el
+    primer dia del mes lo veria vacio.
+
+    Se congela el reloj adentro del test, pisando a reloj_fijo, porque es el
+    unico caso que quiere medir el borde en vez de esquivarlo. La fecha elegida
+    cae antes que RELOJ_DE_TEST a proposito: la sesion de client_logueado se
+    crea con el reloj de la fixture y adelantarse un mes la venceria.
+    """
+    arranque = datetime(2026, 3, 1, 3, 0, 5, tzinfo=tz_utc.utc)  # 00:00:05 en Buenos Aires
+    comida = Category.objects.create(name="Comida", user=ivan)
+
+    with patch("django.utils.timezone.now", return_value=arranque):
+        desde_mes, _ = rango_bounds("mes")
+        Expense.objects.create(user=ivan, amount=Decimal("4200"), description="Recien cargado",
+                               category=comida, date=desde_mes + timedelta(seconds=1))
+        # Treinta segundos despues del corte. Fija el ancho real de la ventana:
+        # sin el reloj de adentro la ventana llegaria hasta RELOJ_DE_TEST y este
+        # gasto tambien entraria, con lo cual el test no probaria nada.
+        Expense.objects.create(user=ivan, amount=Decimal("888"), description="Todavia no ocurrio",
+                               category=comida, date=desde_mes + timedelta(seconds=30))
+        cuerpo = client_logueado.get("/dashboard/").content.decode()
+
+    assert "Recien cargado" in cuerpo
+    assert monto("4200") in cuerpo
+    assert "Todavia no ocurrio" not in cuerpo
 
 
 def test_no_ve_gastos_de_otro_usuario(datos):
