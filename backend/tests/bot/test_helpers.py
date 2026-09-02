@@ -11,7 +11,6 @@ from apps.bot.handlers.helpers import (
 
 
 class TestOpcionesSimples:
-
     def test_delete(self):
         filas = delete_options(expense_id=55)
         assert len(filas) == 1
@@ -30,7 +29,6 @@ class TestOpcionesSimples:
 
 
 class TestSeleccionDeCategorias:
-
     class _Cat:
         def __init__(self, id, name):
             self.id, self.name = id, name

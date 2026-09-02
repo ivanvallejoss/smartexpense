@@ -1,8 +1,10 @@
 import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from django.test import RequestFactory
+
 from django.conf import settings
+from django.test import RequestFactory
+
+import pytest
 
 from apps.bot.views import webhook
 
@@ -46,7 +48,7 @@ def redis():
     y 'jobs' para la cola.
     """
     cache = AsyncMock()
-    cache.set.return_value = True          # primera vez por defecto
+    cache.set.return_value = True  # primera vez por defecto
     jobs = AsyncMock()
     jobs.enqueue_job.return_value = MagicMock()
 
@@ -60,9 +62,7 @@ def redis():
 def make_request(rf, method="post", data=None, secret=None):
     headers = {}
     if secret is not False:
-        headers["HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN"] = (
-            secret or settings.TELEGRAM_WEBHOOK_TOKEN
-        )
+        headers["HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN"] = secret or settings.TELEGRAM_WEBHOOK_TOKEN
 
     body = json.dumps(data or VALID_PAYLOAD)
 
@@ -72,7 +72,6 @@ def make_request(rf, method="post", data=None, secret=None):
 
 
 class TestEncolado:
-
     async def test_encola_el_evento_canonico(self, redis, request_factory):
         response = await webhook(make_request(request_factory))
 
@@ -111,7 +110,6 @@ class TestEncolado:
 
 
 class TestIdempotencia:
-
     async def test_marca_la_clave_antes_de_encolar(self, redis, request_factory):
         """
         Orden intencional (at-most-once): si falla entre marcar y encolar,
@@ -158,15 +156,12 @@ class TestIdempotencia:
 
 
 class TestUpdatesDescartados:
-
     async def test_update_no_procesable_no_se_encola(self, redis, request_factory):
         """
         channel_post, fotos, stickers: antes se encolaban y los descartaba
         PTB en el worker. Ahora se filtran en el webhook.
         """
-        response = await webhook(
-            make_request(request_factory, data=PAYLOAD_NO_PROCESABLE)
-        )
+        response = await webhook(make_request(request_factory, data=PAYLOAD_NO_PROCESABLE))
 
         assert response.status_code == 200
         redis["jobs"].enqueue_job.assert_not_called()
@@ -177,14 +172,11 @@ class TestUpdatesDescartados:
         Telegram siempre incluye update_id — su ausencia indica un request
         malformado o de origen no esperado. Se rechaza antes de tocar Redis.
         """
-        response = await webhook(
-            make_request(request_factory, data=PAYLOAD_WITHOUT_UPDATE_ID)
-        )
+        response = await webhook(make_request(request_factory, data=PAYLOAD_WITHOUT_UPDATE_ID))
         assert response.status_code == 400
 
 
 class TestSeguridadYTransporte:
-
     async def test_wrong_http_method_returns_405(self, request_factory):
         response = await webhook(make_request(request_factory, method="get"))
         assert response.status_code == 405

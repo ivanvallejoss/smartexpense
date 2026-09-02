@@ -3,51 +3,44 @@ Service Layer
 Logic to show data related to expenses
 """
 
-from apps.core.models import Expense, Category
+from decimal import Decimal
+from typing import Optional
+from zoneinfo import ZoneInfo
+
 from django.core.exceptions import ObjectDoesNotExist
-
 from django.core.paginator import Paginator
-
-from services.constants import RANGO_DEFAULT, RANGOS, SPANISH_MONTHS, USER_TZ
+from django.db.models import Count, Q, Sum
+from django.utils import timezone
 
 from asgiref.sync import sync_to_async
 
-from django.utils import timezone
-
-from django.db.models import Count, Sum, Q
-from decimal import Decimal
-from typing import Optional
-
-from zoneinfo import ZoneInfo
+from apps.core.models import Category, Expense
+from services.constants import RANGO_DEFAULT, RANGOS, SPANISH_MONTHS, USER_TZ
 
 # ---------------------------------------
 #           EXPENSES
 # ---------------------------------------
 
+
 @sync_to_async
 def get_expenses(
-    user, 
-    limit:int=7,
-    offset:int=0,
-    month:Optional[int]=None,
-    year:Optional[int]=None
-    ):
+    user, limit: int = 7, offset: int = 0, month: Optional[int] = None, year: Optional[int] = None
+):
     """
     Gets a LIST of expenses for a user
     """
-    expenses = Expense.objects.filter(
-        user=user,
-        status=Expense.STATUS_CONFIRMED
-        ).select_related('category')
+    expenses = Expense.objects.filter(user=user, status=Expense.STATUS_CONFIRMED).select_related(
+        "category"
+    )
 
     if month:
         expenses = expenses.filter(date__month=month)
     if year:
         expenses = expenses.filter(date__year=year)
-    
+
     # filtering by offset & limit
-    expenses = expenses.order_by('-date')[offset: offset + limit]
-    
+    expenses = expenses.order_by("-date")[offset : offset + limit]
+
     # We need to return a list so we force Django to evaluate the queryset
     # Otherwise we can get an error for SychronousOnlyOperation
     return list(expenses)
@@ -63,39 +56,38 @@ def get_single_expense(
     """
     try:
         # select_related helps getting the whole category object for this expense when needed it
-        expense = Expense.objects.select_related("category").get(
-            user=user, id=expense_id
-        )
+        expense = Expense.objects.select_related("category").get(user=user, id=expense_id)
         return expense
     except Expense.DoesNotExist:
         raise ObjectDoesNotExist(
             f"The expense ID: {expense_id} does not belong to any of your expenses."
-            )
+        )
 
 
 @sync_to_async
-def get_balance(user, month: int=None, year: int=None) -> float:
+def get_balance(user, month: int = None, year: int = None) -> float:
     """
     Getting the balance of the user.
     It filters by month or year if applied.
     """
     expenses = Expense.objects.filter(user=user, status=Expense.STATUS_CONFIRMED)
-    
+
     if month:
         expenses = expenses.filter(date__month=month)
     if year:
         expenses = expenses.filter(date__year=year)
 
-    resultado = expenses.aggregate(total_spent=Sum('amount'))
+    resultado = expenses.aggregate(total_spent=Sum("amount"))
 
     # Devolvemos la propiedad especifica del diccionario
     # o 0.0 si no hay nada
-    return resultado['total_spent'] or 0.0
+    return resultado["total_spent"] or 0.0
 
 
 # ---------------------------------------
 #               STATS
 # ---------------------------------------
+
 
 @sync_to_async
 def get_month_stats(user):
@@ -111,11 +103,8 @@ def get_month_stats(user):
 
     # it used the server timezone
     expenses = Expense.objects.filter(
-        user=user, 
-        status=Expense.STATUS_CONFIRMED,
-        date__gte=local_month_start, 
-        date__lte=now
-        )
+        user=user, status=Expense.STATUS_CONFIRMED, date__gte=local_month_start, date__lte=now
+    )
 
     total_amount = expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0")
     total_count = expenses.count()
@@ -124,22 +113,24 @@ def get_month_stats(user):
         expenses.values("category__name", "category__color")
         .annotate(total=Sum("amount"), count=Count("id"))
         .order_by("-total")
-        )
-    
+    )
+
     # We use the local month name
     local_month_name = local_now.strftime("%B %Y")
     local_month_name = f"{SPANISH_MONTHS[local_now.month]} {local_now.year}"
 
     return {
-        "total_amount": total_amount, 
-        "total_count": total_count, 
-        "by_category": by_category, 
-        "month_name": local_month_name}
+        "total_amount": total_amount,
+        "total_count": total_count,
+        "by_category": by_category,
+        "month_name": local_month_name,
+    }
 
 
 # -------------------------------------
 #              CATEGORY
 # -------------------------------------
+
 
 def get_category_by_id(category_id):
     """
@@ -148,9 +139,7 @@ def get_category_by_id(category_id):
     try:
         return Category.objects.get(id=category_id)
     except Category.DoesNotExist:
-        raise ObjectDoesNotExist(
-            f"La categoria con id {category_id} no existe."
-            )
+        raise ObjectDoesNotExist(f"La categoria con id {category_id} no existe.")
 
 
 @sync_to_async
@@ -159,12 +148,9 @@ def get_user_categories_or_defaults(user):
     Retorna todas las categorías disponibles para un usuario:
     sus propias categorías + las globales del sistema.
     """
-    categories = list(
-        Category.objects.filter(
-            Q(user=user) | Q(is_default=True)
-        ).order_by('name')
-    )
+    categories = list(Category.objects.filter(Q(user=user) | Q(is_default=True)).order_by("name"))
     return categories
+
 
 @sync_to_async
 def get_category_by_id_or_default(user, category_id):
@@ -175,11 +161,12 @@ def get_category_by_id_or_default(user, category_id):
     try:
         return Category.objects.get(
             Q(id=category_id, user=user) | Q(id=category_id, is_default=True)
-            )
+        )
     except Category.DoesNotExist:
         raise ObjectDoesNotExist(
             f"The ID category: {category_id} does not belong to any known category or it belongs to another user"
         )
+
 
 # ---------------------------------------------------------------
 #           DASHBOARD WEB (Fase C)
@@ -252,9 +239,7 @@ def get_dashboard_data(user, category_ids=(), rango=RANGO_DEFAULT, page=1):
     )
     pagina = paginator.get_page(page)
 
-    categorias = list(
-        Category.objects.filter(Q(user=user) | Q(is_default=True)).order_by("name")
-    )
+    categorias = list(Category.objects.filter(Q(user=user) | Q(is_default=True)).order_by("name"))
 
     return {
         "gastos": list(pagina.object_list),

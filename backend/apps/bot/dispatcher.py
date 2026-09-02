@@ -7,9 +7,6 @@ importa split_command desde routing.
 """
 import logging
 
-from services.channels.events import ChannelEvent
-from services.channels.senders import Sender
-
 from apps.bot.handlers.callbacks import central_callback_handler
 from apps.bot.handlers.handlers import (
     handle_message,
@@ -20,6 +17,8 @@ from apps.bot.handlers.handlers import (
     stats_command,
 )
 from apps.bot.routing import split_command
+from services.channels.events import ChannelEvent
+from services.channels.senders import Sender
 
 logger = logging.getLogger(__name__)
 

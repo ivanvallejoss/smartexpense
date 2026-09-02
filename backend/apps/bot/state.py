@@ -31,9 +31,7 @@ def _legacy_key(external_user_id: str) -> str:
     return f"{_PREFIX}:{external_user_id}"
 
 
-async def set_pending_category_state(
-    channel: str, external_user_id: str, expense_id: int
-) -> None:
+async def set_pending_category_state(channel: str, external_user_id: str, expense_id: int) -> None:
     """
     Marca que el usuario está en medio de crear una categoría nueva
     para un expense específico.

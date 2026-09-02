@@ -28,7 +28,9 @@ class User(AbstractUser):
         blank=True,
         help_text="Username de Telegram (sin @)",
     )
-    notifications_enabled = models.BooleanField(default=True, help_text="Si el usuario quiere recibir notificaciones del bot")
+    notifications_enabled = models.BooleanField(
+        default=True, help_text="Si el usuario quiere recibir notificaciones del bot"
+    )
 
     class Meta:
         db_table = "users"
@@ -62,7 +64,9 @@ class Category(models.Model):
         blank=True,
         help_text="Lista de palabras clave para auto-categorización (ej: ['uber', 'taxi'])",
     )
-    is_default = models.BooleanField(default=False, help_text="Si es una categoría global disponible para todos")
+    is_default = models.BooleanField(
+        default=False, help_text="Si es una categoría global disponible para todos"
+    )
     color = models.CharField(
         max_length=7,
         blank=True,
@@ -98,11 +102,11 @@ class Expense(models.Model):
     """
 
     # ---- ESTADOS -----
-    STATUS_PENDING = 'pending'
-    STATUS_CONFIRMED = 'confirmed'
+    STATUS_PENDING = "pending"
+    STATUS_CONFIRMED = "confirmed"
     STATUS_CHOICES = [
-        (STATUS_PENDING, 'Pendiente'),
-        (STATUS_CONFIRMED, 'Confirmado'),
+        (STATUS_PENDING, "Pendiente"),
+        (STATUS_CONFIRMED, "Confirmado"),
     ]
 
     user = models.ForeignKey(
@@ -117,7 +121,9 @@ class Expense(models.Model):
         validators=[MinValueValidator(0.01)],
         help_text="Monto del gasto (debe ser mayor a 0)",
     )
-    description = models.TextField(max_length=500, help_text="Descripción del gasto (máx 500 caracteres)")
+    description = models.TextField(
+        max_length=500, help_text="Descripción del gasto (máx 500 caracteres)"
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -140,9 +146,8 @@ class Expense(models.Model):
         choices=STATUS_CHOICES,
         default=STATUS_CONFIRMED,
         db_index=True,
-        help_text="Estado del gasto. 'pending'=esperando confirmacion de categoria"
+        help_text="Estado del gasto. 'pending'=esperando confirmacion de categoria",
     )
-
 
     class Meta:
         db_table = "expenses"
@@ -204,7 +209,9 @@ class CategorySuggestionFeedback(models.Model):
         verbose_name_plural = "Feedbacks de Sugerencias"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["suggested_category", "was_accepted"], name="idx_suggestion_accepted"),
+            models.Index(
+                fields=["suggested_category", "was_accepted"], name="idx_suggestion_accepted"
+            ),
             models.Index(fields=["expense", "created_at"], name="idx_expense_feedback"),
         ]
 
@@ -229,7 +236,9 @@ class DeletedObject(models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
 
     # Snapshot completo del objeto
-    object_data = models.JSONField(help_text="Snapshot completo del objeto al momento de eliminarlo")
+    object_data = models.JSONField(
+        help_text="Snapshot completo del objeto al momento de eliminarlo"
+    )
 
     # Metadata de eliminación
     deleted_by = models.ForeignKey(

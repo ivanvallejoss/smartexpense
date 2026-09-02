@@ -8,17 +8,16 @@ Estrategia de matching (en orden de prioridad):
 3. Keywords parciales: Substring matching
 4. Sin match: Retornar None con confidence 0
 """
-import re
 import logging
+import re
 import unicodedata
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 
 from django.db.models import Count, Q
 
-from services.constants import CATEGORY_COLORS
-
 from apps.core.models import Category, CategorySuggestionFeedback, Expense, User
+from services.constants import CATEGORY_COLORS
 
 from .default_keywords import DEFAULT_CATEGORY_KEYWORDS, SPANISH_STOPWORDS
 
@@ -129,7 +128,11 @@ class ExpenseCategorizer:
     def _get_user_categories(self) -> List[Category]:
         """Carga categorías del usuario + globales."""
         if self._categories is None:
-            self._categories = list(Category.objects.filter(Q(user=self.user) | Q(is_default=True)).order_by("-user", "name"))
+            self._categories = list(
+                Category.objects.filter(Q(user=self.user) | Q(is_default=True)).order_by(
+                    "-user", "name"
+                )
+            )
         return self._categories
 
     def _get_keyword_map(self) -> Dict[str, Category]:
@@ -189,9 +192,16 @@ class ExpenseCategorizer:
             reason="no_match",
         )
 
-    def _check_user_history(self, description_normalized: str, description_words: Set[str]) -> Optional[CategorySuggestion]:
+    def _check_user_history(
+        self, description_normalized: str, description_words: Set[str]
+    ) -> Optional[CategorySuggestion]:
         """Busca en historial de expenses del usuario."""
-        past_expenses = Expense.objects.filter(user_id=self.user.id, category__isnull=False).exclude(description="").select_related("category").order_by("-date")[:100]
+        past_expenses = (
+            Expense.objects.filter(user_id=self.user.id, category__isnull=False)
+            .exclude(description="")
+            .select_related("category")
+            .order_by("-date")[:100]
+        )
 
         if not past_expenses:
             return None
@@ -217,7 +227,9 @@ class ExpenseCategorizer:
             common_words = description_words & past_words
             if common_words and len(common_words) >= 1:
                 # Chequeamos el porcentaje de match que existe entre la interseccion de sets y la cantidad de palabras en la descripcion actual
-                overlap_ratio = len(common_words) / max(len(description_words), 1)  # overlap_ratio = %
+                overlap_ratio = len(common_words) / max(
+                    len(description_words), 1
+                )  # overlap_ratio = %
 
                 # Buscamos un overlap_ratio >= 0.5 para comenzar a comparar o, utilizar desde la historia del usuario.
                 if overlap_ratio >= 0.5:
@@ -340,7 +352,6 @@ class ExpenseCategorizer:
         Ya no crea categorías — solo sugiere. El caller decide si crear.
         """
         for category_name, keywords in DEFAULT_CATEGORY_KEYWORDS.items():
-            
             # Match exacto
             for word in description_words:
                 if word in keywords:
@@ -367,7 +378,6 @@ class ExpenseCategorizer:
         return None
 
 
-
 def create_category_for_user(user: User, name: str) -> Category:
     """
     Crea una categoría para el usuario si no existe.
@@ -387,9 +397,6 @@ def create_category_for_user(user: User, name: str) -> Category:
     )
 
     if created:
-        logger.info(
-            "Category created for user",
-            extra={"category_name": name, "user_id": user.id}
-        )
+        logger.info("Category created for user", extra={"category_name": name, "user_id": user.id})
 
     return category

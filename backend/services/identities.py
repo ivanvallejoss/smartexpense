@@ -7,8 +7,9 @@ de ningún SDK de mensajería.
 """
 import logging
 
-from asgiref.sync import sync_to_async
 from django.db import transaction
+
+from asgiref.sync import sync_to_async
 
 from apps.core.models import ChannelIdentity, User
 
@@ -20,8 +21,7 @@ async def get_user_by_channel(channel: str, external_id: str):
     Retorna el User asociado a (channel, external_id), o None.
     """
     identity = await (
-        ChannelIdentity.objects
-        .select_related("user")
+        ChannelIdentity.objects.select_related("user")
         .filter(channel=channel, external_id=str(external_id))
         .afirst()
     )
@@ -38,8 +38,7 @@ def _create_user_with_identity(channel: str, external_id: str, profile: dict):
     """
     with transaction.atomic():
         identity = (
-            ChannelIdentity.objects
-            .select_for_update()
+            ChannelIdentity.objects.select_for_update()
             .select_related("user")
             .filter(channel=channel, external_id=external_id)
             .first()
@@ -118,8 +117,7 @@ async def get_or_create_user_by_channel(
     profile = profile or {}
 
     identity = await (
-        ChannelIdentity.objects
-        .select_related("user")
+        ChannelIdentity.objects.select_related("user")
         .filter(channel=channel, external_id=external_id)
         .afirst()
     )

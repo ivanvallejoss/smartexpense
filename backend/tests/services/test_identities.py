@@ -1,11 +1,9 @@
-import pytest
 from django.db import IntegrityError
 
+import pytest
+
 from apps.core.models import ChannelIdentity, User
-from services.identities import (
-    get_or_create_user_by_channel,
-    get_user_by_channel,
-)
+from services.identities import get_or_create_user_by_channel, get_user_by_channel
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -14,7 +12,6 @@ WA = ChannelIdentity.CHANNEL_WHATSAPP
 
 
 class TestUniquenessConstraint:
-
     def test_same_external_id_in_same_channel_is_rejected(self):
         u1 = User.objects.create(username="a")
         u2 = User.objects.create(username="b")
@@ -32,7 +29,6 @@ class TestUniquenessConstraint:
 
 
 class TestGetOrCreate:
-
     async def test_creates_user_and_identity_when_absent(self):
         user, created = await get_or_create_user_by_channel(
             TG, "999", {"username": "ivan", "first_name": "Ivan", "last_name": "V"}
@@ -58,9 +54,7 @@ class TestGetOrCreate:
         assert user.username == "user_777"
 
     async def test_syncs_profile_changes_on_subsequent_calls(self):
-        await get_or_create_user_by_channel(
-            TG, "999", {"username": "viejo", "first_name": "Viejo"}
-        )
+        await get_or_create_user_by_channel(TG, "999", {"username": "viejo", "first_name": "Viejo"})
         user, _ = await get_or_create_user_by_channel(
             TG, "999", {"username": "nuevo", "first_name": "Nuevo"}
         )
@@ -76,6 +70,5 @@ class TestGetOrCreate:
 
 
 class TestGetUserByChannel:
-
     async def test_returns_none_when_identity_absent(self):
         assert await get_user_by_channel(TG, "inexistente") is None

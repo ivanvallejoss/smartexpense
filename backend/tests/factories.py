@@ -1,9 +1,12 @@
 """
 Factories para generar datos de prueba usando factory-boy.
 """
-import factory
 from django.utils import timezone
-from apps.core.models import User, Category, Expense
+
+import factory
+
+from apps.core.models import Category, Expense, User
+
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -33,7 +36,7 @@ class ExpenseFactory(factory.django.DjangoModelFactory):
     # SubFactory crea automáticamente un User y una Category si no se los pasamos
     user = factory.SubFactory(UserFactory)
     category = factory.SubFactory(CategoryFactory)
-    
+
     amount = factory.Faker("pydecimal", left_digits=4, right_digits=2, positive=True, min_value=1)
     description = factory.Faker("sentence", nb_words=4)
     # Usamos LazyFunction para que la fecha se evalúe al momento de crear el objeto, en el pasado

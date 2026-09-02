@@ -2,14 +2,16 @@
 Tests del service layer de expenses.
 Cubre create_expense, update_expense, delete_expense y restore_expense.
 """
-import pytest
 from decimal import Decimal
-from asgiref.sync import sync_to_async
+
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.core.models import Expense, DeletedObject, CategorySuggestionFeedback
-from services.expenses import create_expense, update_expense, delete_expense, restore_expense
-from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
+import pytest
+from asgiref.sync import sync_to_async
+from tests.factories import CategoryFactory, ExpenseFactory, UserFactory
+
+from apps.core.models import CategorySuggestionFeedback, DeletedObject, Expense
+from services.expenses import create_expense, delete_expense, restore_expense, update_expense
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -18,8 +20,8 @@ pytestmark = pytest.mark.django_db(transaction=True)
 # CREATE EXPENSE
 # ============================================
 
-class TestCreateExpense:
 
+class TestCreateExpense:
     async def test_creates_with_confirmed_status_by_default(self):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)()
@@ -76,8 +78,8 @@ class TestCreateExpense:
 # UPDATE EXPENSE
 # ============================================
 
-class TestUpdateExpense:
 
+class TestUpdateExpense:
     async def test_updates_fields_correctly(self):
         user = await sync_to_async(UserFactory)()
         cat_old = await sync_to_async(CategoryFactory)(name="Comida")
@@ -87,7 +89,7 @@ class TestUpdateExpense:
         )
 
         # Traemos el objeto con select_related como lo haría el endpoint
-        expense_obj = await Expense.objects.select_related('category').aget(
+        expense_obj = await Expense.objects.select_related("category").aget(
             id=expense.id, user=user
         )
 
@@ -111,7 +113,7 @@ class TestUpdateExpense:
             user=user, category=cat_old, amount=100, description="Uber"
         )
 
-        expense_obj = await Expense.objects.select_related('category').aget(
+        expense_obj = await Expense.objects.select_related("category").aget(
             id=expense.id, user=user
         )
 
@@ -129,8 +131,8 @@ class TestUpdateExpense:
         assert count_after == count_before + 1
 
         feedback = await CategorySuggestionFeedback.objects.select_related(
-            'suggested_category', 'final_category'
-        ).alatest('created_at')
+            "suggested_category", "final_category"
+        ).alatest("created_at")
         assert feedback.suggested_category.id == cat_old.id
         assert feedback.final_category.id == cat_new.id
         assert feedback.was_accepted is False
@@ -142,7 +144,7 @@ class TestUpdateExpense:
             user=user, category=category, amount=100, description="Pizza"
         )
 
-        expense_obj = await Expense.objects.select_related('category').aget(
+        expense_obj = await Expense.objects.select_related("category").aget(
             id=expense.id, user=user
         )
 
@@ -164,8 +166,8 @@ class TestUpdateExpense:
 # DELETE EXPENSE
 # ============================================
 
-class TestDeleteExpense:
 
+class TestDeleteExpense:
     async def test_removes_expense_from_main_table(self):
         user = await sync_to_async(UserFactory)()
         expense = await sync_to_async(ExpenseFactory)(user=user)
@@ -177,9 +179,7 @@ class TestDeleteExpense:
 
     async def test_creates_record_in_deleted_objects(self):
         user = await sync_to_async(UserFactory)()
-        expense = await sync_to_async(ExpenseFactory)(
-            user=user, description="Gasto a borrar"
-        )
+        expense = await sync_to_async(ExpenseFactory)(user=user, description="Gasto a borrar")
 
         deleted_obj_id = await delete_expense(user=user, expense_id=expense.id)
 
@@ -199,8 +199,8 @@ class TestDeleteExpense:
 # RESTORE EXPENSE
 # ============================================
 
-class TestRestoreExpense:
 
+class TestRestoreExpense:
     async def test_restores_expense_with_original_data(self):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(name="Comida")

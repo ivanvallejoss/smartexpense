@@ -62,9 +62,7 @@ async def webhook(request):
         cache = await get_redis("cache")
         idempotency_key = f"idempotency:{event.channel}:{event.message_id}"
 
-        primera_vez = await cache.set(
-            idempotency_key, "1", ex=IDEMPOTENCY_TTL, nx=True
-        )
+        primera_vez = await cache.set(idempotency_key, "1", ex=IDEMPOTENCY_TTL, nx=True)
 
         if not primera_vez:
             logger.info(

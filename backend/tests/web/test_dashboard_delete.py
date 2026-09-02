@@ -8,8 +8,10 @@ puesta la vista que estabas leyendo.
 from datetime import timedelta
 from decimal import Decimal
 
-import pytest
 from django.contrib.contenttypes.models import ContentType
+
+import pytest
+
 from apps.core.models import Category, DeletedObject, Expense, User
 from services.selectors import rango_bounds
 
@@ -22,14 +24,21 @@ HTMX = {"HTTP_HX_REQUEST": "true"}
 def datos(ivan):
     comida = Category.objects.create(name="Comida", user=ivan)
     desde_mes, _ = rango_bounds("mes")
-    verduleria = Expense.objects.create(user=ivan, amount=Decimal("10000"),
-                                        description="Verduleria", category=comida,
-                                        date=desde_mes + timedelta(days=1))
-    kiosco = Expense.objects.create(user=ivan, amount=Decimal("2500"),
-                                    description="Kiosco", category=comida,
-                                    date=desde_mes + timedelta(days=2))
+    verduleria = Expense.objects.create(
+        user=ivan,
+        amount=Decimal("10000"),
+        description="Verduleria",
+        category=comida,
+        date=desde_mes + timedelta(days=1),
+    )
+    kiosco = Expense.objects.create(
+        user=ivan,
+        amount=Decimal("2500"),
+        description="Kiosco",
+        category=comida,
+        date=desde_mes + timedelta(days=2),
+    )
     return {"comida": comida, "verduleria": verduleria, "kiosco": kiosco}
-
 
 
 def url_borrar(expense_id, cola=""):
@@ -71,8 +80,13 @@ def test_sin_htmx_redirige_conservando_los_filtros(client_logueado, datos):
 def test_el_swap_respeta_los_filtros_activos(client_logueado, ivan, datos, monto):
     otra = Category.objects.create(name="Transporte", user=ivan)
     desde_mes, _ = rango_bounds("mes")
-    Expense.objects.create(user=ivan, amount=Decimal("900"), description="Subte",
-                           category=otra, date=desde_mes + timedelta(days=3))
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("900"),
+        description="Subte",
+        category=otra,
+        date=desde_mes + timedelta(days=3),
+    )
 
     cola = f"?cat={datos['comida'].id}"
     cuerpo = client_logueado.post(url_borrar(datos["verduleria"].id, cola), **HTMX).content.decode()
@@ -84,8 +98,9 @@ def test_el_swap_respeta_los_filtros_activos(client_logueado, ivan, datos, monto
 def test_gasto_de_otro_usuario_no_se_puede_borrar(client_logueado, datos):
     otro = User.objects.create_user(username="otro", password="x")
     desde_mes, _ = rango_bounds("mes")
-    ajeno = Expense.objects.create(user=otro, amount=Decimal("500"),
-                                   description="Ajeno", date=desde_mes + timedelta(days=1))
+    ajeno = Expense.objects.create(
+        user=otro, amount=Decimal("500"), description="Ajeno", date=desde_mes + timedelta(days=1)
+    )
 
     respuesta = client_logueado.post(url_borrar(ajeno.id), **HTMX)
 

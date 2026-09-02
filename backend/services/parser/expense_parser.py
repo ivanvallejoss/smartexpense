@@ -85,7 +85,13 @@ class ExpenseParser:
             No lanza excepciones, retorna success=False en caso de error.
         """
         # Inicializar response
-        result = {"amount": None, "description": "", "success": False, "error": None, "warning": None}
+        result = {
+            "amount": None,
+            "description": "",
+            "success": False,
+            "error": None,
+            "warning": None,
+        }
 
         # Validaciones básicas
         if not text or not text.strip():
@@ -183,7 +189,9 @@ class ExpenseParser:
 
             # Caso 2: punto seguido de 1-2 dígitos (formato internacional)
             # Pero NO si tiene múltiples puntos (separadores de miles)
-            has_dot_decimal = "." in number and number.count(".") == 1 and len(number.split(".")[-1]) <= 2
+            has_dot_decimal = (
+                "." in number and number.count(".") == 1 and len(number.split(".")[-1]) <= 2
+            )
 
             has_decimals = has_comma_decimal or has_dot_decimal
 
@@ -194,7 +202,16 @@ class ExpenseParser:
                 print(f"An error has ocurred, {e}")
                 magnitude = Decimal("0")
 
-            candidates.append({"raw": raw, "raw_number": number, "position": match.start(), "has_symbol": has_symbol, "has_decimals": has_decimals, "magnitude": magnitude})
+            candidates.append(
+                {
+                    "raw": raw,
+                    "raw_number": number,
+                    "position": match.start(),
+                    "has_symbol": has_symbol,
+                    "has_decimals": has_decimals,
+                    "magnitude": magnitude,
+                }
+            )
 
         return candidates
 
@@ -218,7 +235,10 @@ class ExpenseParser:
         # CASO 1: Hay números con $
         if with_symbol:
             if len(with_symbol) > 1:
-                warning = f"Se encontraron {len(with_symbol)} montos con símbolo $. " f"Se usó el primero: {with_symbol[0]['raw']}"
+                warning = (
+                    f"Se encontraron {len(with_symbol)} montos con símbolo $. "
+                    f"Se usó el primero: {with_symbol[0]['raw']}"
+                )
             return with_symbol[0], warning
 
         # CASO 2: Buscar el que tiene formato de dinero (decimales)
@@ -229,7 +249,10 @@ class ExpenseParser:
             selected = max(with_decimals, key=lambda c: c["magnitude"])
 
             if len(with_decimals) > 1:
-                warning = f"Se encontraron {len(with_decimals)} números con decimales. " f"Se usó el mayor: {selected['raw']}"
+                warning = (
+                    f"Se encontraron {len(with_decimals)} números con decimales. "
+                    f"Se usó el mayor: {selected['raw']}"
+                )
 
             return selected, warning
 
@@ -244,7 +267,9 @@ class ExpenseParser:
         selected = max(likely_amounts, key=lambda c: c["magnitude"])
 
         if len(candidates) > 1:
-            warning = f"Se encontraron {len(candidates)} números. " f"Se usó el mayor: {selected['raw']}"
+            warning = (
+                f"Se encontraron {len(candidates)} números. " f"Se usó el mayor: {selected['raw']}"
+            )
 
         return selected, warning
 

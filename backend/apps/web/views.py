@@ -14,8 +14,7 @@ un HttpResponseRedirect que Django intenta await-ear en una view async.
 """
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import redirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.generic import View
 
@@ -58,8 +57,12 @@ def _build_context(filtros, data):
         "opciones_rango": opciones_rango,
         "url_desnuda": reverse("dashboard"),
         "url_actual": filtros.querystring(),
-        "url_siguiente": filtros.con_pagina(data["page"] + 1).querystring() if data["has_next"] else None,
-        "url_anterior": filtros.con_pagina(data["page"] - 1).querystring() if data["has_previous"] else None,
+        "url_siguiente": filtros.con_pagina(data["page"] + 1).querystring()
+        if data["has_next"]
+        else None,
+        "url_anterior": filtros.con_pagina(data["page"] - 1).querystring()
+        if data["has_previous"]
+        else None,
         "page": data["page"],
         "num_pages": data["num_pages"],
     }
@@ -95,6 +98,7 @@ class _DashboardBaseView(_SesionRequerida):
     renderizan: la completa devuelve el documento, las parciales devuelven su
     region. Comparten filtros y selector, como pide B2.
     """
+
     template_name = None
 
     async def get(self, request):
@@ -116,6 +120,7 @@ class DashboardView(_DashboardBaseView):
 
 class DashboardExpensesView(_DashboardBaseView):
     """Endpoint de partial dedicado (B2): una URL propia por region swappable."""
+
     template_name = "dashboard/partials/_expense_items.html"
 
 
@@ -128,6 +133,7 @@ class DashboardResultsView(_DashboardBaseView):
     este endpoint interno, que no es navegable. Es replace y no push porque en
     mobile el back es salir, no deshacer (B4-S2).
     """
+
     template_name = "dashboard/partials/_results.html"
 
     def finalizar(self, respuesta, filtros):
@@ -145,6 +151,7 @@ class DashboardDeleteExpenseView(_SesionRequerida):
     sincronizados por construccion, es el mismo render de C3); sin htmx redirige
     con Post/Redirect/Get para que F5 no reintente el borrado.
     """
+
     template_name = "dashboard/partials/_results.html"
 
     async def post(self, request, expense_id):

@@ -2,13 +2,13 @@
 Utilidades para el bot de Telegram.
 Funciones helper para formateo y manejo de usuarios.
 """
+import logging
 from decimal import Decimal
 from typing import Tuple
 from zoneinfo import ZoneInfo
 
-from services.constants import CATEGORY_EMOJIS, HEX_TO_EMOJI, DEFAULT_EMOJI
+from services.constants import CATEGORY_EMOJIS, DEFAULT_EMOJI, HEX_TO_EMOJI
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +51,9 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
     if expense.category:
         category_name = expense.category.name
         category_color = expense.category.color if expense.category else "default"
-        category_emoji = get_category_emoji(category_name=category_name, category_color=category_color)
+        category_emoji = get_category_emoji(
+            category_name=category_name, category_color=category_color
+        )
 
         # Si fue auto-categorizado, agregar indicador
         if auto_categorized:
@@ -62,32 +64,37 @@ def format_expense_confirmation(expense, auto_categorized=False) -> str:
         category_display = f"{DEFAULT_EMOJI} Sin categorizar"
 
     # Show the date in local timezone
-    date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime("%d %b %Y, %H:%M")
+    date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime(
+        "%d %b %Y, %H:%M"
+    )
 
     message = (
-        "✅ Guardado correctamente\n\n" 
-        f"💵 Monto: {format_amount(expense.amount)}\n" 
-        f"📝 Descripción: {expense.description}\n" f"📂 Categoría: {category_display}\n" 
-        f"📅 {date_str}\n\n" "Tip: Usá /stats para ver tu resumen del mes"
-        )
-    
+        "✅ Guardado correctamente\n\n"
+        f"💵 Monto: {format_amount(expense.amount)}\n"
+        f"📝 Descripción: {expense.description}\n"
+        f"📂 Categoría: {category_display}\n"
+        f"📅 {date_str}\n\n"
+        "Tip: Usá /stats para ver tu resumen del mes"
+    )
+
     logger.info(
-            "Expense created successfully",
-            extra={
-                "user_id": expense.user.id,
-                "expense_id": expense.id,
-                "amount": str(expense.amount),
-                "description": expense.description,
-                "category": expense.category.name if expense.category else None,
-                "auto_categorized": auto_categorized,
-            },
-        )
-    
+        "Expense created successfully",
+        extra={
+            "user_id": expense.user.id,
+            "expense_id": expense.id,
+            "amount": str(expense.amount),
+            "description": expense.description,
+            "category": expense.category.name if expense.category else None,
+            "auto_categorized": auto_categorized,
+        },
+    )
+
     return message
 
 
-
-def format_stats_message(month_name: str, total_amount: Decimal, total_count: int, by_category: list) -> str:
+def format_stats_message(
+    month_name: str, total_amount: Decimal, total_count: int, by_category: list
+) -> str:
     """
     Formatea mensaje de estadísticas del mes.
 
@@ -102,13 +109,14 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
     """
     if total_count == 0:
         return (
-            f"📊 Resumen de {month_name} \n\n" 
-            "No tenés gastos registrados este mes todavía. \n" 
-            "¡Empezá a trackear tus expenses!")
+            f"📊 Resumen de {month_name} \n\n"
+            "No tenés gastos registrados este mes todavía. \n"
+            "¡Empezá a trackear tus expenses!"
+        )
 
     message = (
-        f"📊 Resumen de {month_name} \n\n" 
-        f"💰 Total gastado: {format_amount(total_amount)} \n" 
+        f"📊 Resumen de {month_name} \n\n"
+        f"💰 Total gastado: {format_amount(total_amount)} \n"
         f"📦 Gastos registrados: {total_count} \n"
     )
 
@@ -124,12 +132,11 @@ def format_stats_message(month_name: str, total_amount: Decimal, total_count: in
             display_name = cat_name or "Sin categorizar"
 
             message += (
-                f"{cat_emoji} {display_name}:" 
+                f"{cat_emoji} {display_name}:"
                 f"{format_amount(cat_total)}  ({cat_percentage:.0f}%)\n"
-                )
+            )
 
     return message
-
 
 
 def format_expense_list(expenses):
@@ -140,29 +147,29 @@ def format_expense_list(expenses):
         return "📭 No tienes gastos registrados todavía."
 
     lines = ["📊 <b>Últimos movimientos:</b>\n"]
-    
-    # Defined the timezone for the user. 
+
+    # Defined the timezone for the user.
     # Ideally, this should come from the user settings
     tz_ar = ZoneInfo("America/Argentina/Buenos_Aires")
 
     for exp in expenses:
         # Convert UTC -> Argentina
         local_date = exp.date.astimezone(tz_ar)
-        
+
         # Format date: "30/01 20:45"
         date_str = local_date.strftime("%d/%m %H:%M")
-        
+
         # Emoji for category
-        icon = "💸" 
-        
+        icon = "💸"
+
         # Build the line: "📅 30/01 20:45 "
-        line = f"<code> {date_str} </code>\n" 
-        
+        line = f"<code> {date_str} </code>\n"
+
         if exp.description:
             line += f" {icon} {exp.description}: <b> {format_amount(exp.amount)} \n</b>"
         else:
             line += f" {icon} <b> {format_amount(exp.amount)} </b>"
-        
+
         # Add description if exists
         if exp.category:
             line += f" ↳ Categoria: <i>{exp.category.name} \n</i>"
@@ -185,7 +192,7 @@ def get_category_emoji(category_name: str | None, category_color: str | None) ->
 
     Returns:
         Emoji como string
-    
+
     Examples:
         >>> get_category_emoji("Comida", "#FF5733")
         '🍔'
@@ -196,10 +203,10 @@ def get_category_emoji(category_name: str | None, category_color: str | None) ->
     """
     if category_name and category_name in CATEGORY_EMOJIS:
         return CATEGORY_EMOJIS[category_name]
-    
+
     if category_color and category_color in HEX_TO_EMOJI:
         return HEX_TO_EMOJI[category_color]
-    
+
     return DEFAULT_EMOJI
 
 
@@ -208,9 +215,9 @@ def format_expense_pending(expense) -> str:
     Mensaje para gastos con confianza baja.
     El gasto está guardado pero pendiente de categorización.
     """
-    date_str = expense.date.astimezone(
-        ZoneInfo("America/Argentina/Buenos_Aires")
-    ).strftime("%d %b %Y, %H:%M")
+    date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime(
+        "%d %b %Y, %H:%M"
+    )
 
     message = (
         "💾 Gasto guardado — categoría pendiente\n\n"
@@ -227,9 +234,9 @@ def format_expense_needs_confirmation(expense, suggested_category_name: str) -> 
     Mensaje para gastos con confianza media.
     El gasto está guardado con la categoría sugerida, pero se ofrece corrección.
     """
-    date_str = expense.date.astimezone(
-        ZoneInfo("America/Argentina/Buenos_Aires")
-    ).strftime("%d %b %Y, %H:%M")
+    date_str = expense.date.astimezone(ZoneInfo("America/Argentina/Buenos_Aires")).strftime(
+        "%d %b %Y, %H:%M"
+    )
 
     message = (
         "✅ Guardado correctamente\n\n"

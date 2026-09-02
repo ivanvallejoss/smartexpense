@@ -11,16 +11,18 @@ Databases:
                 y rate limiting fuutro
 """
 import logging
+
+from django.conf import settings
+
 from arq import create_pool
 from arq.connections import RedisSettings
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 _pools = {}
 
 _DATABASES = {
-    "jobs":  0,
+    "jobs": 0,
     "state": 1,
     "cache": 2,
 }
@@ -33,8 +35,7 @@ def _get_url_for_purpose(purpose: str) -> str:
     """
     if purpose not in _DATABASES:
         raise ValueError(
-            f"Purpose '{purpose}' no reconocido. "
-            f"Opciones válidas: {list(_DATABASES.keys())}"
+            f"Purpose '{purpose}' no reconocido. " f"Opciones válidas: {list(_DATABASES.keys())}"
         )
 
     base_url = settings.REDIS_URL.rsplit("/", 1)[0]

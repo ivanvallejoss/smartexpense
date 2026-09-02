@@ -31,10 +31,5 @@ def category_selection_options(expense_id: int, categories: list) -> Rows:
     'de a dos', un número impar de categorías aparearía la última con
     'Nueva categoría' y cambiaría el layout visible.
     """
-    opciones = [
-        Option(f"cat_select:{expense_id}:{c.id}", c.name)
-        for c in categories
-    ]
-    return grid(opciones, columns=2) + row(
-        Option(f"cat_new:{expense_id}", "➕ Nueva categoría")
-    )
+    opciones = [Option(f"cat_select:{expense_id}:{c.id}", c.name) for c in categories]
+    return grid(opciones, columns=2) + row(Option(f"cat_new:{expense_id}", "➕ Nueva categoría"))

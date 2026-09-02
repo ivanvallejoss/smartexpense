@@ -1,10 +1,12 @@
 """Fixtures compartidas por los tests del dashboard web (Fase C)."""
-from datetime import datetime, timezone as tz_utc
+from datetime import datetime
+from datetime import timezone as tz_utc
 from decimal import Decimal
 from unittest.mock import patch
 
-import pytest
 from django.test import Client
+
+import pytest
 
 from apps.core.models import User
 
@@ -51,6 +53,8 @@ def client_logueado(ivan):
 @pytest.fixture
 def monto():
     """El locale es es-ar: los decimales van con coma."""
+
     def formatear(valor) -> str:
         return f"${Decimal(valor):.2f}".replace(".", ",")
+
     return formatear

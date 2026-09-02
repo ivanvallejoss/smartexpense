@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from apps.bot.state import (
     STATE_TTL,
@@ -28,7 +29,6 @@ async def redis():
 
 
 class TestSet:
-
     async def test_escribe_la_clave_namespaced_con_ttl(self, redis):
         await set_pending_category_state(TG, UID, expense_id=456)
 
@@ -42,7 +42,6 @@ class TestSet:
 
 
 class TestGet:
-
     async def test_sin_estado_devuelve_none(self, redis):
         assert await get_pending_category_state(TG, UID) is None
 
@@ -74,7 +73,6 @@ class TestGet:
 
 
 class TestClear:
-
     async def test_borra_ambos_formatos(self, redis):
         """
         Si quedara la clave vieja, el fallback la resucitaría en la
