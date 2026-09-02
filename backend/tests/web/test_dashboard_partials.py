@@ -9,6 +9,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+
 from apps.core.models import Category, Expense, User
 from services.selectors import DASHBOARD_PAGE_SIZE, rango_bounds
 
@@ -34,7 +35,7 @@ def test_el_parcial_devuelve_fragmento_no_documento(client_logueado, ivan):
     cuerpo = client_logueado.get("/dashboard/gastos/").content.decode()
     assert "<li" in cuerpo
     assert "<html" not in cuerpo
-    assert "id=\"results\"" not in cuerpo
+    assert 'id="results"' not in cuerpo
 
 
 def test_el_parcial_exige_sesion(client):
@@ -86,8 +87,11 @@ def test_paginacion_estable_con_gastos_de_la_misma_fecha(client_logueado, ivan):
     pagina = 1
     while True:
         cuerpo = client_logueado.get(f"/dashboard/gastos/?page={pagina}").content.decode()
-        vistos += [linea.split('id="expense-')[1].split('"')[0]
-                   for linea in cuerpo.splitlines() if 'id="expense-' in linea]
+        vistos += [
+            linea.split('id="expense-')[1].split('"')[0]
+            for linea in cuerpo.splitlines()
+            if 'id="expense-' in linea
+        ]
         if "cargar-mas" not in cuerpo:
             break
         pagina += 1

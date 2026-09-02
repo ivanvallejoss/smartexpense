@@ -21,6 +21,7 @@ def parser():
 # CASOS BÁSICOS
 # ============================================
 
+
 class TestBasicCases:
     """Tests de casos básicos de parsing."""
 
@@ -59,6 +60,7 @@ class TestBasicCases:
 # DECIMALES Y SEPARADORES
 # ============================================
 
+
 class TestDecimalsAndSeparators:
     """Tests de manejo de decimales y separadores de miles."""
 
@@ -86,6 +88,7 @@ class TestDecimalsAndSeparators:
 # ============================================
 # EDGE CASES & FORMATOS ESPECIALES
 # ============================================
+
 
 class TestEdgeCases:
     """Tests de casos extremos y formatos raros."""
@@ -119,13 +122,14 @@ class TestEdgeCases:
 # PRIORIDAD Y WARNINGS
 # ============================================
 
+
 class TestSelectionPriorityAndWarnings:
     """Tests de prioridad de selección y advertencias."""
 
     def test_dollar_wins_over_larger_number(self, parser):
         result = parser.parse("$20 pizza 2000")
         assert result["amount"] == Decimal("20")
-        assert result["warning"] is None # $ elimina la ambigüedad
+        assert result["warning"] is None  # $ elimina la ambigüedad
 
     def test_multiple_amounts_with_dollar_warns(self, parser):
         result = parser.parse("$50 de $100")
@@ -146,6 +150,7 @@ class TestSelectionPriorityAndWarnings:
 # ============================================
 # CASOS DE ERROR Y MANEJO DE EXCEPCIONES
 # ============================================
+
 
 class TestErrorCases:
     """Tests de fallos esperados."""
@@ -178,7 +183,9 @@ class TestErrorCases:
 
     def test_parse_to_decimal_value_error_is_caught(self, parser):
         """Simulamos que el parseo interno falla para verificar que no crashee la app."""
-        with mock.patch.object(parser, '_parse_to_decimal', side_effect=ValueError("Formato corrupto")):
+        with mock.patch.object(
+            parser, "_parse_to_decimal", side_effect=ValueError("Formato corrupto")
+        ):
             result = parser.parse("2000 pizza")
             assert result["success"] is False
             assert "Error al parsear el monto" in result["error"]
@@ -188,18 +195,22 @@ class TestErrorCases:
 # TEST DIRECTO DE LÓGICA INTERNA (_parse_to_decimal)
 # ============================================
 
+
 class TestInternalParseToDecimal:
     """Validamos el motor de conversión a Decimal al 100%."""
 
-    @pytest.mark.parametrize("input_str, expected", [
-        ("1500", Decimal("1500")),
-        ("-1500", Decimal("-1500")),
-        ("1500,50", Decimal("1500.50")),
-        ("1500.50", Decimal("1500.50")),
-        ("1.500", Decimal("1500")),
-        ("1.500,50", Decimal("1500.50")),
-        ("-1.500,50", Decimal("-1500.50")),
-        ("10.000.000,99", Decimal("10000000.99")),
-    ])
+    @pytest.mark.parametrize(
+        "input_str, expected",
+        [
+            ("1500", Decimal("1500")),
+            ("-1500", Decimal("-1500")),
+            ("1500,50", Decimal("1500.50")),
+            ("1500.50", Decimal("1500.50")),
+            ("1.500", Decimal("1500")),
+            ("1.500,50", Decimal("1500.50")),
+            ("-1.500,50", Decimal("-1500.50")),
+            ("10.000.000,99", Decimal("10000000.99")),
+        ],
+    )
     def test_various_formats(self, parser, input_str, expected):
         assert parser._parse_to_decimal(input_str) == expected

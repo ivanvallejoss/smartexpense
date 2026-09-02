@@ -1,18 +1,19 @@
 # tests/services/test_selectors.py
 
-import pytest
-from decimal import Decimal
 from datetime import datetime, timezone
-from asgiref.sync import sync_to_async
+from decimal import Decimal
 
-from apps.core.models import Expense, Category
+import pytest
+from asgiref.sync import sync_to_async
+from tests.factories import CategoryFactory, ExpenseFactory, UserFactory
+
+from apps.core.models import Category, Expense
 from services.selectors import (
-    get_expenses,
     get_balance,
+    get_expenses,
     get_month_stats,
     get_user_categories_or_defaults,
 )
-from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -21,8 +22,8 @@ pytestmark = pytest.mark.django_db(transaction=True)
 # GET EXPENSES
 # ============================================
 
-class TestGetExpenses:
 
+class TestGetExpenses:
     async def test_returns_confirmed_expenses_for_user(self):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(is_default=True, user=None)
@@ -73,12 +74,10 @@ class TestGetExpenses:
         february_date = datetime(2026, 2, 15, 12, 0, 0, tzinfo=timezone.utc)
 
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            date=march_date, status=Expense.STATUS_CONFIRMED
+            user=user, category=category, date=march_date, status=Expense.STATUS_CONFIRMED
         )
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            date=february_date, status=Expense.STATUS_CONFIRMED
+            user=user, category=category, date=february_date, status=Expense.STATUS_CONFIRMED
         )
 
         result = await get_expenses(user=user, month=3, year=2026)
@@ -91,19 +90,17 @@ class TestGetExpenses:
 # GET BALANCE
 # ============================================
 
-class TestGetBalance:
 
+class TestGetBalance:
     async def test_returns_correct_sum(self):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(is_default=True, user=None)
 
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            amount=Decimal("1000"), status=Expense.STATUS_CONFIRMED
+            user=user, category=category, amount=Decimal("1000"), status=Expense.STATUS_CONFIRMED
         )
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            amount=Decimal("500.50"), status=Expense.STATUS_CONFIRMED
+            user=user, category=category, amount=Decimal("500.50"), status=Expense.STATUS_CONFIRMED
         )
 
         result = await get_balance(user=user)
@@ -137,14 +134,18 @@ class TestGetBalance:
         february_date = datetime(2026, 2, 15, 12, 0, 0, tzinfo=timezone.utc)
 
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            amount=Decimal("1000"), date=march_date,
-            status=Expense.STATUS_CONFIRMED
+            user=user,
+            category=category,
+            amount=Decimal("1000"),
+            date=march_date,
+            status=Expense.STATUS_CONFIRMED,
         )
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            amount=Decimal("500"), date=february_date,
-            status=Expense.STATUS_CONFIRMED
+            user=user,
+            category=category,
+            amount=Decimal("500"),
+            date=february_date,
+            status=Expense.STATUS_CONFIRMED,
         )
 
         result = await get_balance(user=user, month=3, year=2026)
@@ -156,8 +157,8 @@ class TestGetBalance:
 # GET MONTH STATS
 # ============================================
 
-class TestGetMonthStats:
 
+class TestGetMonthStats:
     async def test_returns_all_four_fields(self):
         user = await sync_to_async(UserFactory)()
 
@@ -180,31 +181,44 @@ class TestGetMonthStats:
 
         # El nombre del mes debe estar en español
         spanish_months = [
-            "enero", "febrero", "marzo", "abril", "mayo", "junio",
-            "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+            "enero",
+            "febrero",
+            "marzo",
+            "abril",
+            "mayo",
+            "junio",
+            "julio",
+            "agosto",
+            "septiembre",
+            "octubre",
+            "noviembre",
+            "diciembre",
         ]
         month_name_lower = result["month_name"].lower()
         assert any(month in month_name_lower for month in spanish_months)
 
     async def test_totals_are_correct(self):
         user = await sync_to_async(UserFactory)()
-        category = await sync_to_async(CategoryFactory)(
-            name="Comida", is_default=True, user=None
-        )
+        category = await sync_to_async(CategoryFactory)(name="Comida", is_default=True, user=None)
 
         # Usamos el mes actual para que el filtro de get_month_stats los incluya
         from django.utils import timezone
+
         now = timezone.now()
 
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            amount=Decimal("1000"), date=now,
-            status=Expense.STATUS_CONFIRMED
+            user=user,
+            category=category,
+            amount=Decimal("1000"),
+            date=now,
+            status=Expense.STATUS_CONFIRMED,
         )
         await sync_to_async(ExpenseFactory)(
-            user=user, category=category,
-            amount=Decimal("500"), date=now,
-            status=Expense.STATUS_CONFIRMED
+            user=user,
+            category=category,
+            amount=Decimal("500"),
+            date=now,
+            status=Expense.STATUS_CONFIRMED,
         )
 
         result = await get_month_stats(user=user)
@@ -219,19 +233,15 @@ class TestGetMonthStats:
 # GET USER CATEGORIES OR DEFAULTS
 # ============================================
 
-class TestGetUserCategoriesOrDefaults:
 
+class TestGetUserCategoriesOrDefaults:
     async def test_returns_own_and_global_categories(self):
         user = await sync_to_async(UserFactory)()
 
         # Categoría global — disponible para todos
-        await sync_to_async(CategoryFactory)(
-            name="Global", is_default=True, user=None
-        )
+        await sync_to_async(CategoryFactory)(name="Global", is_default=True, user=None)
         # Categoría propia del usuario
-        await sync_to_async(CategoryFactory)(
-            name="Personal", is_default=False, user=user
-        )
+        await sync_to_async(CategoryFactory)(name="Personal", is_default=False, user=user)
 
         result = await get_user_categories_or_defaults(user=user)
 
@@ -243,9 +253,7 @@ class TestGetUserCategoriesOrDefaults:
         user = await sync_to_async(UserFactory)()
         other_user = await sync_to_async(UserFactory)()
 
-        await sync_to_async(CategoryFactory)(
-            name="Ajena", is_default=False, user=other_user
-        )
+        await sync_to_async(CategoryFactory)(name="Ajena", is_default=False, user=other_user)
 
         result = await get_user_categories_or_defaults(user=user)
 
@@ -258,9 +266,7 @@ class TestGetUserCategoriesOrDefaults:
         recibir las categorías globales del sistema.
         """
         user = await sync_to_async(UserFactory)()
-        await sync_to_async(CategoryFactory)(
-            name="Comida", is_default=True, user=None
-        )
+        await sync_to_async(CategoryFactory)(name="Comida", is_default=True, user=None)
 
         result = await get_user_categories_or_defaults(user=user)
 

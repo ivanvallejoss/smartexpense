@@ -1,11 +1,13 @@
 """
 Helper functions for machine learning.
 """
+import logging
+
 from asgiref.sync import sync_to_async
+
 from apps.core.models import Category
 from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -24,8 +26,7 @@ def get_category_suggestion(user, description):
     # La creamos aquí, una sola vez, explícitamente.
     if suggestion.category is None and suggestion.suggested_category_name:
         suggestion.category = create_category_for_user(
-            user=user,
-            name=suggestion.suggested_category_name
+            user=user, name=suggestion.suggested_category_name
         )
 
     logger.info(
@@ -36,7 +37,7 @@ def get_category_suggestion(user, description):
             "confidence": suggestion.confidence,
             "reason": suggestion.reason,
             "matched_keyword": suggestion.matched_keyword,
-        }
+        },
     )
 
     return suggestion
@@ -79,8 +80,9 @@ def _record_feedback_sync(expense, suggested_category, accepted, final_category=
             "accepted": accepted,
             "suggested": suggested_category.name if suggested_category else None,
             "final": final_category.name if final_category else None,
-        }
+        },
     )
+
 
 @sync_to_async
 def record_categorization_feedback(expense, suggested_category, accepted, final_category=None):

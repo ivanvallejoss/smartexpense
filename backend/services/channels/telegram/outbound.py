@@ -108,10 +108,7 @@ class TelegramSender:
 def _to_markup(options: Rows | None) -> InlineKeyboardMarkup | None:
     if not options:
         return None
-    return InlineKeyboardMarkup([
-        [_to_button(option) for option in fila]
-        for fila in options
-    ])
+    return InlineKeyboardMarkup([[_to_button(option) for option in fila] for fila in options])
 
 
 def _to_button(option: Option) -> InlineKeyboardButton:
@@ -121,4 +118,5 @@ def _to_button(option: Option) -> InlineKeyboardButton:
 def build_sender() -> TelegramSender:
     """Fábrica desde settings. Se llama en el startup del worker."""
     from django.conf import settings
+
     return TelegramSender(token=settings.TELEGRAM_TOKEN)

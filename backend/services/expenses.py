@@ -3,30 +3,26 @@ Service Layer
 Logic that creates or deletes expenses
 """
 
-from apps.core.models import Expense, Category, DeletedObject
-from .selectors import get_category_by_id
+from datetime import datetime
+from decimal import Decimal
 
-from services.ml.helper import _record_feedback_sync
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
+from django.utils import timezone
 
 from asgiref.sync import sync_to_async
-from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
-from datetime import datetime
 
-from decimal import Decimal
+from apps.core.models import Category, DeletedObject, Expense
+from services.ml.helper import _record_feedback_sync
+
+from .selectors import get_category_by_id
+
 
 @sync_to_async
 def create_expense(
-    user, 
-    amount:float, 
-    description:str, 
-    category=None, 
-    date=None, 
-    raw_message=None,
-    status=None
-    ):
+    user, amount: float, description: str, category=None, date=None, raw_message=None, status=None
+):
     """
     Create a new Expense for the user.
     """
@@ -36,7 +32,7 @@ def create_expense(
         raw_message = description
     if not status:
         status = Expense.STATUS_CONFIRMED
-    
+
     with transaction.atomic():
         expense = Expense.objects.create(
             user=user,
@@ -50,27 +46,20 @@ def create_expense(
     return expense
 
 
-
 @sync_to_async
-def update_expense(
-    user,
-    expense, 
-    amount: float, 
-    description: str, 
-    category=None
-    ):
+def update_expense(user, expense, amount: float, description: str, category=None):
     """
     Update the user's expense.
     If previous_category is not None, it means we have to register the change with the ML object.
     """
-    with transaction.atomic():    
+    with transaction.atomic():
         previous_category = expense.category
-        
+
         expense.amount = amount
         expense.description = description
         expense.category = category
         # realizamos la actualizacion solo en las columnas necesarias
-        expense.save(update_fields=['amount', 'description', 'category', 'updated_at'])
+        expense.save(update_fields=["amount", "description", "category", "updated_at"])
 
         # Reportamos a ML mediante el helper sync que reporta el cambio.
         if previous_category != category:
@@ -84,12 +73,11 @@ def update_expense(
     return expense
 
 
-
 @sync_to_async
 def delete_expense(user, expense_id):
     """
     Soft-delete the expense
-    Sends the expense to DeletedObject (as a JSON) table 
+    Sends the expense to DeletedObject (as a JSON) table
     and Hard Delete the expense from the original table
     return:
         object_id -> with this ID we can restore the delete
@@ -107,7 +95,7 @@ def delete_expense(user, expense_id):
             "description": expense.description,
             "category": category,
             "date": expense.date.isoformat(),
-            "raw_message": expense.raw_message
+            "raw_message": expense.raw_message,
         }
 
         # Creamos el registro en la papelera usando GenericForeignKey
@@ -117,13 +105,14 @@ def delete_expense(user, expense_id):
             object_id=expense.id,
             object_data=expense_data,
             deleted_by=user,
-            reason="Eliminado por el usuario via bot/web"
+            reason="Eliminado por el usuario via bot/web",
         )
 
         # Hard delete
         expense.delete()
 
         return deleted_obj.id
+
 
 @sync_to_async
 def restore_expense(user, deleted_object_id: int):
@@ -135,7 +124,9 @@ def restore_expense(user, deleted_object_id: int):
         try:
             deleted_obj = DeletedObject.objects.get(id=deleted_object_id, deleted_by=user)
         except DeletedObject.DoesNotExist:
-            raise ObjectDoesNotExist("El registro en la papelera ya no existe, expiro o no te pertenece")
+            raise ObjectDoesNotExist(
+                "El registro en la papelera ya no existe, expiro o no te pertenece"
+            )
 
         # Extraccion del JSON
         data = deleted_obj.object_data
@@ -160,4 +151,3 @@ def restore_expense(user, deleted_object_id: int):
         deleted_obj.delete()
 
         return expense
-

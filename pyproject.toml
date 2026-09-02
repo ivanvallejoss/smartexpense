@@ -22,7 +22,7 @@ profile = "black"
 line_length = 100
 skip_gitignore = true
 known_django = "django"
-known_first_party = ["apps", "config"]
+known_first_party = ["apps", "config", "services"]
 sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 
 

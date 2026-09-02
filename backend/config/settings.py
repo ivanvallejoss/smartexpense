@@ -18,7 +18,7 @@ _env_file = os.path.join(BASE_DIR.parent, ".env")
 if os.path.exists(_env_file):
     environ.Env.read_env(_env_file)
 
-DEBUG = env('DEBUG', default=False, cast=bool)
+DEBUG = env("DEBUG", default=False, cast=bool)
 
 # --------------------------
 #       VARIABLES
@@ -28,16 +28,14 @@ SECRET_KEY = env("SECRET_KEY")
 JWT_SECRET_KEY = env("JWT_SECRET_KEY")
 
 TELEGRAM_TOKEN = env("TELEGRAM_BOT_TOKEN")
-TELEGRAM_WEBHOOK_TOKEN = env('TELEGRAM_WEBHOOK_TOKEN')
+TELEGRAM_WEBHOOK_TOKEN = env("TELEGRAM_WEBHOOK_TOKEN")
 
-REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 
 # ----------------------------
 #   DataBase configuration
 # ----------------------------
-DATABASES = {
-    'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')
-}
+DATABASES = {"default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3")}
 
 
 # Application definition
@@ -137,9 +135,8 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-
 # ======================================================
-#  
+#
 #       PRODUCTION/DEVELOPMENT CONFIGURATION
 #
 # ======================================================
@@ -153,9 +150,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # por lo que aplicarlo incondicionalmente rompia el fallback a sqlite.
 # Ver .env.example.
 if not DEBUG:
-    DATABASES['default']['CONN_MAX_AGE'] = 600
-    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
-
+    DATABASES["default"]["CONN_MAX_AGE"] = 600
+    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 
 # -------------
@@ -172,8 +168,6 @@ ENVIRONMENT = env("ENVIRONMENT", default="dev")
 # preferible a aceptar cualquier Host header en silencio.
 _hosts_abiertos = DEBUG and ENVIRONMENT == "dev"
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"] if _hosts_abiertos else [])
-
-
 
 
 # --------------------------

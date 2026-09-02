@@ -4,12 +4,15 @@ Tests de la vista del dashboard (Fase C, capa C1: SSR sin HTMX).
 Cubren el baseline de progressive enhancement: todo lo que se testea aca tiene
 que funcionar con JavaScript deshabilitado, porque no hay una sola linea de JS.
 """
-from datetime import datetime, timedelta, timezone as tz_utc
+from datetime import datetime, timedelta
+from datetime import timezone as tz_utc
 from decimal import Decimal
 from unittest.mock import patch
 
-import pytest
 from django.test import Client
+
+import pytest
+
 from apps.core.models import Category, Expense, User
 from services.selectors import rango_bounds
 
@@ -23,19 +26,43 @@ def datos(ivan):
     transporte = Category.objects.create(name="Transporte", user=ivan)
     desde_mes, _ = rango_bounds("mes")
 
-    Expense.objects.create(user=ivan, amount=Decimal("10000"), description="Verduleria",
-                           category=comida, date=desde_mes + timedelta(days=1))
-    Expense.objects.create(user=ivan, amount=Decimal("2500"), description="Subte",
-                           category=transporte, date=desde_mes + timedelta(days=2))
-    Expense.objects.create(user=ivan, amount=Decimal("99999"), description="Mes anterior",
-                           category=comida, date=desde_mes - timedelta(days=5))
-    Expense.objects.create(user=ivan, amount=Decimal("777"), description="Borde 23hs",
-                           category=comida, date=desde_mes - timedelta(hours=1))
-    Expense.objects.create(user=ivan, amount=Decimal("50"), description="Sin confirmar",
-                           category=comida, date=desde_mes + timedelta(days=1),
-                           status=Expense.STATUS_PENDING)
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("10000"),
+        description="Verduleria",
+        category=comida,
+        date=desde_mes + timedelta(days=1),
+    )
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("2500"),
+        description="Subte",
+        category=transporte,
+        date=desde_mes + timedelta(days=2),
+    )
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("99999"),
+        description="Mes anterior",
+        category=comida,
+        date=desde_mes - timedelta(days=5),
+    )
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("777"),
+        description="Borde 23hs",
+        category=comida,
+        date=desde_mes - timedelta(hours=1),
+    )
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("50"),
+        description="Sin confirmar",
+        category=comida,
+        date=desde_mes + timedelta(days=1),
+        status=Expense.STATUS_PENDING,
+    )
     return {"comida": comida, "transporte": transporte, "desde_mes": desde_mes}
-
 
 
 def test_anonimo_redirige_al_login(client):
@@ -91,9 +118,13 @@ def test_rango_invalido_cae_al_default_con_aviso(client_logueado, datos, monto):
 
 def test_paginacion_parte_la_lista(client_logueado, ivan, datos):
     for i in range(22):
-        Expense.objects.create(user=ivan, amount=Decimal("100"), description=f"Relleno {i}",
-                               category=datos["transporte"],
-                               date=datos["desde_mes"] + timedelta(days=3, minutes=i))
+        Expense.objects.create(
+            user=ivan,
+            amount=Decimal("100"),
+            description=f"Relleno {i}",
+            category=datos["transporte"],
+            date=datos["desde_mes"] + timedelta(days=3, minutes=i),
+        )
 
     primera = client_logueado.get("/dashboard/").content.decode()
     assert primera.count('class="expense-item"') == 20
@@ -134,13 +165,23 @@ def test_el_dashboard_muestra_los_gastos_el_primer_dia_del_mes(client_logueado, 
 
     with patch("django.utils.timezone.now", return_value=arranque):
         desde_mes, _ = rango_bounds("mes")
-        Expense.objects.create(user=ivan, amount=Decimal("4200"), description="Recien cargado",
-                               category=comida, date=desde_mes + timedelta(seconds=1))
+        Expense.objects.create(
+            user=ivan,
+            amount=Decimal("4200"),
+            description="Recien cargado",
+            category=comida,
+            date=desde_mes + timedelta(seconds=1),
+        )
         # Treinta segundos despues del corte. Fija el ancho real de la ventana:
         # sin el reloj de adentro la ventana llegaria hasta RELOJ_DE_TEST y este
         # gasto tambien entraria, con lo cual el test no probaria nada.
-        Expense.objects.create(user=ivan, amount=Decimal("888"), description="Todavia no ocurrio",
-                               category=comida, date=desde_mes + timedelta(seconds=30))
+        Expense.objects.create(
+            user=ivan,
+            amount=Decimal("888"),
+            description="Todavia no ocurrio",
+            category=comida,
+            date=desde_mes + timedelta(seconds=30),
+        )
         cuerpo = client_logueado.get("/dashboard/").content.decode()
 
     assert "Recien cargado" in cuerpo

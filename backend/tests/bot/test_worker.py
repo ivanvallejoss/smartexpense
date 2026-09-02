@@ -2,14 +2,14 @@
 Tests de process_message: resolución de identidad, despacho y la
 semántica de errores partida por etapa.
 """
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+from tests.constants import EXTERNAL_USER_ID
 
 from apps.bot.worker import process_message, process_telegram_message
 from apps.core.models import ChannelIdentity, User
 from services.channels.senders import UnknownChannel
-
-from tests.constants import EXTERNAL_USER_ID
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -20,8 +20,7 @@ TELEGRAM_UPDATE = {
     "message": {
         "message_id": 293,
         "date": 1753439000,
-        "from": {"id": int(EXTERNAL_USER_ID), "username": "ivanvallejoss",
-                 "first_name": "Ivan"},
+        "from": {"id": int(EXTERNAL_USER_ID), "username": "ivanvallejoss", "first_name": "Ivan"},
         "chat": {"id": int(EXTERNAL_USER_ID), "type": "private"},
         "text": "almuerzo 3500",
     },
@@ -31,16 +30,14 @@ TELEGRAM_UPDATE = {
 @pytest.fixture
 def wired(sender):
     """Sender registrado y dispatch parcheado."""
-    with patch("apps.bot.worker.get_sender", return_value=sender), \
-         patch("apps.bot.worker.dispatch", new=AsyncMock()) as mock_dispatch:
+    with patch("apps.bot.worker.get_sender", return_value=sender), patch(
+        "apps.bot.worker.dispatch", new=AsyncMock()
+    ) as mock_dispatch:
         yield {"sender": sender, "dispatch": mock_dispatch}
 
 
 class TestResolucionDeIdentidad:
-
-    async def test_crea_usuario_e_identidad_en_el_primer_mensaje(
-        self, make_event, wired
-    ):
+    async def test_crea_usuario_e_identidad_en_el_primer_mensaje(self, make_event, wired):
         await process_message(CTX, make_event("almuerzo 3500").to_dict())
 
         identity = await ChannelIdentity.objects.select_related("user").aget(
@@ -68,10 +65,7 @@ class TestResolucionDeIdentidad:
 
 
 class TestSemanticaDeErrores:
-
-    async def test_error_del_handler_avisa_al_usuario_y_no_relanza(
-        self, make_event, wired
-    ):
+    async def test_error_del_handler_avisa_al_usuario_y_no_relanza(self, make_event, wired):
         """
         El handler pudo haber creado el gasto antes de fallar. Reintentar
         lo duplicaría, así que se absorbe.
@@ -111,7 +105,6 @@ class TestSemanticaDeErrores:
 
 
 class TestAliasDeCompatibilidad:
-
     async def test_normaliza_el_payload_crudo_y_despacha(self, wired):
         """Jobs encolados antes del deploy de la Fase 5."""
         await process_telegram_message(CTX, TELEGRAM_UPDATE)

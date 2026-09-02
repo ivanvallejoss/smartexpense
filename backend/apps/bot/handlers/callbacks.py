@@ -8,21 +8,16 @@ import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from apps.bot.state import set_pending_category_state
+from apps.bot.utils import format_expense_confirmation
+from apps.core.models import Category, Expense
 from services.channels.events import ChannelEvent
 from services.channels.senders import Sender
 from services.expenses import delete_expense, restore_expense
 from services.ml.helper import record_categorization_feedback
 from services.selectors import get_user_categories_or_defaults
 
-from apps.bot.state import set_pending_category_state
-from apps.bot.utils import format_expense_confirmation
-from apps.core.models import Category, Expense
-
-from .helpers import (
-    category_selection_options,
-    delete_options,
-    undo_options,
-)
+from .helpers import category_selection_options, delete_options, undo_options
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ==================================================================
 #                        CATEGORIZACIÓN
 # ==================================================================
+
 
 async def on_cat_confirm_click(event: ChannelEvent, user, sender: Sender, payload: str) -> None:
     expense_id = int(payload)
@@ -54,9 +50,7 @@ async def on_cat_confirm_click(event: ChannelEvent, user, sender: Sender, payloa
 
     except Expense.DoesNotExist:
         await sender.ack(event.ack_ref, "⚠️ Error", alert=True)
-        await sender.edit(
-            event.conversation_id, event.edit_ref, text="⚠️ No se encontró el gasto."
-        )
+        await sender.edit(event.conversation_id, event.edit_ref, text="⚠️ No se encontró el gasto.")
 
 
 async def on_cat_list_click(event: ChannelEvent, user, sender: Sender, payload: str) -> None:
@@ -141,6 +135,7 @@ async def on_cat_new_click(event: ChannelEvent, user, sender: Sender, payload: s
 #                      DELETE Y RESTORE
 # ==================================================================
 
+
 async def on_delete_click(event: ChannelEvent, user, sender: Sender, payload: str) -> None:
     expense_id = int(payload)
 
@@ -190,6 +185,7 @@ async def on_restore_click(event: ChannelEvent, user, sender: Sender, payload: s
 # ==================================================================
 #                       ROUTER DE ACCIONES
 # ==================================================================
+
 
 async def central_callback_handler(event: ChannelEvent, user, sender: Sender) -> None:
     """

@@ -2,8 +2,9 @@
 Tests del router de despacho. Reemplazan implícitamente a lo que antes
 garantizaba el registro de handlers de PTB en setup.py.
 """
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from apps.bot.dispatcher import dispatch
 
@@ -20,21 +21,28 @@ def user():
 def handlers():
     """Parchea todos los handlers y devuelve los mocks por nombre."""
     nombres = [
-        "start_command", "help_command", "stats_command",
-        "history_command", "link_command", "handle_message",
+        "start_command",
+        "help_command",
+        "stats_command",
+        "history_command",
+        "link_command",
+        "handle_message",
         "central_callback_handler",
     ]
     patches = {n: patch(f"apps.bot.dispatcher.{n}", new=AsyncMock()) for n in nombres}
     mocks = {n: p.start() for n, p in patches.items()}
 
     # COMMAND_ROUTES capturó las funciones originales al importarse
-    with patch.dict("apps.bot.dispatcher.COMMAND_ROUTES", {
-        "start": mocks["start_command"],
-        "help": mocks["help_command"],
-        "stats": mocks["stats_command"],
-        "history": mocks["history_command"],
-        "link": mocks["link_command"],
-    }):
+    with patch.dict(
+        "apps.bot.dispatcher.COMMAND_ROUTES",
+        {
+            "start": mocks["start_command"],
+            "help": mocks["help_command"],
+            "stats": mocks["stats_command"],
+            "history": mocks["history_command"],
+            "link": mocks["link_command"],
+        },
+    ):
         yield mocks
 
     for p in patches.values():
@@ -42,17 +50,17 @@ def handlers():
 
 
 class TestComandos:
-
-    @pytest.mark.parametrize("texto,esperado", [
-        ("/start", "start_command"),
-        ("/help", "help_command"),
-        ("/stats", "stats_command"),
-        ("/history", "history_command"),
-        ("/link", "link_command"),
-    ])
-    async def test_rutea_cada_comando(
-        self, texto, esperado, make_event, user, sender, handlers
-    ):
+    @pytest.mark.parametrize(
+        "texto,esperado",
+        [
+            ("/start", "start_command"),
+            ("/help", "help_command"),
+            ("/stats", "stats_command"),
+            ("/history", "history_command"),
+            ("/link", "link_command"),
+        ],
+    )
+    async def test_rutea_cada_comando(self, texto, esperado, make_event, user, sender, handlers):
         await dispatch(make_event(texto), user, sender)
         handlers[esperado].assert_awaited_once()
 
@@ -84,26 +92,20 @@ class TestComandos:
 
 
 class TestTextoLibre:
-
     async def test_texto_va_a_handle_message(self, make_event, user, sender, handlers):
         await dispatch(make_event("almuerzo 3500"), user, sender)
         handlers["handle_message"].assert_awaited_once()
 
-    async def test_barra_sola_es_texto_no_comando(
-        self, make_event, user, sender, handlers
-    ):
+    async def test_barra_sola_es_texto_no_comando(self, make_event, user, sender, handlers):
         await dispatch(make_event("/"), user, sender)
         handlers["handle_message"].assert_awaited_once()
 
-    async def test_texto_que_empieza_con_barra_en_medio(
-        self, make_event, user, sender, handlers
-    ):
+    async def test_texto_que_empieza_con_barra_en_medio(self, make_event, user, sender, handlers):
         await dispatch(make_event("pague 500 al 50/50"), user, sender)
         handlers["handle_message"].assert_awaited_once()
 
 
 class TestCallbacks:
-
     async def test_callback_va_al_router_de_acciones(
         self, make_callback_event, user, sender, handlers
     ):

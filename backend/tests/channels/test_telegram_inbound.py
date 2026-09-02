@@ -20,8 +20,12 @@ TEXT_UPDATE = {
     "message": {
         "message_id": 293,
         "date": 1753439000,
-        "from": {"id": 123456789, "username": "ivanvallejoss",
-                 "first_name": "Ivan", "last_name": "Vallejos"},
+        "from": {
+            "id": 123456789,
+            "username": "ivanvallejoss",
+            "first_name": "Ivan",
+            "last_name": "Vallejos",
+        },
         "chat": {"id": 123456789, "type": "private"},
         "text": "almuerzo 3500",
     },
@@ -43,7 +47,6 @@ CALLBACK_UPDATE = {
 
 
 class TestMensajeDeTexto:
-
     def test_mapea_los_campos_del_contrato(self):
         event = normalize_telegram(TEXT_UPDATE, received_at=RECEIVED_AT)
 
@@ -101,7 +104,6 @@ class TestMensajeDeTexto:
 
 
 class TestCallbackQuery:
-
     def test_el_callback_data_ocupa_el_lugar_del_texto(self):
         event = normalize_telegram(CALLBACK_UPDATE, received_at=RECEIVED_AT)
 
@@ -135,22 +137,24 @@ class TestCallbackQuery:
 class TestUpdatesIgnorados:
     """Todos estos hoy caen sin handler en PTB. Deben seguir cayendo."""
 
-    @pytest.mark.parametrize("payload", [
-        {"message": {"text": "hola", "from": {"id": 1}}},                       # sin update_id
-        {"update_id": 1, "edited_message": {"text": "hola", "from": {"id": 1}}},
-        {"update_id": 1, "channel_post": {"text": "hola"}},
-        {"update_id": 1, "my_chat_member": {"from": {"id": 1}}},
-        {"update_id": 1, "message": {"from": {"id": 1}, "photo": [{"file_id": "x"}]}},
-        {"update_id": 1, "message": {"from": {"id": 1}, "sticker": {"file_id": "x"}}},
-        {"update_id": 1, "message": {"text": "hola", "chat": {"id": 5}}},       # sin from
-        {"update_id": 1},
-    ])
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"message": {"text": "hola", "from": {"id": 1}}},  # sin update_id
+            {"update_id": 1, "edited_message": {"text": "hola", "from": {"id": 1}}},
+            {"update_id": 1, "channel_post": {"text": "hola"}},
+            {"update_id": 1, "my_chat_member": {"from": {"id": 1}}},
+            {"update_id": 1, "message": {"from": {"id": 1}, "photo": [{"file_id": "x"}]}},
+            {"update_id": 1, "message": {"from": {"id": 1}, "sticker": {"file_id": "x"}}},
+            {"update_id": 1, "message": {"text": "hola", "chat": {"id": 5}}},  # sin from
+            {"update_id": 1},
+        ],
+    )
     def test_retorna_none(self, payload):
         assert normalize_telegram(payload, received_at=RECEIVED_AT) is None
 
 
 class TestEventoCanonico:
-
     def test_roundtrip_dict(self):
         original = normalize_telegram(TEXT_UPDATE, received_at=RECEIVED_AT)
         recuperado = ChannelEvent.from_dict(original.to_dict())
@@ -162,34 +166,55 @@ class TestEventoCanonico:
 
         assert isinstance(data, dict)
         assert set(data) == {
-            "channel", "external_user_id", "text", "message_id", "timestamp",
-            "raw", "type", "conversation_id", "edit_ref", "ack_ref", "profile",
+            "channel",
+            "external_user_id",
+            "text",
+            "message_id",
+            "timestamp",
+            "raw",
+            "type",
+            "conversation_id",
+            "edit_ref",
+            "ack_ref",
+            "profile",
         }
 
     def test_ids_numericos_se_coercionan_a_str(self):
         event = ChannelEvent(
-            channel="telegram", external_user_id=123, text="x",
-            message_id=456, timestamp=1, raw={},
+            channel="telegram",
+            external_user_id=123,
+            text="x",
+            message_id=456,
+            timestamp=1,
+            raw={},
         )
         assert event.external_user_id == "123"
         assert event.message_id == "456"
 
     def test_conversation_id_default_al_usuario(self):
         event = ChannelEvent(
-            channel="telegram", external_user_id="123", text="x",
-            message_id="1", timestamp=1, raw={},
+            channel="telegram",
+            external_user_id="123",
+            text="x",
+            message_id="1",
+            timestamp=1,
+            raw={},
         )
         assert event.conversation_id == "123"
 
-    @pytest.mark.parametrize("kwargs", [
-        {"channel": ""},
-        {"external_user_id": ""},
-        {"message_id": ""},
-        {"type": "inventado"},
-    ])
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"channel": ""},
+            {"external_user_id": ""},
+            {"message_id": ""},
+            {"type": "inventado"},
+        ],
+    )
     def test_rechaza_eventos_invalidos(self, kwargs):
-        base = dict(channel="telegram", external_user_id="1", text="x",
-                    message_id="1", timestamp=1, raw={})
+        base = dict(
+            channel="telegram", external_user_id="1", text="x", message_id="1", timestamp=1, raw={}
+        )
         with pytest.raises(InvalidEvent):
             ChannelEvent(**{**base, **kwargs})
 
@@ -199,7 +224,6 @@ class TestEventoCanonico:
 
 
 class TestRegistry:
-
     def test_despacha_al_normalizador_del_canal(self):
         event = normalize("telegram", TEXT_UPDATE, received_at=RECEIVED_AT)
         assert event.channel == "telegram"

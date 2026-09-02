@@ -1,0 +1,12 @@
+# Commits que solo reformatean y no cambian comportamiento.
+#
+# git blame los saltea y atribuye cada linea a su ultimo cambio real.
+# GitHub lee este archivo solo; git local necesita que lo configures una vez:
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Para agregar uno: el commit tiene que ser exclusivamente de formato.
+# Si toca logica, no va aca.
+
+# style: aplicar black e isort a backend/ (57 archivos, mas known_first_party)
+5b6b8953cd9e3c078edb5800d1b62f117170f40c

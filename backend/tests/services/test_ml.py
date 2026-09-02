@@ -2,15 +2,16 @@
 Tests del módulo de machine learning.
 Cubre suggest(), record_feedback y get_category_suggestion.
 """
-import pytest
 from decimal import Decimal
-from asgiref.sync import sync_to_async
 from unittest.mock import patch
+
+import pytest
+from asgiref.sync import sync_to_async
+from tests.factories import CategoryFactory, ExpenseFactory, UserFactory
 
 from apps.core.models import Category, CategorySuggestionFeedback, Expense
 from services.ml.categorizer import ExpenseCategorizer, create_category_for_user
 from services.ml.helper import get_category_suggestion
-from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -19,8 +20,8 @@ pytestmark = pytest.mark.django_db(transaction=True)
 # SUGGEST — CONTRATO DE FUNCIÓN PURA
 # ============================================
 
-class TestSuggestIsPure:
 
+class TestSuggestIsPure:
     async def test_suggest_does_not_create_categories_as_side_effect(self):
         """
         suggest() nunca escribe en DB independientemente del camino que tome.
@@ -55,9 +56,7 @@ class TestSuggestIsPure:
         """
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(name="Comida", user=user)
-        await sync_to_async(ExpenseFactory)(
-            user=user, category=category, description="pizza"
-        )
+        await sync_to_async(ExpenseFactory)(user=user, category=category, description="pizza")
 
         categorizer = await sync_to_async(ExpenseCategorizer)(user)
         suggestion = await sync_to_async(categorizer.suggest)("pizza")
@@ -82,14 +81,12 @@ class TestSuggestIsPure:
 # CONFIDENCE LEVELS
 # ============================================
 
-class TestConfidenceLevels:
 
+class TestConfidenceLevels:
     async def test_exact_history_match_returns_max_confidence(self):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(user=user)
-        await sync_to_async(ExpenseFactory)(
-            user=user, category=category, description="uber"
-        )
+        await sync_to_async(ExpenseFactory)(user=user, category=category, description="uber")
 
         categorizer = await sync_to_async(ExpenseCategorizer)(user)
         suggestion = await sync_to_async(categorizer.suggest)("uber")
@@ -111,8 +108,8 @@ class TestConfidenceLevels:
 # GET_CATEGORY_SUGGESTION — HELPER
 # ============================================
 
-class TestGetCategorySuggestionHelper:
 
+class TestGetCategorySuggestionHelper:
     async def test_creates_category_when_suggested_name_is_populated(self):
         """
         get_category_suggestion crea la categoría si suggested_category_name
@@ -154,8 +151,8 @@ class TestGetCategorySuggestionHelper:
 # RECORD FEEDBACK
 # ============================================
 
-class TestRecordFeedback:
 
+class TestRecordFeedback:
     async def test_creates_feedback_record(self):
         user = await sync_to_async(UserFactory)()
         category = await sync_to_async(CategoryFactory)(user=user)
@@ -185,9 +182,9 @@ class TestRecordFeedback:
             accepted=True,
         )
 
-        feedback = await CategorySuggestionFeedback.objects.select_related(
-            'expense__user'
-        ).alatest('created_at')
+        feedback = await CategorySuggestionFeedback.objects.select_related("expense__user").alatest(
+            "created_at"
+        )
         assert feedback.expense.user.id == user.id
 
 
@@ -195,14 +192,12 @@ class TestRecordFeedback:
 # CREATE_CATEGORY_FOR_USER
 # ============================================
 
-class TestCreateCategoryForUser:
 
+class TestCreateCategoryForUser:
     async def test_creates_category_with_correct_defaults(self):
         user = await sync_to_async(UserFactory)()
 
-        category = await sync_to_async(create_category_for_user)(
-            user=user, name="Comida"
-        )
+        category = await sync_to_async(create_category_for_user)(user=user, name="Comida")
 
         assert category.name == "Comida"
         assert category.user.id == user.id
@@ -224,8 +219,8 @@ class TestCreateCategoryForUser:
 # GET_ACCUCACY_STATS FROM USER
 # ============================================
 
-class TestGetAccuracyStats:
 
+class TestGetAccuracyStats:
     async def test_returns_zero_accuracy_when_no_feedback(self):
         """
         Un usuario nuevo sin historial de feedback debe recibir
@@ -248,15 +243,11 @@ class TestGetAccuracyStats:
         Verificamos el cálculo matemático explícitamente.
         """
         user = await sync_to_async(UserFactory)()
-        category = await sync_to_async(CategoryFactory)(
-            name="Comida", user=user, is_default=False
-        )
+        category = await sync_to_async(CategoryFactory)(name="Comida", user=user, is_default=False)
 
         # Creamos 3 feedbacks: 2 aceptados, 1 rechazado
         for accepted in [True, True, False]:
-            expense = await sync_to_async(ExpenseFactory)(
-                user=user, category=category
-            )
+            expense = await sync_to_async(ExpenseFactory)(user=user, category=category)
             await sync_to_async(CategorySuggestionFeedback.objects.create)(
                 expense=expense,
                 suggested_category=category,
@@ -283,9 +274,7 @@ class TestGetAccuracyStats:
         )
 
         for accepted in [True, False, False, True]:
-            expense = await sync_to_async(ExpenseFactory)(
-                user=user, category=category
-            )
+            expense = await sync_to_async(ExpenseFactory)(user=user, category=category)
             await sync_to_async(CategorySuggestionFeedback.objects.create)(
                 expense=expense,
                 suggested_category=category,
@@ -312,9 +301,7 @@ class TestGetAccuracyStats:
         )
 
         # Comida: 1 aceptado → accuracy 1.0
-        expense_a = await sync_to_async(ExpenseFactory)(
-            user=user, category=cat_comida
-        )
+        expense_a = await sync_to_async(ExpenseFactory)(user=user, category=cat_comida)
         await sync_to_async(CategorySuggestionFeedback.objects.create)(
             expense=expense_a,
             suggested_category=cat_comida,
@@ -323,9 +310,7 @@ class TestGetAccuracyStats:
         )
 
         # Transporte: 1 rechazado → accuracy 0.0
-        expense_b = await sync_to_async(ExpenseFactory)(
-            user=user, category=cat_transporte
-        )
+        expense_b = await sync_to_async(ExpenseFactory)(user=user, category=cat_transporte)
         await sync_to_async(CategorySuggestionFeedback.objects.create)(
             expense=expense_b,
             suggested_category=cat_transporte,
@@ -336,10 +321,7 @@ class TestGetAccuracyStats:
         categorizer = await sync_to_async(ExpenseCategorizer)(user)
         stats = await sync_to_async(categorizer.get_accuracy_stats)()
 
-        by_category = {
-            item["category_name"]: item
-            for item in stats["by_category"]
-        }
+        by_category = {item["category_name"]: item for item in stats["by_category"]}
 
         assert by_category["Comida"]["accuracy"] == 1.0
         assert by_category["Comida"]["total"] == 1

@@ -12,31 +12,31 @@ from zoneinfo import ZoneInfo
 # Mapeo nombre → color HEX
 # Usado por: seed_data.py, ExpenseCategorizer._check_and_create_from_defaults
 CATEGORY_COLORS = {
-    "Comida":          "#FF5733",
-    "Supermercado":    "#33FF57",
-    "Transporte":      "#3366FF",
-    "Delivery":        "#FF33F5",
-    "Servicios":       "#FFC300",
-    "Salud":           "#F38181",
+    "Comida": "#FF5733",
+    "Supermercado": "#33FF57",
+    "Transporte": "#3366FF",
+    "Delivery": "#FF33F5",
+    "Servicios": "#FFC300",
+    "Salud": "#F38181",
     "Entretenimiento": "#C70039",
-    "Ropa":            "#900C3F",
-    "Hogar":           "#581845",
-    "Educación":       "#1E8449",
+    "Ropa": "#900C3F",
+    "Hogar": "#581845",
+    "Educación": "#1E8449",
 }
 
 # Mapeo nombre → emoji (fuente primaria)
 # Prioridad 1: si la categoría tiene un nombre conocido, usamos este emoji
 CATEGORY_EMOJIS = {
-    "Comida":          "🍔",
-    "Supermercado":    "🛒",
-    "Transporte":      "🚗",
-    "Delivery":        "🛵",
-    "Servicios":       "💡",
-    "Salud":           "💊",
+    "Comida": "🍔",
+    "Supermercado": "🛒",
+    "Transporte": "🚗",
+    "Delivery": "🛵",
+    "Servicios": "💡",
+    "Salud": "💊",
     "Entretenimiento": "🎬",
-    "Ropa":            "👕",
-    "Hogar":           "🏠",
-    "Educación":       "📚",
+    "Ropa": "👕",
+    "Hogar": "🏠",
+    "Educación": "📚",
 }
 
 # Mapeo HEX → emoji (fuente secundaria / fallback)
@@ -62,9 +62,18 @@ DEFAULT_EMOJI = "📂"
 # Mapeo de número de mes → nombre en español
 # Usado por: selectors.get_month_stats, cualquier superficie que formatee fechas
 SPANISH_MONTHS = {
-    1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
-    5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
-    9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+    1: "enero",
+    2: "febrero",
+    3: "marzo",
+    4: "abril",
+    5: "mayo",
+    6: "junio",
+    7: "julio",
+    8: "agosto",
+    9: "septiembre",
+    10: "octubre",
+    11: "noviembre",
+    12: "diciembre",
 }
 
 # ---------------------------------------------------------------

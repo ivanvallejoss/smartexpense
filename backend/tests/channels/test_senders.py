@@ -3,9 +3,9 @@ Tests del dispatcher de salida. Sin red: el Bot de PTB se reemplaza por
 un AsyncMock, lo que además verifica que el adapter llame a la API con
 exactamente los argumentos que usa el código actual.
 """
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 from telegram.error import BadRequest
 
 from services.channels.senders import (
@@ -38,7 +38,6 @@ def registro_limpio():
 
 
 class TestRegistro:
-
     def test_get_sender_devuelve_el_registrado(self):
         s = TelegramSender(token="x")
         register(s)
@@ -55,7 +54,6 @@ class TestRegistro:
 
 
 class TestLayout:
-
     def test_row_arma_una_sola_fila(self):
         filas = row(Option("a", "A"), Option("b", "B"))
         assert len(filas) == 1
@@ -90,7 +88,6 @@ class TestLayout:
 
 
 class TestReply:
-
     async def test_envia_texto_plano(self, sender):
         await sender.reply("123", "hola")
 
@@ -131,7 +128,6 @@ class TestReply:
 
 
 class TestEdit:
-
     async def test_edita_texto_y_botones(self, sender):
         await sender.edit("123", "294", text="nuevo", options=row(Option("del:55", "X")))
 
@@ -160,7 +156,6 @@ class TestEdit:
 
 
 class TestAck:
-
     async def test_ack_mudo(self, sender):
         await sender.ack("4382abc")
 
@@ -185,7 +180,6 @@ class TestAck:
 
 
 class TestCicloDeVida:
-
     async def test_startup_y_shutdown_delegan_en_el_bot(self, sender):
         await sender.startup()
         await sender.shutdown()

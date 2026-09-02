@@ -2,19 +2,23 @@
 Tests de integración de los handlers, ya agnósticos al canal.
 Cubre los tres caminos de handle_message y los comandos principales.
 """
-import pytest
-from unittest.mock import MagicMock, patch
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 from django.utils import timezone
 
-from apps.bot.handlers.handlers import (
-    start_command, help_command, stats_command,
-    history_command, link_command, handle_message
-)
-from apps.core.models import User, Category, Expense
-
+import pytest
 from tests.constants import EXTERNAL_USER_ID
+
+from apps.bot.handlers.handlers import (
+    handle_message,
+    help_command,
+    history_command,
+    link_command,
+    start_command,
+    stats_command,
+)
+from apps.core.models import Category, Expense, User
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -32,8 +36,8 @@ def make_suggestion(confidence, category=None, suggested_name=None):
 # COMANDOS BÁSICOS
 # ============================================
 
-class TestBasicCommands:
 
+class TestBasicCommands:
     async def test_start_replies_with_welcome(self, make_event, user, sender):
         """
         El handler ya no crea el usuario: eso lo hace el router (Fase 4b).
@@ -56,7 +60,7 @@ class TestBasicCommands:
             "month_name": "Marzo 2026",
             "total_amount": Decimal("1500"),
             "total_count": 1,
-            "by_category": []
+            "by_category": [],
         }
 
         await stats_command(make_event("/stats"), user, sender)
@@ -64,9 +68,7 @@ class TestBasicCommands:
         assert "Resumen de Marzo 2026" in sender.last_reply["text"]
 
     @patch("apps.bot.handlers.handlers.get_month_stats")
-    async def test_stats_failure_shows_friendly_error(
-        self, mock_stats, make_event, user, sender
-    ):
+    async def test_stats_failure_shows_friendly_error(self, mock_stats, make_event, user, sender):
         mock_stats.side_effect = Exception("Fallo de DB")
 
         await stats_command(make_event("/stats"), user, sender)
@@ -84,9 +86,7 @@ class TestBasicCommands:
         assert "No encontramos gastos" in sender.replies[0]["text"]
         assert "No tienes gastos registrados" in sender.replies[1]["text"]
 
-    async def test_history_parses_limit_from_command_args(
-        self, make_event, user, sender
-    ):
+    async def test_history_parses_limit_from_command_args(self, make_event, user, sender):
         """Reemplaza a context.args de PTB."""
         with patch("apps.bot.handlers.handlers.get_expenses") as mock_get:
             mock_get.return_value = []
@@ -105,9 +105,7 @@ class TestBasicCommands:
         await history_command(make_event("/history"), user, sender)
         assert sender.last_reply["parse_mode"] == "HTML"
 
-    async def test_link_announces_dashboard_under_construction(
-        self, make_event, user, sender
-    ):
+    async def test_link_announces_dashboard_under_construction(self, make_event, user, sender):
         """
         El dashboard esta deshabilitado hasta la Fase B. El comando responde,
         pero no emite ningun token: no existe todavia quien lo valide.
@@ -123,12 +121,10 @@ class TestBasicCommands:
 # HANDLE MESSAGE — TRES CAMINOS
 # ============================================
 
-class TestHandleMessageThreePaths:
 
+class TestHandleMessageThreePaths:
     @patch("apps.bot.handlers.handlers.get_category_suggestion")
-    async def test_high_confidence_autocategorizes(
-        self, mock_suggestion, make_event, user, sender
-    ):
+    async def test_high_confidence_autocategorizes(self, mock_suggestion, make_event, user, sender):
         category = await Category.objects.acreate(name="Comida", is_default=True)
         mock_suggestion.return_value = make_suggestion(confidence=1.0, category=category)
 
@@ -163,9 +159,7 @@ class TestHandleMessageThreePaths:
         assert any("cat_list" in cb for cb in ids)
 
     @patch("apps.bot.handlers.handlers.get_category_suggestion")
-    async def test_low_confidence_saves_as_pending(
-        self, mock_suggestion, make_event, user, sender
-    ):
+    async def test_low_confidence_saves_as_pending(self, mock_suggestion, make_event, user, sender):
         mock_suggestion.return_value = make_suggestion(confidence=0.0, category=None)
 
         await handle_message(make_event("xyzabc 1000"), user, sender)
@@ -183,8 +177,8 @@ class TestHandleMessageThreePaths:
 # HANDLE MESSAGE — ESTADO PENDIENTE EN REDIS
 # ============================================
 
-class TestHandleMessagePendingState:
 
+class TestHandleMessagePendingState:
     async def test_pending_state_triggers_category_creation_flow(
         self, make_event, user, sender, mock_redis_state
     ):
@@ -220,9 +214,7 @@ class TestHandleMessagePendingState:
         assert "entre 1 y 100 caracteres" in sender.last_reply["text"]
         mock_redis_state["clear"].assert_not_called()
 
-    async def test_redis_caido_no_rompe_el_flujo(
-        self, make_event, user, sender, mock_redis_state
-    ):
+    async def test_redis_caido_no_rompe_el_flujo(self, make_event, user, sender, mock_redis_state):
         """Si Redis no responde, el mensaje se procesa como gasto normal."""
         mock_redis_state["get"].side_effect = Exception("Redis connection refused")
 
@@ -235,8 +227,8 @@ class TestHandleMessagePendingState:
 # HANDLE MESSAGE — EXCEPCIONES
 # ============================================
 
-class TestHandleMessageExceptions:
 
+class TestHandleMessageExceptions:
     async def test_invalid_message_format_shows_error(self, make_event, user, sender):
         await handle_message(make_event("Hola bot cómo estás"), user, sender)
 
@@ -244,9 +236,7 @@ class TestHandleMessageExceptions:
         assert "No pude detectar el monto" in sender.last_reply["text"]
 
     @patch("apps.bot.handlers.handlers.get_category_suggestion")
-    async def test_db_failure_shows_friendly_error(
-        self, mock_suggestion, make_event, user, sender
-    ):
+    async def test_db_failure_shows_friendly_error(self, mock_suggestion, make_event, user, sender):
         mock_suggestion.side_effect = Exception("Fallo de DB")
 
         await handle_message(make_event("Pizza 2000"), user, sender)

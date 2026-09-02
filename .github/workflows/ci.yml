@@ -7,6 +7,30 @@ on:
     branches: [main]
 
 jobs:
+  # Job aparte del de tests, no un step: si el formato falla queremos ver igual
+  # el resultado de la suite, y al reves. Son dos señales independientes.
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      # Desde la raiz: es donde vive el pyproject.toml que configura a los dos.
+      - name: Check formatting
+        run: black --check backend/
+
+      - name: Check import order
+        run: isort --check-only backend/
+
   test:
     runs-on: ubuntu-latest
 

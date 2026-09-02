@@ -7,10 +7,13 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-# After setting the environment we can import the rest
-from arq.connections import RedisSettings
 from django.conf import settings
 
+# After setting the environment we can import the rest
+from arq.connections import RedisSettings
+
+from apps.bot.dispatcher import dispatch
+from apps.bot.errors import MENSAJE_ERROR_GENERICO
 from services.channels.events import ChannelEvent
 from services.channels.registry import build_default_senders, normalize
 from services.channels.senders import get_sender, shutdown_all, startup_all
@@ -18,15 +21,13 @@ from services.channels.telegram import CHANNEL as TELEGRAM
 from services.identities import get_or_create_user_by_channel
 from services.infrastructure.redis_client import close_all
 
-from apps.bot.dispatcher import dispatch
-from apps.bot.errors import MENSAJE_ERROR_GENERICO
-
 logger = logging.getLogger(__name__)
 
 
 # ==================================================================
 #                    CICLO DE VIDA DEL WORKER
 # ==================================================================
+
 
 async def startup(ctx):
     """
@@ -52,6 +53,7 @@ async def shutdown(ctx):
 # ==================================================================
 #                          TASK ÚNICA
 # ==================================================================
+
 
 async def process_message(ctx, event: dict):
     """

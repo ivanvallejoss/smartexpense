@@ -1,32 +1,25 @@
+from datetime import datetime, timedelta, timezone
+
+from django.conf import settings
+
 import jwt
 import pytest
-from datetime import datetime, timezone, timedelta
-from django.conf import settings
 
 from services.auth import generate_magic_link_token
 
 
 class TestGenerateMagicLinkToken:
-
     def test_returns_decodable_string(self):
         token = generate_magic_link_token(user_id=12345)
 
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=["HS256"]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
 
         assert payload is not None
 
     def test_payload_contains_user_id_as_string(self):
         token = generate_magic_link_token(user_id=12345)
 
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=["HS256"]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
 
         assert payload["sub"] == "12345"
         assert isinstance(payload["sub"], str)
@@ -44,11 +37,7 @@ class TestGenerateMagicLinkToken:
         token = generate_magic_link_token(user_id=12345)
         after = datetime.now(timezone.utc)
 
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=["HS256"]
-        )
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
 
         exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
         expected_min = before + timedelta(minutes=14, seconds=59)
@@ -67,15 +56,7 @@ class TestGenerateMagicLinkToken:
             "iat": datetime.now(timezone.utc) - timedelta(minutes=30),
             "exp": datetime.now(timezone.utc) - timedelta(minutes=15),
         }
-        expired_token = jwt.encode(
-            expired_payload,
-            settings.JWT_SECRET_KEY,
-            algorithm="HS256"
-        )
+        expired_token = jwt.encode(expired_payload, settings.JWT_SECRET_KEY, algorithm="HS256")
 
         with pytest.raises(jwt.ExpiredSignatureError):
-            jwt.decode(
-                expired_token,
-                settings.JWT_SECRET_KEY,
-                algorithms=["HS256"]
-            )
+            jwt.decode(expired_token, settings.JWT_SECRET_KEY, algorithms=["HS256"])

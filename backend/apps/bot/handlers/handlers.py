@@ -8,18 +8,6 @@ import logging
 
 from asgiref.sync import sync_to_async
 
-from services.channels.events import ChannelEvent
-from services.channels.senders import Sender
-from services.expenses import create_expense
-from services.ml.categorizer import create_category_for_user
-from services.ml.helper import get_category_suggestion, record_categorization_feedback
-from services.parser.expense_parser import ExpenseParser
-from services.selectors import (
-    get_expenses,
-    get_month_stats,
-    get_user_categories_or_defaults,
-)
-
 from apps.bot.errors import error_parsing_expenses
 from apps.bot.routing import split_command
 from apps.bot.state import clear_pending_category_state, get_pending_category_state
@@ -30,12 +18,15 @@ from apps.bot.utils import (
     format_expense_pending,
     format_stats_message,
 )
+from services.channels.events import ChannelEvent
+from services.channels.senders import Sender
+from services.expenses import create_expense
+from services.ml.categorizer import create_category_for_user
+from services.ml.helper import get_category_suggestion, record_categorization_feedback
+from services.parser.expense_parser import ExpenseParser
+from services.selectors import get_expenses, get_month_stats, get_user_categories_or_defaults
 
-from .helpers import (
-    category_selection_options,
-    correction_options,
-    delete_options,
-)
+from .helpers import category_selection_options, correction_options, delete_options
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +34,7 @@ logger = logging.getLogger(__name__)
 # ==================================================================
 #                           COMANDOS
 # ==================================================================
+
 
 async def start_command(event: ChannelEvent, user, sender: Sender) -> None:
     welcome_message = (
@@ -169,6 +161,7 @@ async def link_command(event: ChannelEvent, user, sender: Sender) -> None:
 #                       MENSAJES DE TEXTO
 # ==================================================================
 
+
 async def handle_new_category_input(
     event: ChannelEvent, user, sender: Sender, expense_id: int
 ) -> None:
@@ -189,9 +182,7 @@ async def handle_new_category_input(
     await clear_pending_category_state(event.channel, event.external_user_id)
 
     try:
-        new_category = await sync_to_async(create_category_for_user)(
-            user=user, name=category_name
-        )
+        new_category = await sync_to_async(create_category_for_user)(user=user, name=category_name)
 
         expense = await Expense.objects.select_related("category", "user").aget(
             id=expense_id, user=user

@@ -8,6 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+
 from apps.core.models import Category, Expense, User
 from services.selectors import rango_bounds
 
@@ -20,14 +21,28 @@ def datos(ivan):
     transporte = Category.objects.create(name="Transporte", user=ivan)
     desde_mes, _ = rango_bounds("mes")
 
-    Expense.objects.create(user=ivan, amount=Decimal("10000"), description="Verduleria",
-                           category=comida, date=desde_mes + timedelta(days=1))
-    Expense.objects.create(user=ivan, amount=Decimal("2500"), description="Subte",
-                           category=transporte, date=desde_mes + timedelta(days=2))
-    Expense.objects.create(user=ivan, amount=Decimal("99999"), description="Mes anterior",
-                           category=comida, date=desde_mes - timedelta(days=40))
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("10000"),
+        description="Verduleria",
+        category=comida,
+        date=desde_mes + timedelta(days=1),
+    )
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("2500"),
+        description="Subte",
+        category=transporte,
+        date=desde_mes + timedelta(days=2),
+    )
+    Expense.objects.create(
+        user=ivan,
+        amount=Decimal("99999"),
+        description="Mes anterior",
+        category=comida,
+        date=desde_mes - timedelta(days=40),
+    )
     return {"comida": comida, "transporte": transporte}
-
 
 
 def test_devuelve_el_wrapper_y_no_el_documento(client_logueado, datos):
@@ -41,7 +56,9 @@ def test_exige_sesion(client):
 
 
 def test_un_solo_swap_trae_balance_chips_y_lista(client_logueado, datos, monto):
-    cuerpo = client_logueado.get(f"/dashboard/resultados/?cat={datos['comida'].id}").content.decode()
+    cuerpo = client_logueado.get(
+        f"/dashboard/resultados/?cat={datos['comida'].id}"
+    ).content.decode()
     assert monto("10000") in cuerpo
     assert 'class="chip chip--activo"' in cuerpo
     assert "Verduleria" in cuerpo
@@ -63,7 +80,9 @@ def test_la_url_canonica_del_estado_vacio_es_la_desnuda(client_logueado, datos):
 
 
 def test_el_chip_activo_apunta_a_la_url_desnuda(client_logueado, datos):
-    cuerpo = client_logueado.get(f"/dashboard/resultados/?cat={datos['comida'].id}").content.decode()
+    cuerpo = client_logueado.get(
+        f"/dashboard/resultados/?cat={datos['comida'].id}"
+    ).content.decode()
     assert 'href="/dashboard/"' in cuerpo
     assert 'hx-get="/dashboard/resultados/"' in cuerpo
 
@@ -77,7 +96,9 @@ def test_categoria_y_rango_se_combinan(client_logueado, datos, monto):
 
 
 def test_el_form_arrastra_las_categorias_activas(client_logueado, datos):
-    cuerpo = client_logueado.get(f"/dashboard/resultados/?cat={datos['comida'].id}").content.decode()
+    cuerpo = client_logueado.get(
+        f"/dashboard/resultados/?cat={datos['comida'].id}"
+    ).content.decode()
     assert f'<input type="hidden" name="cat" value="{datos["comida"].id}">' in cuerpo
 
 

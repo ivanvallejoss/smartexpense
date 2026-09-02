@@ -2,24 +2,25 @@
 Tests de las acciones de botón, ya agnósticas al canal.
 Cubre delete, restore y todo el flujo de categorización.
 """
-import pytest
 from unittest.mock import MagicMock, patch
+
 from django.core.exceptions import ObjectDoesNotExist
+
+import pytest
 from asgiref.sync import sync_to_async
+from tests.constants import EXTERNAL_USER_ID
+from tests.factories import CategoryFactory, ExpenseFactory, UserFactory
 
 from apps.bot.handlers.callbacks import (
     central_callback_handler,
-    on_delete_click,
-    on_restore_click,
     on_cat_confirm_click,
     on_cat_list_click,
-    on_cat_select_click,
     on_cat_new_click,
+    on_cat_select_click,
+    on_delete_click,
+    on_restore_click,
 )
-from apps.core.models import Expense, Category, CategorySuggestionFeedback
-from tests.factories import UserFactory, CategoryFactory, ExpenseFactory
-
-from tests.constants import EXTERNAL_USER_ID
+from apps.core.models import Category, CategorySuggestionFeedback, Expense
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -40,8 +41,8 @@ async def base_data():
 # ROUTER DE ACCIONES
 # ============================================
 
-class TestCentralCallbackHandler:
 
+class TestCentralCallbackHandler:
     async def test_invalid_format_shows_error(self, make_callback_event, sender):
         # user=None a propósito: el router corta antes de tocarlo
         await central_callback_handler(make_callback_event("boton_roto"), None, sender)
@@ -56,13 +57,12 @@ class TestCentralCallbackHandler:
         assert sender.last_ack["text"] == "⚠️ Acción desconocida"
         assert sender.edits == []
 
-    async def test_despacha_a_la_accion_correcta(
-        self, make_callback_event, base_data, sender
-    ):
+    async def test_despacha_a_la_accion_correcta(self, make_callback_event, base_data, sender):
         data = base_data
         await central_callback_handler(
             make_callback_event(f"cat_confirm:{data['expense'].id}"),
-            data["user"], sender,
+            data["user"],
+            sender,
         )
 
         assert sender.last_ack["text"] == "✅ Categoría confirmada"
@@ -72,12 +72,10 @@ class TestCentralCallbackHandler:
 # DELETE Y RESTORE
 # ============================================
 
-class TestDeleteAndRestore:
 
+class TestDeleteAndRestore:
     @patch("apps.bot.handlers.callbacks.delete_expense")
-    async def test_delete_success_offers_undo(
-        self, mock_delete, make_callback_event, sender
-    ):
+    async def test_delete_success_offers_undo(self, mock_delete, make_callback_event, sender):
         mock_delete.return_value = 99
 
         await on_delete_click(make_callback_event("del:55"), MagicMock(), sender, "55")
@@ -87,9 +85,7 @@ class TestDeleteAndRestore:
         assert sender.callback_ids(sender.last_edit) == ["undo:99"]
 
     @patch("apps.bot.handlers.callbacks.delete_expense")
-    async def test_delete_edita_el_mensaje_original(
-        self, mock_delete, make_callback_event, sender
-    ):
+    async def test_delete_edita_el_mensaje_original(self, mock_delete, make_callback_event, sender):
         """El edit_ref debe ser el del mensaje que tenía el botón."""
         mock_delete.return_value = 99
 
@@ -99,9 +95,7 @@ class TestDeleteAndRestore:
         assert sender.replies == []  # edita, no manda mensaje nuevo
 
     @patch("apps.bot.handlers.callbacks.delete_expense")
-    async def test_delete_not_found_shows_error(
-        self, mock_delete, make_callback_event, sender
-    ):
+    async def test_delete_not_found_shows_error(self, mock_delete, make_callback_event, sender):
         mock_delete.side_effect = ObjectDoesNotExist("No existe")
 
         await on_delete_click(make_callback_event("del:55"), MagicMock(), sender, "55")
@@ -126,9 +120,7 @@ class TestDeleteAndRestore:
         assert sender.callback_ids(sender.last_edit) == ["del:55"]
 
     @patch("apps.bot.handlers.callbacks.restore_expense")
-    async def test_restore_expired_shows_error(
-        self, mock_restore, make_callback_event, sender
-    ):
+    async def test_restore_expired_shows_error(self, mock_restore, make_callback_event, sender):
         mock_restore.side_effect = ObjectDoesNotExist("Expiró")
 
         await on_restore_click(make_callback_event("undo:99"), MagicMock(), sender, "99")
@@ -141,11 +133,9 @@ class TestDeleteAndRestore:
 # CATEGORIZACIÓN — CONFIRMACIÓN
 # ============================================
 
-class TestCatConfirm:
 
-    async def test_confirm_records_positive_feedback(
-        self, make_callback_event, base_data, sender
-    ):
+class TestCatConfirm:
+    async def test_confirm_records_positive_feedback(self, make_callback_event, base_data, sender):
         data = base_data
         expense = data["expense"]
 
@@ -153,7 +143,9 @@ class TestCatConfirm:
 
         await on_cat_confirm_click(
             make_callback_event(f"cat_confirm:{expense.id}"),
-            data["user"], sender, str(expense.id),
+            data["user"],
+            sender,
+            str(expense.id),
         )
 
         assert await CategorySuggestionFeedback.objects.acount() == count_before + 1
@@ -171,7 +163,9 @@ class TestCatConfirm:
 
         await on_cat_confirm_click(
             make_callback_event(f"cat_confirm:{expense.id}"),
-            data["user"], sender, str(expense.id),
+            data["user"],
+            sender,
+            str(expense.id),
         )
 
         assert sender.last_ack["text"] == "✅ Categoría confirmada"
@@ -197,11 +191,9 @@ class TestCatConfirm:
 # CATEGORIZACIÓN — LISTA
 # ============================================
 
-class TestCatList:
 
-    async def test_list_edita_solo_los_botones(
-        self, make_callback_event, base_data, sender
-    ):
+class TestCatList:
+    async def test_list_edita_solo_los_botones(self, make_callback_event, base_data, sender):
         """
         Conserva el texto del mensaje: text=None replica
         edit_message_reply_markup.
@@ -211,24 +203,26 @@ class TestCatList:
 
         await on_cat_list_click(
             make_callback_event(f"cat_list:{expense.id}"),
-            data["user"], sender, str(expense.id),
+            data["user"],
+            sender,
+            str(expense.id),
         )
 
-        assert sender.last_ack["text"] == ""      # ack mudo
+        assert sender.last_ack["text"] == ""  # ack mudo
         assert sender.last_edit["text"] is None
         assert sender.last_edit["edit_ref"] == "294"
         assert any("cat_select" in cb for cb in sender.callback_ids(sender.last_edit))
 
-    async def test_list_preserva_el_layout_de_filas(
-        self, make_callback_event, base_data, sender
-    ):
+    async def test_list_preserva_el_layout_de_filas(self, make_callback_event, base_data, sender):
         """base_data tiene 2 categorías: una fila de 2 + 'Nueva' sola."""
         data = base_data
         expense = data["expense"]
 
         await on_cat_list_click(
             make_callback_event(f"cat_list:{expense.id}"),
-            data["user"], sender, str(expense.id),
+            data["user"],
+            sender,
+            str(expense.id),
         )
 
         filas = sender.last_edit["options"]
@@ -240,8 +234,8 @@ class TestCatList:
 # CATEGORIZACIÓN — SELECCIÓN
 # ============================================
 
-class TestCatSelect:
 
+class TestCatSelect:
     async def test_select_updates_category_and_confirms_expense(
         self, make_callback_event, base_data, sender
     ):
@@ -250,7 +244,9 @@ class TestCatSelect:
 
         await on_cat_select_click(
             make_callback_event(f"cat_select:{expense.id}:{cat_b.id}"),
-            data["user"], sender, f"{expense.id}:{cat_b.id}",
+            data["user"],
+            sender,
+            f"{expense.id}:{cat_b.id}",
         )
 
         updated = await Expense.objects.select_related("category").aget(id=expense.id)
@@ -267,7 +263,9 @@ class TestCatSelect:
 
         await on_cat_select_click(
             make_callback_event(f"cat_select:{expense.id}:{cat_b.id}"),
-            data["user"], sender, f"{expense.id}:{cat_b.id}",
+            data["user"],
+            sender,
+            f"{expense.id}:{cat_b.id}",
         )
 
         assert await CategorySuggestionFeedback.objects.acount() == count_before + 1
@@ -288,7 +286,9 @@ class TestCatSelect:
 
         await on_cat_select_click(
             make_callback_event(f"cat_select:{expense.id}:{cat_a.id}"),
-            data["user"], sender, f"{expense.id}:{cat_a.id}",
+            data["user"],
+            sender,
+            f"{expense.id}:{cat_a.id}",
         )
 
         assert await CategorySuggestionFeedback.objects.acount() == count_before
@@ -301,7 +301,9 @@ class TestCatSelect:
 
         await on_cat_select_click(
             make_callback_event(f"cat_select:{expense.id}:{cat_b.id}"),
-            data["user"], sender, f"{expense.id}:{cat_b.id}",
+            data["user"],
+            sender,
+            f"{expense.id}:{cat_b.id}",
         )
 
         assert sender.last_ack["text"] == "✅ Categoría actualizada"
@@ -315,7 +317,9 @@ class TestCatSelect:
 
         await on_cat_select_click(
             make_callback_event(f"cat_select:9999:{cat_b.id}"),
-            data["user"], sender, f"9999:{cat_b.id}",
+            data["user"],
+            sender,
+            f"9999:{cat_b.id}",
         )
 
         assert sender.last_ack["text"] == "⚠️ Error"
@@ -326,8 +330,8 @@ class TestCatSelect:
 # CATEGORIZACIÓN — NUEVA CATEGORÍA
 # ============================================
 
-class TestCatNew:
 
+class TestCatNew:
     @patch("apps.bot.handlers.callbacks.set_pending_category_state")
     async def test_new_sets_state_and_asks_name(
         self, mock_set_state, make_callback_event, base_data, sender
@@ -338,7 +342,9 @@ class TestCatNew:
 
         await on_cat_new_click(
             make_callback_event(f"cat_new:{expense.id}"),
-            data["user"], sender, str(expense.id),
+            data["user"],
+            sender,
+            str(expense.id),
         )
 
         # El id llega como string desde el evento canónico

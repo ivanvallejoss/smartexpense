@@ -20,6 +20,7 @@ class Option:
     id: vuelve como event.text cuando el usuario la elige.
         Formato "accion:payload", consumido por CALLBACK_ROUTES.
     """
+
     id: str
     label: str
 
@@ -34,7 +35,7 @@ def row(*options: Option) -> Rows:
 
 def grid(options: list[Option], columns: int = 2) -> Rows:
     """Distribuye en filas de `columns`. La última puede quedar incompleta."""
-    return [options[i:i + columns] for i in range(0, len(options), columns)]
+    return [options[i : i + columns] for i in range(0, len(options), columns)]
 
 
 class OptionsNotSupported(ValueError):
@@ -99,8 +100,11 @@ class Sender(Protocol):
         """
         ...
 
-    async def startup(self) -> None: ...
-    async def shutdown(self) -> None: ...
+    async def startup(self) -> None:
+        ...
+
+    async def shutdown(self) -> None:
+        ...
 
 
 SENDERS: dict[str, Sender] = {}
