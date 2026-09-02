@@ -36,18 +36,20 @@ class FakeSender:
         self.edits = []
         self.acks = []
 
-    async def reply(self, external_user_id, text, *, options=None, parse_mode=None):
+    async def reply(self, conversation_id, text, *, options=None, parse_mode=None,
+                    disable_preview=False):
         self.replies.append({
-            "to": external_user_id,
+            "to": conversation_id,
             "text": text,
             "options": options,
             "parse_mode": parse_mode,
+            "disable_preview": disable_preview,
         })
         return str(len(self.replies))
 
-    async def edit(self, external_user_id, edit_ref, *, text=None, options=None, parse_mode=None):
+    async def edit(self, conversation_id, edit_ref, *, text=None, options=None, parse_mode=None):
         self.edits.append({
-            "to": external_user_id,
+            "to": conversation_id,
             "edit_ref": edit_ref,
             "text": text,
             "options": options,

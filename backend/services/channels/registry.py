@@ -23,8 +23,13 @@ class UnknownChannel(KeyError):
 
 def normalize(channel: str, payload: dict[str, Any], **kwargs) -> ChannelEvent | None:
     """
-    Punto de entrada único. El Bridge del gateway Go llamará
-    normalize(envelope["source"], envelope["payload"]).
+    Punto de entrada único, y le pertenece al productor: quien recibe el payload
+    crudo lo normaliza acá y encola el evento canónico. El worker nunca ve un
+    payload crudo (multichannel_refactor.md, punto 2).
+
+    Hoy el productor es el webhook de Django. Cuando aterrice v2 será el Bridge
+    Python: el gateway Go es platform-agnostic y reenvía el payload sin tocarlo,
+    así que normalizar sigue siendo trabajo de este lado (D6).
     """
     try:
         normalizer = NORMALIZERS[channel]
