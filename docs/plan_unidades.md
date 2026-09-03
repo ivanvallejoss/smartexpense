@@ -4,7 +4,7 @@ Documento vivo. Se actualiza al cerrar cada unidad.
 
 **Objetivo del arco:** que la vinculación de canales exista **antes** del primer
 mensaje real de WhatsApp, para que el problema de las cuentas partidas no llegue
-a nacer. Ver `docs/decisiones_canales.md`, sección final.
+a nacer. Ver `docs/decision_records/vinculacion_canales.md`, sección 2.
 
 Cada unidad es una sesión, un branch y un PR. No se empiezan dos a la vez.
 
@@ -39,6 +39,12 @@ sesión un documento contra el cual chequearse. Escrito después, es arqueologí
 handler stub; 6b implementa el flujo. El worker es el camino caliente: si algo
 sale mal, hay que poder saber en cuál de las dos.
 
+**Punto de partida de 4.** Hoy `SESSION_COOKIE_AGE` y `SESSION_SAVE_EVERY_REQUEST`
+no existen en `config/settings.py` — la sesión deslizante está decidida
+(`vinculacion_canales.md`, sección 7.3) y sin construir. Y `LOGIN_URL` apunta a
+`/admin/login/` (`settings.py:89-91`), asumido en el propio archivo como
+break-glass de B1: es un formulario que ningún usuario del bot puede usar.
+
 **7 va al final.** Cambia el formato de la cola. En medio de las otras, cualquier
 bug de feature se confunde con un bug de serialización.
 
@@ -55,9 +61,18 @@ existe.
   ~21 hallazgos reales (`F401`, `E402`). Ver `docs/trampas.md`.
 - **`User.telegram_id` y `telegram_username`** vivos sin consumidor. El docstring
   de la migración `0005` afirma que `auth.py` usa `telegram_id` como `sub` del
-  JWT; ya no es cierto.
-- **`help_text` de `ChannelIdentity.external_id`** todavía dice `wa_id`. Cambiarlo
-  genera un `AlterField`.
+  JWT; ya no es cierto (`services/auth.py:18` usa `user_id`). Además
+  `telegram_id` conserva `unique=True` (`models.py:18-24`), que es superficie de
+  colisión en un merge de cuentas — ver `vinculacion_canales.md`, sección 2.2.
+- **`help_text` de `ChannelIdentity.external_id`** todavía dice `wa_id`
+  (`models.py:320`), cuando la clave canónica de WhatsApp es el LID — el
+  docstring del mismo modelo (`:288-296`) y `vinculacion_canales.md` sección 3.1
+  ya lo dicen bien. Cambiarlo genera un `AlterField`.
+- **`process_telegram_message`** sigue normalizando payloads crudos
+  (`apps/bot/worker.py:113+`). Es el alias deprecado para jobs encolados antes
+  del deploy de la Fase 5 y la única excepción viva a "el worker nunca ve un
+  payload crudo" (`vinculacion_canales.md`, sección 4). Se remueve cuando no
+  queden jobs viejos en vuelo.
 - **`black.target-version = py311`** mientras el repo corre 3.12. Inocuo: con
   py311 black no emite sintaxis exclusiva de 3.12.
 - **`multichannel_refactor.md:215`** cita la firma vieja `Sender.reply(external_user_id,

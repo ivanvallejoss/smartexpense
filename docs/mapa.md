@@ -31,9 +31,9 @@ backend/
   tests/          espeja la estructura de backend/
 docs/
   decision_records/   ADRs — registros fechados, no se reescriben
+    vinculacion_canales.md   canales, identidad, grants y acceso web
   mapa.md             este archivo
   trampas.md          trampas conocidas del entorno
-  decisiones_canales.md   decisiones cerradas de canales e identidad
   plan_unidades.md    plan de trabajo en curso
 ```
 
