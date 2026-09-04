@@ -25,6 +25,7 @@ Cada unidad es una sesión, un branch y un PR. No se empiezan dos a la vez.
 | 6a | Fork en el worker: política por canal, estado pendiente, buffer del 1er mensaje | pendiente | 5 |
 | 6b | Handler de onboarding: botones, canje, rate limit | pendiente | 6a |
 | 7 | Serializador JSON de ARQ + drenaje de cola | pendiente | — |
+|
 
 0 y 1b son independientes entre sí y del resto.
 
