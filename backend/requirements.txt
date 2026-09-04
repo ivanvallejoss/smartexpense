@@ -3,9 +3,6 @@ Django==5.2.0
 psycopg2-binary==2.9.11
 django-environ==0.11.2
 
-# Auth (JWT del magic link — services/auth.py)
-PyJWT==2.10.1
-
 # Telegram bot
 python-telegram-bot==20.7
 

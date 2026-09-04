@@ -102,3 +102,34 @@ RANGO_LABELS = {
     "6m": "Últimos 6 meses",
     "12m": "Últimos 12 meses",
 }
+
+
+# ---------------------------------------------------------------
+#   GRANTS DE UN SOLO USO (services/auth.py)
+# ---------------------------------------------------------------
+
+
+# Los propósitos son cerrados: un grant emitido para uno no se canjea en el
+# otro. El motivo es de entropía — seis dígitos alcanzan para vincular un canal
+# pero son débiles como credencial web, y con el propósito abierto la entropía
+# efectiva del sistema quedaría fijada por su transporte más pobre.
+# Ver docs/decision_records/vinculacion_canales.md, sección 5.2.
+PURPOSE_WEB_ACCESS = "web_access"
+PURPOSE_CHANNEL_LINK = "channel_link"
+
+# TTL en segundos, por propósito. Es el parámetro de seguridad del grant: mide
+# la ventana de ataque de un código robado.
+#
+# El invariante que ata este número al de onboarding es TTL(estado) >= TTL(grant)
+# (sección 6 del ADR): si el estado conversacional muere primero, el usuario
+# vuelve con un código todavía válido, el bot ya no recuerda que lo esperaba y
+# lo parsea como gasto.
+GRANT_TTL = {
+    PURPOSE_WEB_ACCESS: 900,
+    PURPOSE_CHANNEL_LINK: 600,
+}
+
+# Longitud del código de channel_link. Vive acá y no en un f-string suelto
+# porque el padding a esta misma longitud es parte del contrato: un código que
+# a veces mide cinco dígitos es un bug de UX y una fuga de entropía.
+CHANNEL_LINK_DIGITS = 6

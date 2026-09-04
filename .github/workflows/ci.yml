@@ -61,7 +61,6 @@ jobs:
 
     env:
       SECRET_KEY: "ci-secret-key-not-used-in-production"
-      JWT_SECRET_KEY: "ci-jwt-secret-key-not-used-in-production"
       TELEGRAM_BOT_TOKEN: "0000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       TELEGRAM_WEBHOOK_TOKEN: "ci-webhook-token"
       DATABASE_URL: "postgresql://ci_user:ci_password@localhost:5432/ci_db"

@@ -7,8 +7,13 @@ Cada `purpose` mapea a una database distinta para aislamiento operacional.
 Databases:
     0 - jobs:  Cola de ARQ (mensajes de Telegram entrantes)
     1 - state: Estado de conversación del bot (cat_state:{channel}:{external_user_id})
-    2 - cache: Idempotencia de webhooks (idempotency:{channel}:{message_id}) 
+    2 - cache: Idempotencia de webhooks (idempotency:{channel}:{message_id})
                 y rate limiting fuutro
+    3 - auth:  Grants de un solo uso (grant:{purpose}:{token})
+
+`auth` está separada de `cache` a propósito: son datos con criticidad distinta.
+Perder la db de cache cuesta un mensaje duplicado; perder la de auth invalida
+sesiones en curso. Aislarlas permite tratarlas distinto en un flush.
 """
 import logging
 
@@ -25,6 +30,7 @@ _DATABASES = {
     "jobs": 0,
     "state": 1,
     "cache": 2,
+    "auth": 3,
 }
 
 
