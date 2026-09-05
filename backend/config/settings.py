@@ -84,9 +84,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Break-glass de B1: hasta que exista el puente magic-link -> sesion, el login
-# web es el del admin. Documentado en el runbook, no se construye nada.
-LOGIN_URL = "/admin/login/"
+LOGIN_URL = "/pedir-acceso/"
+
+# Sesion deslizante. SAVE_EVERY_REQUEST es lo que hace que el reloj mida
+# inactividad y no antiguedad: sin el, a quien usa el dashboard todos los dias
+# se le corta la sesion cada tres dias igual.
+#
+# Esta expiracion es la unica senal de revocacion que existe. No hay contrasena
+# que cambiar ni credencial que rotar, asi que el unico modo de que un acceso
+# deje de valer es que caduque por falta de uso.
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 3  # 3 dias
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

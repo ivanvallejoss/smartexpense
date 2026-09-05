@@ -68,7 +68,7 @@ def datos(ivan):
 def test_anonimo_redirige_al_login(client):
     respuesta = client.get("/dashboard/")
     assert respuesta.status_code == 302
-    assert respuesta["Location"] == "/admin/login/?next=/dashboard/"
+    assert respuesta["Location"] == "/pedir-acceso/?next=/dashboard/"
 
 
 def test_balance_es_el_del_mes_en_curso(client_logueado, datos, monto):
