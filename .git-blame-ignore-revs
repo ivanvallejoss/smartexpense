@@ -7,6 +7,11 @@
 #
 # Para agregar uno: el commit tiene que ser exclusivamente de formato.
 # Si toca logica, no va aca.
-
+#
+# El PR que introduce un commit de formato NO se squashea: el squash produce un
+# SHA nuevo y el original deja de existir en main, con lo que git blame ignoraria
+# un commit inexistente en silencio. Si por error se squashea, el SHA que va aca
+# es el del commit resultante.
+#
 # style: aplicar black e isort a backend/ (57 archivos, mas known_first_party)
 5b6b8953cd9e3c078edb5800d1b62f117170f40c

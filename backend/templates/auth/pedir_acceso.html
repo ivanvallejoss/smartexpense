@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Pedir acceso · SmartExpense{% endblock %}
+
+{% block content %}
+  <h1 class="titulo-vista">Pedir acceso</h1>
+
+  {# No hay formulario porque no hay nada que la web pueda hacer: el unico
+     emisor de links es el bot. Sin contrasena, sin OAuth, sin registro web. #}
+  <section class="acceso" aria-label="Como conseguir un link">
+    <p>El acceso al dashboard se pide desde el chat.</p>
+    <p>Mandale <code>/link</code> al bot y te devuelve un link de un solo uso.</p>
+    <p>Los links vencen a los 15 minutos. Si el tuyo ya no anda, pedi otro.</p>
+  </section>
+{% endblock %}

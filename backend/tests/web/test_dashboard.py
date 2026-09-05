@@ -65,10 +65,10 @@ def datos(ivan):
     return {"comida": comida, "transporte": transporte, "desde_mes": desde_mes}
 
 
-def test_anonimo_redirige_al_login(client):
+def test_anonimo_no_accede_al_dashboard(client):
     respuesta = client.get("/dashboard/")
     assert respuesta.status_code == 302
-    assert respuesta["Location"] == "/admin/login/?next=/dashboard/"
+    assert respuesta["Location"] == "/pedir-acceso/?next=/dashboard/"
 
 
 def test_balance_es_el_del_mes_en_curso(client_logueado, datos, monto):
