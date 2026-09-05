@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar · SmartExpense{% endblock %}
+
+{% block content %}
+  <h1 class="titulo-vista">Entrar</h1>
+
+  {# El canje vive en el POST y no en este GET: Telegram y WhatsApp prefetchean
+     cualquier link para armar la preview, y el crawler consumiria el grant
+     antes que la persona. Ver docs/trampas.md. #}
+  <section class="acceso" aria-label="Confirmar el acceso">
+    <p>Confirma para entrar a tu dashboard.</p>
+    <p>El link se usa una sola vez: despues de entrar deja de servir.</p>
+
+    <form method="post" action="">
+      {% csrf_token %}
+      <button type="submit">Entrar</button>
+    </form>
+  </section>
+{% endblock %}

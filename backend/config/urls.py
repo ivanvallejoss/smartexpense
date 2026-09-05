@@ -16,6 +16,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("bot/", include("apps.bot.urls")),
     path("dashboard/", include("apps.web.urls")),
+    # A nivel raiz: entrar y pedir acceso se visitan sin sesion, que es lo que
+    # el prefijo /dashboard/ no admite.
+    path("", include("apps.web.auth_urls")),
 ]
 
 # on DEBUG we serve the media through django statics
